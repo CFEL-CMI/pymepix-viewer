@@ -13,6 +13,10 @@ from .packetprocessor import PacketProcessor
 from .filestorage import FileStorage
 from .processing.centroiding import TimepixCentroid
 import os
+
+class JobQueueManager(multiprocessing.SyncManager):
+    pass
+
 class TimePixAcq(object):
 
 
@@ -40,7 +44,7 @@ class TimePixAcq(object):
             self.onEvent(value)
 
 
-    def __init__(self,ip_port,device_num=0,master_mode=True):
+    def __init__(self,ip_port,device_num=0,master_mode=True,remote=None):
         self._spidr = SPIDRController(ip_port)
 
         self._device = self._spidr[device_num]
@@ -54,6 +58,8 @@ class TimePixAcq(object):
 
         self._file_path = ""
         self._file_prefix = "test_"
+
+        self._manager = None
 
     def setupAcq(self):
         self._data_queue = multiprocessing.Queue()
@@ -95,8 +101,13 @@ class TimePixAcq(object):
             b.daemon=True
             b.start()
 
-        
-
+        if remote is not None:
+            JobQueueManager.register('get_event_q', callable=lambda: self._event_queue)
+            JobQueueManager.register('get_result_q', callable=lambda: self._data_queue)
+            JobQueueManager.register('get_file_q', callable=lambda: self._file_queue)
+            self._manager = JobQueueManager(address=('', remote[0]), authkey=remote[1])
+            self._manager.start()
+            print ('Server started at port %s' % port)
     def startupDevice(self):
 
         if self._master_mode:
