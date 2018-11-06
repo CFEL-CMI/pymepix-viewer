@@ -7,6 +7,11 @@ import numpy as np
 
 class BlobView(QtGui.QWidget,Ui_Form):
 
+
+
+
+
+
     def __init__(self,parent=None,start=None,end=None):
         super(BlobView, self).__init__(parent)
 
@@ -37,6 +42,8 @@ class BlobView(QtGui.QWidget,Ui_Form):
         self.blob_trend_check.stateChanged.connect(self.onTrendCheck)
         self.histo_binning.valueChanged[int].connect(self.onHistBinChange)
 
+        self._is_zero = True
+        self.clearTrend()
         self._histogram = None
     def getFilter(self,tof):
         
@@ -116,7 +123,7 @@ class BlobView(QtGui.QWidget,Ui_Form):
 
         avg_blobs = np.sum(counts)/total_triggers
 
-        self.rec_blobs.setText(str(int(avg_blobs)))
+        self.rec_blobs.setText('{:2f}'.format(avg_blobs))
         
         self.int_blobs.setText(str(self._int_blob_count))
 
@@ -136,14 +143,21 @@ class BlobView(QtGui.QWidget,Ui_Form):
         
     
     def updateTrend(self,trigger,avg_blobs):
-        last_trigger = self._blob_trend_trigger[-1]
-        if trigger < last_trigger or (trigger-last_trigger)>10000:
-            self._blob_trend[...]=0.0
-            self._blob_trend_trigger[:] = trigger
+        
+        sorter = np.argsort(self._blob_trend_trigger)
+        self._blob_trend_trigger = self._blob_trend_trigger[sorter]
+        self._blob_trend = self._blob_trend[sorter]
         self._blob_trend = np.roll(self._blob_trend,-1)
+
+
+
         self._blob_trend_trigger = np.roll(self._blob_trend_trigger,-1)
         self._blob_trend[-1] = avg_blobs
         self._blob_trend_trigger[-1]= trigger
+        if self._is_zero:
+            self._blob_trend[...] = avg_blobs
+            self._blob_trend_trigger[...]=trigger
+            self._is_zero = False
         self._blob_trend_data.setData(x=self._blob_trend_trigger,y=self._blob_trend)
 
 
@@ -164,6 +178,11 @@ class BlobView(QtGui.QWidget,Ui_Form):
         self._int_blob_count = 0
         self._histogram = None
         self.plotData()
+    
+    def clearTrend(self):
+        self._blob_trend[...] = 0
+        self._blob_trend_trigger[...] = 0
+        self._is_zero = True
 
 
 def main():

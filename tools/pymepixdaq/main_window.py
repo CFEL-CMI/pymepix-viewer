@@ -12,7 +12,7 @@ class PymepixDAQ(QtGui.QMainWindow):
     displayNow = QtCore.pyqtSignal()
     newEvent = QtCore.pyqtSignal(object)
     clearNow = QtCore.pyqtSignal()
-
+    clearTrends = QtCore.pyqtSignal()
 
     def __init__(self,parent=None):
         super(PymepixDAQ, self).__init__(parent)
@@ -36,6 +36,11 @@ class PymepixDAQ(QtGui.QMainWindow):
 
         self._timepix.startAcquisition()        
 
+    def clearAll(self):
+        self.clearNow.emit()
+        self.clearTrends.emit()
+
+
     def connectSignals(self):
         self._config_panel.updateRateChange.connect(self.onDisplayUpdate)
         self._config_panel.eventCountChange.connect(self.onEventCountUpdate)
@@ -49,10 +54,11 @@ class PymepixDAQ(QtGui.QMainWindow):
         self.displayNow.connect(self._overview_panel.plotData)
         self.newEvent.connect(self._overview_panel.onNewEvent)
         self.clearNow.connect(self._overview_panel.clearData)
+        self.clearTrends.connect(self._overview_panel.clearTrend)
         self._config_panel.startAcquisition.connect(self.startAcquisition)
         self._config_panel.stopAcquisition.connect(self.stopAcquisition)
 
-        self._config_panel.resetPlots.connect(self.clearNow.emit)
+        self._config_panel.resetPlots.connect(self.clearAll)
 
     def onDisplayUpdate(self,value):
         self._display_rate = value
@@ -91,7 +97,7 @@ class PymepixDAQ(QtGui.QMainWindow):
         self._timepix.filePrefix = prefixname
         self._timepix.eventWindowTime = exposure
 
-
+        self.clearTrends.emit()
         print('Do raw',do_raw,'Do_blob',do_blob)
         self._timepix.beginFileWrite(write_raw=do_raw,write_blob=do_blob,start_index=startindex)
 
@@ -110,6 +116,7 @@ class PymepixDAQ(QtGui.QMainWindow):
             self.displayNow.connect(blob_view.plotData)
             self.newEvent.connect(blob_view.onNewEvent)
             self.clearNow.connect(blob_view.clearData)
+            self.clearTrends.connect(blob_view.clearTrend)
             self.addDockWidget(QtCore.Qt.RightDockWidgetArea,dock_view)
 
 
