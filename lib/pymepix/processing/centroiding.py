@@ -249,11 +249,28 @@ def fitgaussian(x,y,tot):
 
 
 
+def main(n_threads,server_ip,server_port,authkey):
+    class ServerQueueManager(SyncManager):
+        pass
 
+    ServerQueueManager.register('get_event_q')
+    ServerQueueManager.register('get_result_q')
+    ServerQueueManager.register('get_file_q')  
 
+    manager = ServerQueueManager(address=(server_ip, server_port), authkey=authkey)
+    manager.connect()
 
+    print ('Client connected to %s:%s' % (server_ip, server_port))
+    evt_queue = manager.get_event_q()
+    res_queue = manager.get_result_q()
+    file_queue = manager.get_file_q()
 
-def main():
+    procs = [TimepixCentroid(evt_queue,view_queue=res_queue,file_queue=file_queue) for x in range (n_threads)]
+
+    for p in procs:
+        p.daemon=True
+        p.start()
+def oldmain():
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
     from sklearn.cluster import DBSCAN
@@ -421,4 +438,21 @@ def main():
         # plt.show()
 
 if __name__=="__main__":
-    main()
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Helper client for pixel clustering')
+    parser.add_argument("-n", "--num-threads",dest='num_threads',type=int, required=True)
+    parser.add_argument("-i", "--ip",dest='ip',type=str, required=True)
+    parser.add_argument("-p", "--port",dest='port',type=int, required=True)
+    parser.add_argument("-k", "--authkey",dest='authkey',type=str, required=True)
+
+    args = parser.parse_args()
+#   
+
+    main(args.n_threads,args.ip,args.port,args.authkey)
+    # print (args.num_threads)
+    # print(args.ip)
+    # print(args.port)
+    # print(args.authkey)
+
+
