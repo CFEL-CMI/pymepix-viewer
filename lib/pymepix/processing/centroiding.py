@@ -451,7 +451,7 @@ if __name__=="__main__":
     args = parser.parse_args()
 #   
 
-    main(args.n_threads,args.ip,args.port,args.authkey)
+    main(args.num_threads,args.ip,args.port,bytes(args.authkey,'utf-8'))
     # print (args.num_threads)
     # print(args.ip)
     # print(args.port)
