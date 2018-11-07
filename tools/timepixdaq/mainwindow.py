@@ -15,12 +15,17 @@ class MainWindow(QtGui.QMainWindow,Ui_MainWindow):
     newPixelData = QtCore.pyqtSignal(object)
     newTriggerData = QtCore.pyqtSignal(object)
     acquisitionStart = QtCore.pyqtSignal()
-    def __init__(self,parent=None):
+    def __init__(self,parent=None,port=None,authkey=None):
         super(MainWindow,self).__init__(parent)
         self.setupUi(self)
         self._viewer_widget = DataVisualizer(parent=self)
         self.setCentralWidget(self._viewer_widget)
-        self._timepix = TimePixAcq(('192.168.1.10',50000))
+
+        remote = None
+        if port is not None and authkey is not None:
+            remote = (port,authkey)
+
+        self._timepix = TimePixAcq(('192.168.1.10',50000),remote=remote)
 
         self._timepix.attachEventCallback(self.onNewTrigger)
         self.connectSignals()
@@ -53,8 +58,13 @@ class MainWindow(QtGui.QMainWindow,Ui_MainWindow):
         self._viewer_widget.stopAcqWrite.connect(self.stopWrite)
 def main():
     import sys
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Helper client for pixel clustering')
+    parser.add_argument("-p", "--port",dest='port',type=int, required=True,default=None)
+    parser.add_argument("-k", "--authkey",dest='authkey',type=str, required=True,default=None)
     app = QtGui.QApplication([])
-    daq = MainWindow()
+    daq = MainWindow(port=parser.port,authkey=parser.authkey)
     daq.show()
     app.exec_()
     daq._timepix.stopAcquisition()
