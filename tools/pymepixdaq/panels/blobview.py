@@ -144,9 +144,9 @@ class BlobView(QtGui.QWidget,Ui_Form):
     
     def updateTrend(self,trigger,avg_blobs):
         
-        sorter = np.argsort(self._blob_trend_trigger)
-        self._blob_trend_trigger = self._blob_trend_trigger[sorter]
-        self._blob_trend = self._blob_trend[sorter]
+        #sorter = np.argsort(self._blob_trend_trigger)
+        #self._blob_trend_trigger = self._blob_trend_trigger[sorter]
+        #self._blob_trend = self._blob_trend[sorter]
         self._blob_trend = np.roll(self._blob_trend,-1)
 
 

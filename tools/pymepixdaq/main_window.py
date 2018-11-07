@@ -28,13 +28,14 @@ class PymepixDAQ(QtGui.QMainWindow):
 
         remote = None
         if port is not None and authkey is not None:
-            remote = (port,authkey)
+            remote = [port,authkey]
 
         self.connectSignals()
         self.startupTimepix(remote)
     def startupTimepix(self,remote=None):
-
-        self._timepix = pymepix.TimePixAcq(('192.168.1.10',50000),remote)
+        
+        print(remote)
+        self._timepix = pymepix.TimePixAcq(('192.168.1.10',50000),remote=remote)
 
         self._timepix.attachEventCallback(self.onEvent)
 
