@@ -14,10 +14,14 @@ from .filestorage import FileStorage
 from .processing.centroiding import TimepixCentroid
 from multiprocessing.managers import SyncManager
 import os
-
+from functools import partial
 class JobQueueManager(SyncManager):
     pass
 
+
+def get_q(q):
+    return q
+    
 class TimePixAcq(object):
 
 
@@ -101,14 +105,18 @@ class TimePixAcq(object):
         for b in self._blob_processor:
             b.daemon=True
             b.start()
-
+        
+        evt_q = self._event_queue
+        d_q = self._data_queue
+        f_q = self._file_queue
+        
         if remote is not None:
-            JobQueueManager.register('get_event_q', callable=lambda: self._event_queue)
-            JobQueueManager.register('get_result_q', callable=lambda: self._data_queue)
-            JobQueueManager.register('get_file_q', callable=lambda: self._file_queue)
-            self._manager = JobQueueManager(address=('', remote[0]), authkey=remote[1])
+            JobQueueManager.register('get_event_q', callable=partial(get_q,evt_q))
+            JobQueueManager.register('get_result_q', callable=partial(get_q,d_q))
+            JobQueueManager.register('get_file_q', callable=partial(get_q,f_q))
+            self._manager = JobQueueManager(address=('', remote[0]), authkey=bytearray(remote[1],'utf-8'))
             self._manager.start()
-            print ('Server started at port %s' % port)
+            print ('Server started at port %s' % remote[0])
     def startupDevice(self):
 
         if self._master_mode:
@@ -618,7 +626,8 @@ class TimePixAcq(object):
         self._device.resetPixels()
     #
     def stopThreads(self):
-        pass
+        if self._manager is not None:
+            self._manager.shutdown()
         # self._packet_sampler.terminate()
         # self._packet_sampler.outputQueue.put(None)
         

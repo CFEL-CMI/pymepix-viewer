@@ -14,7 +14,7 @@ class PymepixDAQ(QtGui.QMainWindow):
     clearNow = QtCore.pyqtSignal()
     clearTrends = QtCore.pyqtSignal()
 
-    def __init__(self,parent=None):
+    def __init__(self,parent=None,port=None,authkey=None):
         super(PymepixDAQ, self).__init__(parent)
         self.setupWindow() 
 
@@ -26,11 +26,16 @@ class PymepixDAQ(QtGui.QMainWindow):
 
         self._last_update = 0
 
-        self.connectSignals()
-        self.startupTimepix()
-    def startupTimepix(self):
+        remote = None
+        if port is not None and authkey is not None:
+            remote = [port,authkey]
 
-        self._timepix = pymepix.TimePixAcq(('192.168.1.10',50000))
+        self.connectSignals()
+        self.startupTimepix(remote)
+    def startupTimepix(self,remote=None):
+        
+        print(remote)
+        self._timepix = pymepix.TimePixAcq(('192.168.1.10',50000),remote=remote)
 
         self._timepix.attachEventCallback(self.onEvent)
 
@@ -154,8 +159,14 @@ class PymepixDAQ(QtGui.QMainWindow):
 
 def main():
     import sys
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Helper client for pixel clustering')
+    parser.add_argument("-p", "--port",dest='port',type=int, default=None)
+    parser.add_argument("-k", "--authkey",dest='authkey',type=str, default=None)
     app = QtGui.QApplication([])
-    config = PymepixDAQ()
+    args = parser.parse_args()
+    config = PymepixDAQ(parent=None,port=args.port,authkey=args.authkey)
     config.show()
 
     app.exec_()
