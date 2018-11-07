@@ -55,7 +55,7 @@ class TimePixAcq(object):
 
         self.startupDevice()
         self.setupAcq()
-        self.startDaqThreads(remote)
+        self.startDaqThreads(remote=remote)
 
         self._file_path = ""
         self._file_prefix = "test_"
@@ -87,7 +87,7 @@ class TimePixAcq(object):
         self._data_thread.daemon = True
         self._data_thread.start()
 
-    def startDaqThreads(self,remote):
+    def startDaqThreads(self,remote=None):
         self._file_storage = FileStorage(self._file_queue,self._save_data)
         self._file_storage.daemon = True
         self._packet_sampler = PacketSampler(self._udp_address,self._shared_timer,self._shared_acq,file_queue=self._file_queue)
