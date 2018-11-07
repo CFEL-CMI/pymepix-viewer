@@ -61,8 +61,8 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(description='Helper client for pixel clustering')
-    parser.add_argument("-p", "--port",dest='port',type=int, required=True,default=None)
-    parser.add_argument("-k", "--authkey",dest='authkey',type=str, required=True,default=None)
+    parser.add_argument("-p", "--port",dest='port',type=int, default=None)
+    parser.add_argument("-k", "--authkey",dest='authkey',type=str, default=None)
     app = QtGui.QApplication([])
     daq = MainWindow(port=parser.port,authkey=parser.authkey)
     daq.show()
