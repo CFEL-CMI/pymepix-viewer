@@ -106,7 +106,7 @@ class TimePixAcq(object):
             JobQueueManager.register('get_event_q', callable=lambda: self._event_queue)
             JobQueueManager.register('get_result_q', callable=lambda: self._data_queue)
             JobQueueManager.register('get_file_q', callable=lambda: self._file_queue)
-            self._manager = JobQueueManager(address=('', remote[0]), authkey=remote[1])
+            self._manager = JobQueueManager(address=('', remote[0]), authkey=bytearray(remote[1],'utf-8'))
             self._manager.start()
             print ('Server started at port %s' % port)
     def startupDevice(self):
