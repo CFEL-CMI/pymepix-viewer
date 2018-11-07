@@ -12,9 +12,10 @@ from .packetsampler import PacketSampler
 from .packetprocessor import PacketProcessor
 from .filestorage import FileStorage
 from .processing.centroiding import TimepixCentroid
+from multiprocessing.managers import SyncManager
 import os
 
-class JobQueueManager(multiprocessing.SyncManager):
+class JobQueueManager(SyncManager):
     pass
 
 class TimePixAcq(object):

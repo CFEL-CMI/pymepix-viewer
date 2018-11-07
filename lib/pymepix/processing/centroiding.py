@@ -1,6 +1,7 @@
 import numpy as np
 import traceback
 import multiprocessing
+
 import time
 class TimepixCentroid(multiprocessing.Process):
     
@@ -250,6 +251,7 @@ def fitgaussian(x,y,tot):
 
 
 def main(n_threads,server_ip,server_port,authkey):
+    from multiprocessing.managers import SyncManager
     class ServerQueueManager(SyncManager):
         pass
 
