@@ -14,6 +14,9 @@ class FakePacket(object):
         self.openFile()
 
     def openFile(self):
+        import os
+
+        self._total_size = os.stat(self._filename).st_size
 
         self._file = open(self._filename,'rb')
         #Find longtime
@@ -41,29 +44,34 @@ class FakePacket(object):
 
 
     def run(self):
-
-        
-        buffer = self._file.read(8192*8192) # buffer size is 1024 bytes
+        chunk_size = 10000
+        self._read_bytes = 0
+        buffer = self._file.read(8192*chunk_size) # buffer size is 1024 bytes
         print(len(buffer)/8)
         while buffer:
+
+            self._read_bytes += len(buffer)
+            print('percent complete ',(self._read_bytes/self._total_size)*100)
+
             out_packet = None
 
             packet = np.frombuffer(buffer,dtype=np.uint64)
             #self._file_queue.put(('WRITE',raw_packet))
             header = ((packet & 0xF000000000000000) >> 60) & 0xF
             subheader = ((packet & 0x0F00000000000000) >> 56) & 0xF
-
             trigger_header = (header==0x4)|(header==0x6)
             lsb_time_filter =np.where(trigger_header & (subheader == 0x4))[0]
             msb_time_filter = np.where(trigger_header & (subheader == 0x5))[0]
             #print(msb_time_filter)
             start_index = 0
-
             if lsb_time_filter.size > 0 and msb_time_filter.size > 0:
-                
+                #print(min(lsb_time_filter.size,msb_time_filter.size))
                 for x in range(min(lsb_time_filter.size,msb_time_filter.size)):
+
                     
                     end_index = msb_time_filter[x]
+                    #print('Start',start_index,'End',end_index)
+                    #print('Index size: ',end_index-start_index)
                     _packet = packet[start_index:end_index]
                     self.upload_packet(_packet)
 
@@ -72,32 +80,36 @@ class FakePacket(object):
                     self._current_time = self.compute_new_time(lsb,msb)
                     start_index = end_index
                     #print(self._current_time*25E-9)
+                    
                     res= self.upload_packet(packet[start_index:])
-                    if out_packet is None:
-                        out_packet = res
-                    else:
-                        out_packet = np.append(out_packet,res)
+                    #print('Result length',res.size)
+                    if res is None: 
+                        continue
+                    if res.size > 0:
+                        yield res,self._current_time
+                    #print(x)
 
             else:
                 res = self.upload_packet(packet)
-                if out_packet is None:
-                    out_packet = res
-                else:
-                    out_packet = np.append(out_packet,res)            
+                if res.size > 0:
+                    yield res,self._current_time
         # self._output_queue.put(None)
-            if out_packet is not None:
-                yield res
-            buffer = self._file.read(8192*8192)
+            buffer = self._file.read(8192*chunk_size)
 
     def upload_packet(self,packet):
         #Get the header
         header = ((packet & 0xF000000000000000) >> 60) & 0xF
         subheader = ((packet & 0x0F00000000000000) >> 56) & 0xF
         pix_filter = (header ==0xA) |(header==0xB) 
+
+        if np.where(pix_filter)[0].size == 0:
+            return None
+
         trig_filter =  ((header==0x4)|(header==0x6) & (subheader == 0xF))
         tpx_filter = pix_filter | trig_filter
         tpx_packets = packet[tpx_filter]
-        #print(tpx_packets)
+        
+        #print('TPX',tpx_packets)
         return tpx_packets
 
     def compute_new_time(self,lsb,msb):
@@ -286,6 +298,7 @@ class PacketProcessor(object):
         self._append_time += time.time()-start
         self._append_count+=1
     def updateBuffers(self,val_filter):
+        
         self._col = self._col[val_filter]
         self._row = self._row[val_filter]
         self._toa = self._toa[val_filter]
@@ -303,7 +316,6 @@ class PacketProcessor(object):
 
         pixels = packet[np.logical_or(header ==0xA,header==0xB)]
         triggers = packet[np.logical_and(np.logical_or(header==0x4,header==0x6),subheader == 0xF)]
-
         if pixels.size > 0:
             self.process_pixels(pixels,longtime)
         if triggers.size > 0:
@@ -321,8 +333,9 @@ class PacketProcessor(object):
         # diff = np.where(diff > 20.0)[0]
         # if diff.size > 0:
         #     self._triggers = self._triggers[diff[0]:]
+        #print(self._triggers)
         self._triggers = self._triggers[np.argmin(self._triggers):]
-        
+        #print(self._triggers)
     def find_events_fast(self):
         if self._triggers is None:
             return None
@@ -348,14 +361,17 @@ class PacketProcessor(object):
 
         # end = self._triggers[1:-1:]
         #Get the first and last triggers in pile
-        first_trigger = start[0]
-        last_trigger = start[-1]
+        first_trigger = self._triggers[0]
+        last_trigger = self._triggers[-1]
+        #print(first_trigger,last_trigger)
         #Delete useless pixels beyond the trigger
+
         self.updateBuffers(self._toa  >= first_trigger)
         #grab only pixels we care about
         x,y,toa,tot = self.getBuffers(self._toa < last_trigger)
-        self.updateBuffers(self._toa  < last_trigger)
 
+
+        self.updateBuffers(self._toa  >= last_trigger)
         #print('toa min/max',toa.min(),toa.max())
         #Delete them from the rest of the array
         #self.updateBuffers(self._toa >= last_trigger)
@@ -363,26 +379,30 @@ class PacketProcessor(object):
         #evt_filter = (toa[None,:] >= start[:,None]) & (toa[None,:] < end[:,None])
 
         #Get the mapping
+        start = np.sort(start)
         try:
             event_mapping = np.digitize(toa,start)-1
         except Exception as e:
             print(str(e))
             print(toa)
             print(start)
+            print(start[np.argmin(start)],start[np.argmax(start)],start[start.size-1])
+            
             raise
         event_triggers = self._triggers[:-1:]   
+        #print('BEFORE',self._triggers)
         self._triggers = self._triggers[-1:]
-
+        #print('AFTER',self._triggers)
         self._find_event_time+= time.time() - start_time
         self._find_event_count+=1
         #print('Trigger delta',triggers,np.ediff1d(triggers))
 
         tof = toa-event_triggers[event_mapping]
         event_number = trigger_counter[event_mapping]
-
+        #print(tof)
         if self._exposure_time is not None:
             exposure_time = self._exposure_time
-
+            #print('EXP:',exposure_time)
             exp_filter = tof <= exposure_time
 
             return event_number[exp_filter],x[exp_filter],y[exp_filter],tof[exp_filter],tot[exp_filter]
@@ -392,21 +412,36 @@ class PacketProcessor(object):
     def run(self,data,longtime):
         #print('GOT DATA')
         events = self.process_packets(data,longtime)
-
-        if events is not None and self._output_queue is not None:
-            return events
+        #print('N events',events[0].size)
+        if events is not None:
+            yield events
         else:
             return None
 
 class TimepixCentroid(object):
 
     def __init__(self):
-        pass
+        self._cluster_time = 0
+        self._property_time = 0
+        self._cluster_calls = 0
+        self._property_calls = 0
     def compute_blob(self,shot,x,y,tof,tot):
+        import matplotlib.pyplot as plt
         start = time.time()
-        labels = self.find_cluster(shot,x,y,tof,tot,epsilon=2,min_samples=5)
+        tot_min = 128
 
-        label_filter = labels!=0
+
+
+
+        shot = shot[tot>tot_min]
+        x=x[tot>tot_min]
+        y=y[tot>tot_min]
+        tof=tof[tot>tot_min]
+        tot=tot[tot>tot_min]
+        labels = self.find_cluster(shot,x,y,tof,tot,epsilon=2,min_samples=6)
+        self._cluster_time +=time.time()-start
+        self._cluster_calls+=1
+        label_filter = (labels!=0)
         if labels is None:
             return None
         if labels[label_filter ].size ==0:
@@ -414,6 +449,17 @@ class TimepixCentroid(object):
         else:
             start = time.time()
             props = self.cluster_properties(shot[label_filter ],x[label_filter ],y[label_filter ],tof[label_filter ],tot[label_filter ],labels[label_filter ])
+            self._property_time += time.time()-start
+            self._property_calls += 1
+            #print(props[0])
+            time_range = props[0].max()-props[0].min()
+            print('time_range=',time_range*0.001)
+            print('blobs=',props[0].size)
+            print('blobs/trigger=',props[0].size/time_range)
+            avg_cluster_time = (self._cluster_time/self._cluster_calls)
+            print('CLUSTER TIME: {} s Calls {} Avg Time {} s Rate {} Hz'.format(self._cluster_time,self._cluster_calls,avg_cluster_time,1.0/avg_cluster_time))
+            print('PROPERTY TIME: {} s Calls {} Avg Time {} s Rate {} Hz'.format(self._property_time,self._property_calls,self._property_time/self._property_calls,self._property_calls/self._property_time))
+
             return props
 
 
@@ -471,7 +517,8 @@ class TimepixCentroid(object):
         cluster_integral = np.ndarray(shape=(total_objects,),dtype=np.float64)
         cluster_tof = np.ndarray(shape=(total_objects,),dtype=np.float64)
         
-
+        self._object_idx = 0
+        self._actual_object_size = 0
         for idx in range(total_objects):
 
 
@@ -483,21 +530,28 @@ class TimepixCentroid(object):
             obj_tof = tof[obj_slice]
             obj_tot = tot[obj_slice]
             max_tot = np.argmax(obj_tot)
-
-            cluster_tof[idx] = obj_tof[max_tot]
             
+            
+            if obj_x.size < 2:
+                print(obj_x.size,'REMOVED')
+                continue
 
 
             x_bar,y_bar,area,integral,evals,evecs = self.moments_com(obj_x,obj_y,obj_tot)
-            cluster_x[idx] = x_bar
-            cluster_y[idx] = y_bar
-            cluster_area[idx] = area
-            cluster_integral[idx] = integral
-            cluster_eig[idx]=evals
-            cluster_vect[idx] = evecs
-            cluster_shot[idx] = obj_shot[0]
 
+            
 
+            cluster_tof[self._object_idx] = obj_tof[max_tot]
+
+            cluster_x[self._object_idx] = x_bar
+            cluster_y[self._object_idx] = y_bar
+            cluster_area[self._object_idx] = area
+            cluster_integral[self._object_idx] = integral
+            cluster_eig[self._object_idx]=evals
+            cluster_vect[self._object_idx] = evecs
+            cluster_shot[self._object_idx] = obj_shot[0]
+
+            self._object_idx += 1
 
             # moment = moments(obj_x,obj_y,obj_tot)
             # moments_com(obj_x,obj_y,obj_tot)
@@ -513,7 +567,7 @@ class TimepixCentroid(object):
 
             #print('Moment ', moment,' Gaussian ',gauss)
 
-        return cluster_shot,cluster_x,cluster_y,cluster_area,cluster_integral,cluster_eig,cluster_vect,cluster_tof    
+        return cluster_shot[:self._object_idx],cluster_x[:self._object_idx],cluster_y[:self._object_idx],cluster_area[:self._object_idx],cluster_integral[:self._object_idx],cluster_eig[:self._object_idx],cluster_vect[:self._object_idx],cluster_tof[:self._object_idx]    
 
     
     def run(self,events):
@@ -521,15 +575,54 @@ class TimepixCentroid(object):
 
         return blob_data
 
+def write_blobs(filename,x,y,area,integ,tof):
+    print('Beginning save')
+    import scipy.io as io
+
+    io.savemat(filename,{'x':x,'y':y,'tof':tof,'area':area,'integral':integ},appendmat=True)
+
+    print('Done!')
 
 
-def compute_blobs(filename,exposure):
+
+
+
+
+def compute_blobs(filename,exposure,output_filename):
     packet = FakePacket(filename)
     event = PacketProcessor(exposure)
     blob = TimepixCentroid()
 
-    for p in packet.run():
-        print(p)
+    cluster_shot = None
+    cluster_x = None
+    cluster_y = None
+    cluster_area = None
+    cluster_integral = None
+    cluster_tof = None
+    print('computing blobs')
+    for data,longtime in packet.run():
+        #print('Converting')
+        for evt in event.run(data,longtime):
+            #print('Blobbing')
+            blobs = blob.run(evt)
+            if blobs is not None:
+                if cluster_shot is None:
+                    cluster_shot = blobs[0]
+                    cluster_x = blobs[1]
+                    cluster_y = blobs[2]
+                    cluster_area = blobs[3]
+                    cluster_integral = blobs[4]
+                    cluster_tof = blobs[7]
+                else:
+                    cluster_shot=np.append(cluster_shot,blobs[0])
+                    cluster_x=np.append(cluster_x,blobs[1])
+                    cluster_y=np.append(cluster_y,blobs[2])
+                    cluster_area=np.append(cluster_area,blobs[3])
+                    cluster_integral=np.append(cluster_integral,blobs[4])
+                    cluster_tof=np.append(cluster_tof,blobs[7])
+
+
+    write_blobs(output_filename,cluster_x,cluster_y,cluster_area,cluster_integral,cluster_tof)
 
 
 def main():
@@ -537,11 +630,12 @@ def main():
 
     parser = argparse.ArgumentParser(description='Helper client for pixel clustering')
     parser.add_argument("-f", "--filename",dest='filename',type=str, required=True)
+    parser.add_argument("-o", "--output",dest='output_filename',type=str, required=True)
     parser.add_argument("-e", "--exposure",dest='exposure',default=10.0,type=float)
 
     args = parser.parse_args()
 
-    compute_blobs(args.filename,args.exposure)
+    compute_blobs(args.filename,args.exposure,args.output_filename)
 
 
 if __name__=="__main__":
