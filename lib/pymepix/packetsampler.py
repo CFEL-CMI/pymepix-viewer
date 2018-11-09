@@ -16,7 +16,7 @@ class PacketSampler(multiprocessing.Process):
         self._packets_collected = 0
         self._output_queue = Queue()
 
-        self._max_bytes = 16384*1000
+        self._max_bytes = 16384*2000
         self._flush_timeout = 0.3
         self._packet_buffer = None
 
