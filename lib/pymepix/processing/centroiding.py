@@ -54,6 +54,16 @@ class TimepixCentroid(multiprocessing.Process):
         print('Blob time: {} '.format(self._blob_time))
     def compute_blob(self,shot,x,y,tof,tot):
         start = time.time()
+
+        tot_min = 128
+        shot = shot[tot>tot_min]
+        x=x[tot>tot_min]
+        y=y[tot>tot_min]
+        tof=tof[tot>tot_min]
+        tot=tot[tot>tot_min]
+
+
+
         labels = self.find_cluster(shot,x,y,tof,tot,epsilon=2,min_samples=5)
         self._search_time += time.time() - start
         label_filter = labels!=0
