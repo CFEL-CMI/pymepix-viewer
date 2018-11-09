@@ -35,7 +35,7 @@ class TimePixAcq(object):
             self._file_queue.put(('WRITE',to_write))
             to_write = 0x6500000000000000 | (self._timer_msb & 0xFFFFF) << 16
             self._file_queue.put(('WRITE',to_write))                
-
+            time.sleep(1.0)
             while self._pause and self._run_timer:
                 time.sleep(1.0)
                 continue
