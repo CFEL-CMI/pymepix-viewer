@@ -1282,7 +1282,7 @@ class PacketProcessor(multiprocessing.Process):
         self.updateBuffers(self._toa  >= first_trigger)
         #grab only pixels we care about
         x,y,toa,tot = self.getBuffers(self._toa < last_trigger)
-        self.updateBuffers(self._toa  < last_trigger)
+        self.updateBuffers(self._toa  >= last_trigger)
 
         #print('toa min/max',toa.min(),toa.max())
         #Delete them from the rest of the array
