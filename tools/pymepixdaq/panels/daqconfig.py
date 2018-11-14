@@ -5,6 +5,7 @@ from .ui.daqconfigui import Ui_Form
 import threading
 from threading import Thread
 import time
+import math
 class RepeatFunction(Thread):
     """Call a function after a specified number of seconds:
 
@@ -52,12 +53,24 @@ class DaqConfigPanel(QtGui.QWidget,Ui_Form):
         if self.acq_time.text() != "":
             time_val = float(self.acq_time.text())
             if time_val != -1:
-                time.sleep(time_val)
+                start = time.time()
+                while time.time() - start < time_val and self._in_acq:
+                    time.sleep(0.5)
 
         tot_time = time.time()-start
         print('ENDING, time taken {}s or {} minutes'.format(tot_time,tot_time/60.0))
         self.endAcquisition()
 
+
+    def updateTimer(self):
+        if self._in_acq:
+            seconds = self._elapsed_time.elapsed()/1000
+            m, s = divmod(seconds, 60)
+            h, m = divmod(m, 60)
+
+            self.elapsed_time_s.display(int(round(s)))
+            self.elapsed_time_m.display(int(round(m)))
+            self.elapsed_time_h.display(h)
 
     def __init__(self,parent=None):
         super(DaqConfigPanel, self).__init__(parent)
@@ -72,6 +85,12 @@ class DaqConfigPanel(QtGui.QWidget,Ui_Form):
 
         self._repeating_thread = None
 
+        self._in_acq = False
+
+        self._elapsed_time_thread = QtCore.QTimer()
+        self._elapsed_time = QtCore.QElapsedTimer()
+        self._elapsed_time_thread.timeout.connect(self.updateTimer)
+        self._elapsed_time_thread.start(1000)
 
     def setupLines(self):
         self.event_count.setValidator(QtGui.QIntValidator(self))
@@ -123,7 +142,8 @@ class DaqConfigPanel(QtGui.QWidget,Ui_Form):
         repeats = int(self.repeat_value.text())
         self._repeating_thread = RepeatFunction(repeats,self.run_acquisition,(self.path_name.text(),self.file_prefix.text(),raw_checked,blob_checked,exposure,start_index,))
         self._repeating_thread.start()
-
+        self._elapsed_time.restart()
+        self._in_acq = True
         # self.startAcquisition.emit(self.path_name.text(),self.file_prefix.text(),raw_checked,blob_checked,exposure)
         # self.text_status.setText('Acquiring.....')
 
@@ -137,6 +157,7 @@ class DaqConfigPanel(QtGui.QWidget,Ui_Form):
     def endAcquisition(self):
         self.stopAcquisition.emit()
         self.text_status.setText('Live')
+        self._in_acq = False
 
     def endAcqClicked(self):
         self.endAcquisition()
