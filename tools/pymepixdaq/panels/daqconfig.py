@@ -48,11 +48,14 @@ class DaqConfigPanel(QtGui.QWidget,Ui_Form):
         self.startAcquisition.emit(path_name,prefix,raw_checked,blob_checked,exposure,startindex)
         self.text_status.setText('Acquiring.....')        
         print('STARTING')
+        start = time.time()
         if self.acq_time.text() != "":
-            time_val = int(self.acq_time.text())
+            time_val = float(self.acq_time.text())
             if time_val != -1:
                 time.sleep(time_val)
-        print('ENDING')
+
+        tot_time = time.time()-start
+        print('ENDING, time taken {}s or {} minutes'.format(tot_time,tot_time/60.0))
         self.endAcquisition()
 
 
