@@ -45,7 +45,7 @@ class DaqConfigPanel(QtGui.QWidget,Ui_Form):
 
 
     def run_acquisition(self,path_name,prefix,raw_checked,blob_checked,exposure,startindex):
-
+        self._in_acq = True
         self.startAcquisition.emit(path_name,prefix,raw_checked,blob_checked,exposure,startindex)
         self.text_status.setText('Acquiring.....')        
         print('STARTING')
@@ -140,10 +140,11 @@ class DaqConfigPanel(QtGui.QWidget,Ui_Form):
             self._repeating_thread.cancel()
             self._repeating_thread = None
         repeats = int(self.repeat_value.text())
+        
         self._repeating_thread = RepeatFunction(repeats,self.run_acquisition,(self.path_name.text(),self.file_prefix.text(),raw_checked,blob_checked,exposure,start_index,))
         self._repeating_thread.start()
         self._elapsed_time.restart()
-        self._in_acq = True
+        
         # self.startAcquisition.emit(self.path_name.text(),self.file_prefix.text(),raw_checked,blob_checked,exposure)
         # self.text_status.setText('Acquiring.....')
 
@@ -158,7 +159,7 @@ class DaqConfigPanel(QtGui.QWidget,Ui_Form):
         self.stopAcquisition.emit()
         self.text_status.setText('Live')
         self._in_acq = False
-
+        self._elapsed_time.restart()
     def endAcqClicked(self):
         self.endAcquisition()
         if self._repeating_thread is not None:
