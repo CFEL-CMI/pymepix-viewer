@@ -108,11 +108,11 @@ class TimepixCentroid(multiprocessing.Process):
         if shot.size == 0:
             return None
         #print(shot.size)
-        tof_eps = 81920*(25./4096)*1E-9/5.0
+        #tof_eps = 81920*(25./4096)*1E-9/5.0
 
 
-        tof_scale = epsilon/tof_eps
-        X = np.vstack((shot*epsilon*1000,x,y,tof*tof_scale)).transpose()
+        #tof_scale = epsilon/tof_eps
+        X = np.vstack((shot*epsilon*1000,x,y)).transpose()
         dist= DBSCAN(eps=epsilon, min_samples=min_samples,metric='euclidean',n_jobs=1).fit(X)
         labels = dist.labels_ + 1
         return labels
