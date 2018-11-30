@@ -56,11 +56,17 @@ class TimepixCentroid(multiprocessing.Process):
         start = time.time()
 
         tot_min = 128
+        tof_min = 2.6e-6
         shot = shot[tot>tot_min]
         x=x[tot>tot_min]
         y=y[tot>tot_min]
         tof=tof[tot>tot_min]
         tot=tot[tot>tot_min]
+        shot = shot[tof>tof_min]
+        x=x[tof>tof_min]
+        y=y[tof>tof_min]        
+        tot=tot[tof>tof_min]
+        tof=tof[tof>tof_min]
 
 
 
