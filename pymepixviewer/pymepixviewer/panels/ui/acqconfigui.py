@@ -163,7 +163,8 @@ class Ui_Form(object):
         self.label_6.setText(_translate("Form", "Path"))
         self.openpath.setText(_translate("Form", "Open"))
         self.label_7.setText(_translate("Form", "Prefix:"))
-        self.file_prefix.setText(_translate("Form", "test_"))
+        import time
+        self.file_prefix.setText(_translate("Form", time.strftime("%Y%m%d-%H%M%S_test")))
         self.label_14.setText(_translate("Form", "Index"))
         self.label_5.setText(_translate("Form", "Storage:"))
         self.write_raw.setText(_translate("Form", "Raw"))
