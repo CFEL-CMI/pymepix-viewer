@@ -37,9 +37,9 @@ packages = find_packages(exclude=('tests', 'doc'))
 provides = ['pymepixviewer',]
 
 
-requires = [ 'pymepix','pyqtgraph']
+requires = [ 'pymepix','pyqtgraph', 'h5py']
 
-install_requires = ['pymepix','pyqtgraph','numpy']
+install_requires = ['pymepix','pyqtgraph','numpy','h5py']
 
 
 
