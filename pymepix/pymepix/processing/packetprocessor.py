@@ -129,6 +129,7 @@ class PacketProcessor(BasePipelineObject):
             self.process_pixels(pixels, longtime)
 
         if triggers.size > 0:
+            #print('triggers', triggers, longtime)
             self.process_triggers(triggers, longtime)
 
         if self._handle_events:
@@ -242,7 +243,7 @@ class PacketProcessor(BasePipelineObject):
         m_trigTime = tdc_time
 
         self.pushOutput(MessageType.TriggerData, m_trigTime)
-        # print(m_trigTime)
+        # print(f'mtirgtime: {m_trigTime}')
         if self._handle_events:
             if self._triggers is None:
                 self._triggers = m_trigTime

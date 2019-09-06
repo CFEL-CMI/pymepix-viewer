@@ -21,13 +21,13 @@
 ##############################################################################
 
 import numpy as np
-from .SPIDR.spidrdevice import SpidrDevice
-from .SPIDR.error import PymePixException
-from .timepixdef import *
-from .config import TimepixConfig, SophyConfig, DefaultConfig
+from pymepix.SPIDR.spidrdevice import SpidrDevice
+from pymepix.SPIDR.error import PymePixException
+from pymepix.timepixdef import *
+from pymepix.config import TimepixConfig, SophyConfig, DefaultConfig
 # from .config.sophyconfig import SophyConfig
-from .core.log import Logger
-from .processing.acquisition import PixelPipeline
+from pymepix.core.log import Logger
+from pymepix.processing.acquisition import PixelPipeline
 from multiprocessing.sharedctypes import Value
 import time
 import threading

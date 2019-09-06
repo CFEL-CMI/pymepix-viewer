@@ -22,10 +22,9 @@
 
 """Main module for pymepix"""
 
-import numpy as np
+from .core.log import Logger
 from .SPIDR.spidrcontroller import SPIDRController
 from .SPIDR.spidrdefs import SpidrReadoutSpeed
-from pymepix.core.log import Logger
 from .timepixdevice import TimepixDevice
 from multiprocessing import Queue
 from collections import deque
@@ -169,6 +168,7 @@ class Pymepix(Logger):
 
     @dataCallback.setter
     def dataCallback(self, value):
+        print(value)
         self._event_callback = value
         self.warning('Clearing polling buffer')
         self._poll_buffer.clear()
@@ -267,7 +267,7 @@ class Pymepix(Logger):
         return self._timepix_devices[num]
 
 
-def main():
+def main(argv):
     import logging
     from .processing.datatypes import MessageType
     from .processing import CentroidPipeline
@@ -302,6 +302,7 @@ def main():
     # Switch to TOF mode if set
     if args.decode and args.tof:
         pymepix[0].acquisition.enableEvents = True
+    pymepix[0].acquisition.enableEvents = True
 
     # Set the bias voltage
     pymepix.biasVoltage = args.bias

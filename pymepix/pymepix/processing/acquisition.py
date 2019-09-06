@@ -33,10 +33,6 @@ class PixelPipeline(AcquisitionPipeline):
     
         A pipeline that will read from a UDP address and decode the pixels a useable form.
         This class can be used as a base for all acqusition pipelines.
-
-
-
-    
     """
 
     def __init__(self, data_queue, address, longtime, use_event=False, name='Pixel'):

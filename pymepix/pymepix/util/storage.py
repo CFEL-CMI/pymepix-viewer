@@ -26,6 +26,7 @@ import h5py
 
 
 def open_output_file(filename, ext, index=0):
+    import time
     import os, logging
     file_format = '{}_{:06d}.{}'
     raw_filename = file_format.format(filename, index, ext)
@@ -34,7 +35,9 @@ def open_output_file(filename, ext, index=0):
         raw_filename = file_format.format(filename, index, ext)
     logging.info('Opening output file {}'.format(filename))
 
-    return open(raw_filename, 'wb')
+    f = open(raw_filename, 'wb')
+    store_raw(f, (np.uint64(time.time_ns()), 1))
+    return f
 
 
 def store_raw(f, data):
