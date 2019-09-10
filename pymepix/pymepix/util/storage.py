@@ -36,7 +36,8 @@ def open_output_file(filename, ext, index=0):
     logging.info('Opening output file {}'.format(filename))
 
     f = open(raw_filename, 'wb')
-    store_raw(f, (np.uint64(time.time_ns()), 1))
+    if ext == 'raw':
+        store_raw(f, (np.uint64(time.time_ns()), 1))
     return f
 
 
@@ -52,7 +53,6 @@ def store_toa(f, data):
     np.save(f, y)
     np.save(f, toa)
     np.save(f, tot)
-    #with h5py
 
 
 def store_tof(f, data):
@@ -73,3 +73,10 @@ def store_centroid(f, data):
     np.save(f, cluster_y)
     np.save(f, cluster_tof)
     np.save(f, cluster_tot)
+
+def store_flashID(f, data):
+    id, sec, usec = data
+    print('FlashID saver')
+    np.save(f, id)
+    np.save(f, sec)
+    np.save(f, usec)

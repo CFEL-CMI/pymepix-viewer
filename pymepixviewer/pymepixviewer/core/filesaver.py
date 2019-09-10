@@ -21,7 +21,7 @@
 ##############################################################################
 
 from pyqtgraph.Qt import QtCore, QtGui
-from pymepix.util.storage import open_output_file, store_raw, store_toa, store_tof, store_centroid
+from pymepix.util.storage import open_output_file, store_raw, store_toa, store_tof, store_centroid, store_flashID
 from pymepix.processing import MessageType
 import numpy as np
 import logging
@@ -38,9 +38,10 @@ class FileSaver(QtCore.QThread):
         self._blob_file = None
         self._tof_file = None
         self._toa_file = None
+        self._flashID_file = None
         self._index = 0
 
-    def openFiles(self, filename, index, raw, toa, tof, blob):
+    def openFiles(self, filename, index, raw, toa, tof, blob, flashid):
         self._index = index
         if raw:
             self.openRaw(filename)
@@ -50,6 +51,8 @@ class FileSaver(QtCore.QThread):
             self.openTof(filename)
         if blob:
             self.openBlob(filename)
+        if flashid:
+            self.openFlashID(filename)
 
     def openRaw(self, filename):
         if self._raw_file is not None:
@@ -79,6 +82,12 @@ class FileSaver(QtCore.QThread):
         self._blob_y = []
         self._blob_tof = []
         self._blob_tot = []
+
+    def openFlashID(self, filename):
+        if self._flashID_file is not None:
+            self._flashID_file.close()
+        logger.info(f'Opening FlashID file: {filename}')
+        self._flashID_file = open_output_file(filename, 'flashid', index=self._index)
 
     def setIndex(self, index):
         self._index = index
@@ -119,6 +128,11 @@ class FileSaver(QtCore.QThread):
             if len(self._blob_shot) > 1000:
                 store_centroid(self._blob_file, self.convertBlobs())
 
+    def onFlashID(self, data):
+        if self._flashID_file is not None:
+            store_flashID(self._flashID_file, data)
+
+
     def closeFiles(self):
         if self._raw_file is not None:
             logger.info('Closing raw file')
@@ -138,3 +152,7 @@ class FileSaver(QtCore.QThread):
             logger.info('Closing toa file')
             self._toa_file.close()
             self._toa_file = None
+        if self._flashID_file is not None:
+            logger.info('Closing FlashID file')
+            self._flashID_file.close()
+            self._flashID_file = None

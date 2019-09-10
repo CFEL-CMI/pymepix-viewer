@@ -26,6 +26,7 @@ from .baseacquisition import AcquisitionPipeline
 from .packetprocessor import PacketProcessor
 from .centroiding import Centroiding
 from .udpsampler import UdpSampler
+from .flashid import FlashIDListener
 
 
 class PixelPipeline(AcquisitionPipeline):
@@ -43,6 +44,7 @@ class PixelPipeline(AcquisitionPipeline):
 
         self.addStage(0, UdpSampler, address, longtime)
         self.addStage(2, PacketProcessor)
+        self.addStage(5, FlashIDListener)
         self._reconfigureProcessor()
 
     def _reconfigureProcessor(self):

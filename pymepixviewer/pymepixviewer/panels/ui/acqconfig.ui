@@ -215,6 +215,17 @@
          </layout>
         </item>
         <item>
+           <widget class="QCheckBox" name="write_flashId">
+            <property name="text">
+             <string>BunchID</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+
+        <item>
          <layout class="QHBoxLayout" name="horizontalLayout_6">
           <item>
            <widget class="QLabel" name="label_8">

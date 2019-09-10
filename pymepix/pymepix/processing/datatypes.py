@@ -40,3 +40,5 @@ class MessageType(IntEnum):
     """Open File message"""
     CloseFileCommand = 5
     """Close File Message"""
+    FlashData = 7
+    """Bunch Id from Flash"""
