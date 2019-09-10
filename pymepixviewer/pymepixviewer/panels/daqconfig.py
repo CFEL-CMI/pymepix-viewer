@@ -78,10 +78,10 @@ class DaqConfigPanel(QtGui.QWidget, Ui_Form):
     #             time.sleep(time_val)
     #     print('ENDING')
     #     self.endAcquisition()
-    def run_acquisition(self, acq_time, filename, index, raw, toa, tof, blob):
+    def run_acquisition(self, acq_time, filename, index, raw, toa, tof, blob, flash):
         try:
             self._in_acq = True
-            self._filesaver.openFiles(filename, index, raw, toa, tof, blob)
+            self._filesaver.openFiles(filename, index, raw, toa, tof, blob, flash)
             self.text_status.setText('Acquiring.....')
             logger.info('Starting Acquisition')
             start = time.time()
@@ -157,9 +157,9 @@ class DaqConfigPanel(QtGui.QWidget, Ui_Form):
         pixels_checked = bool(acq.write_pixels.isChecked())
         tof_checked = bool(acq.write_tof.isChecked())
         blob_checked = bool(acq.write_blob.isChecked())
+        flashID_checked = bool(acq.write_flashID.isChecked())
 
-        logger.info('File settings: raw:{} toa:{} tof:{} blob:{}'.format(raw_checked, pixels_checked, tof_checked,
-                                                                         blob_checked))
+        logger.info(f'File settings: raw:{raw_checked} toa:{pixels_checked} tof:{tof_checked} blob:{blob_checked} flash:{flashID_checked}')
 
         acq_time = float(acq.acq_time.text())
         logger.info('Acq time is {} s'.format(acq_time))
@@ -167,7 +167,7 @@ class DaqConfigPanel(QtGui.QWidget, Ui_Form):
         repeats = int(acq.repeat_value.value())
         logger.info('Will repeat this {} times'.format(repeats))
 
-        return filename, index, raw_checked, pixels_checked, tof_checked, blob_checked, acq_time, repeats
+        return filename, index, raw_checked, pixels_checked, tof_checked, blob_checked, flashID_checked, acq_time, repeats
 
     def updateTimer(self):
         if self._in_acq:
@@ -181,7 +181,7 @@ class DaqConfigPanel(QtGui.QWidget, Ui_Form):
 
     def startAcqClicked(self):
 
-        filename, index, raw, toa, tof, blob, acq_time, repeats = self._collectAcquisitionSettings()
+        filename, index, raw, toa, tof, blob, flash, acq_time, repeats = self._collectAcquisitionSettings()
 
         if self._repeating_thread is not None:
             self._repeating_thread.cancel()
@@ -189,7 +189,7 @@ class DaqConfigPanel(QtGui.QWidget, Ui_Form):
 
         logger.info('Staring acquisition thread')
         self._repeating_thread = RepeatFunction(repeats, self.run_acquisition,
-                                                (acq_time, filename, index, raw, toa, tof, blob,))
+                                                (acq_time, filename, index, raw, toa, tof, blob, flash))
         self._repeating_thread.start()
         self._elapsed_time.restart()
 

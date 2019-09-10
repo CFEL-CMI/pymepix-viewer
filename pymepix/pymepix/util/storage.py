@@ -74,9 +74,14 @@ def store_centroid(f, data):
     np.save(f, cluster_tof)
     np.save(f, cluster_tot)
 
+import struct
 def store_flashID(f, data):
     id, sec, usec = data
-    print('FlashID saver')
-    np.save(f, id)
-    np.save(f, sec)
-    np.save(f, usec)
+
+    binData = struct.pack('<IIH', id, sec, usec)
+    f.write(binData)
+    #np.fromfile('test.bin', dtype=[('id', '<u4'), ('sec', '<u4'), ('usec', '<u2')])
+    #np.save(f, id)
+    #np.save(f, sec)
+    #np.save(f, usec)
+

@@ -26,11 +26,11 @@ import pyqtgraph as pg
 import numpy as np
 import time
 from pyqtgraph.Qt import QtCore, QtGui
-from .panels.timeofflight import TimeOfFlightPanel
-from .panels.daqconfig import DaqConfigPanel
-from .panels.blobview import BlobView
-from .ui.mainui import Ui_MainWindow
-from .core.datatypes import ViewerMode
+from pymepixviewer.panels.timeofflight import TimeOfFlightPanel
+from pymepixviewer.panels.daqconfig import DaqConfigPanel
+from pymepixviewer.panels.blobview import BlobView
+from pymepixviewer.ui.mainui import Ui_MainWindow
+from pymepixviewer.core.datatypes import ViewerMode
 import logging
 
 logger = logging.getLogger(__name__)
@@ -42,6 +42,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
     onPixelToA = QtCore.pyqtSignal(object)
     onPixelToF = QtCore.pyqtSignal(object)
     onCentroid = QtCore.pyqtSignal(object)
+    onFlashID  = QtCore.pyqtSignal(object)
     clearNow = QtCore.pyqtSignal()
     modeChange = QtCore.pyqtSignal(object)
 
@@ -117,6 +118,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
     def closeTimepix(self):
         self._timepix.stop()
+
 
     def setFineThreshold(self, value):
         self._timepix[0].Vthreshold_fine = value
@@ -195,6 +197,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         self.onPixelToA.connect(self._config_panel.fileSaver.onToa)
         self.onPixelToF.connect(self._config_panel.fileSaver.onTof)
         self.onCentroid.connect(self._config_panel.fileSaver.onCentroid)
+        self.onFlashID.connect(self._config_panel.fileSaver.onFlashID)
 
     def onBiasVoltageUpdate(self, value):
         logger.info('Bias Voltage changed to {} V'.format(value))
@@ -274,6 +277,9 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         elif data_type is MessageType.CentroidData:
             logger.debug('CENTROID: {}'.format(event))
             self.onCentroid.emit(event)
+        elif data_type is MessageType.FlashData:
+            logger.debug(f'Flash bunch ID {event}')
+            self.onFlashID.emit(event)
 
         # if data_type in (MessageType.PixelData,):
         #     self.displayNow.emit()
@@ -364,7 +370,6 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
 
 def main():
-    import sys
     import logging
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     app = QtGui.QApplication([])
