@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'pymepixviewer/ui/main.ui'
+# Form implementation generated from reading ui file 'main.ui'
 #
 # Created by: PyQt5 UI code generator 5.9.2
 #
@@ -16,7 +16,7 @@ class Ui_MainWindow(object):
         self.centralwidget.setObjectName("centralwidget")
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 22))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 20))
         self.menubar.setObjectName("menubar")
         self.menuFile = QtWidgets.QMenu(self.menubar)
         self.menuFile.setObjectName("menuFile")
@@ -28,7 +28,12 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
         self.actionSophy_spx = QtWidgets.QAction(MainWindow)
         self.actionSophy_spx.setObjectName("actionSophy_spx")
+        self.actionLoad_Hotpixel_Mask = QtWidgets.QAction(MainWindow)
+        self.actionLoad_Hotpixel_Mask.setObjectName("actionLoad_Hotpixel_Mask")
+        self.actionHot_Pixel_Mask = QtWidgets.QAction(MainWindow)
+        self.actionHot_Pixel_Mask.setObjectName("actionHot_Pixel_Mask")
         self.menuLoad_Setting.addAction(self.actionSophy_spx)
+        self.menuLoad_Setting.addAction(self.actionHot_Pixel_Mask)
         self.menuFile.addAction(self.menuLoad_Setting.menuAction())
         self.menubar.addAction(self.menuFile.menuAction())
 
@@ -41,4 +46,6 @@ class Ui_MainWindow(object):
         self.menuFile.setTitle(_translate("MainWindow", "File"))
         self.menuLoad_Setting.setTitle(_translate("MainWindow", "Load Setting"))
         self.actionSophy_spx.setText(_translate("MainWindow", "SoPhy file"))
+        self.actionLoad_Hotpixel_Mask.setText(_translate("MainWindow", "Load Hotpixel Mask"))
+        self.actionHot_Pixel_Mask.setText(_translate("MainWindow", "Hot Pixel Mask"))
 

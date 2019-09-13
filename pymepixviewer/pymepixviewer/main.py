@@ -155,7 +155,8 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         self._timepix[0].acquisition.samples = samples
 
     def connectSignals(self):
-        self.actionSophy_spx.triggered.connect(self.getfile)
+        self.actionSophy_spx.triggered.connect(self.getSophyFile)
+        self.actionLoad_Hotpixel_Mask.triggered.connect(self.getPixelMaskfile)
         self._config_panel.viewtab.updateRateChange.connect(self.onDisplayUpdate)
         self._config_panel.viewtab.eventCountChange.connect(self.onEventCountUpdate)
         self._config_panel.viewtab.frameTimeChange.connect(self.onFrameTimeUpdate)
@@ -317,7 +318,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
             self.modeChange.connect(blob_view.modeChange)
             self.addDockWidget(QtCore.Qt.RightDockWidgetArea, dock_view)
 
-    def getfile(self):
+    def getSophyFile(self):
         fname = QtGui.QFileDialog.getOpenFileName(self, 'Open file',
                                                   '/home', "SoPhy File (*.spx)")
         logger.debug(fname)
@@ -337,6 +338,29 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
         self.coarseThresholdUpdate.emit(self._timepix[0].Vthreshold_coarse)
         self.fineThresholdUpdate.emit(self._timepix[0].Vthreshold_fine)
+
+        self._timepix.start()
+
+        self.clearNow.emit()
+
+    def getPixelMaskfile(self):
+        fname = QtGui.QFileDialog.getOpenFileName(self, 'Open file',
+                                                  '/home', "Hot Pixel Mask (*.npy)")
+        logger.debug(fname)
+
+        if fname[0] == "":
+            return
+
+        self._timepix.stop()
+
+        try:
+            self._timepix[0].pixelMask = np.load(fname)
+            # self._timepix[0].pixelMask[:128] = 1
+            self._timepix[0].uploadPixels()
+        except FileNotFoundError:
+            QtGui.QMessageBox.warning(None, 'File not found',
+                                      'File with name {} not found'.format(fname[0]),
+                                      QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok);
 
         self._timepix.start()
 

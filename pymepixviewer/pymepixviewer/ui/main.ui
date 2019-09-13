@@ -20,7 +20,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>22</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -32,6 +32,7 @@
       <string>Load Setting</string>
      </property>
      <addaction name="actionSophy_spx"/>
+     <addaction name="actionHot_Pixel_Mask"/>
     </widget>
     <addaction name="menuLoad_Setting"/>
    </widget>
@@ -41,6 +42,16 @@
   <action name="actionSophy_spx">
    <property name="text">
     <string>SoPhy file</string>
+   </property>
+  </action>
+  <action name="actionLoad_Hotpixel_Mask">
+   <property name="text">
+    <string>Load Hotpixel Mask</string>
+   </property>
+  </action>
+  <action name="actionHot_Pixel_Mask">
+   <property name="text">
+    <string>Hot Pixel Mask</string>
    </property>
   </action>
  </widget>
