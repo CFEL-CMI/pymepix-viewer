@@ -60,7 +60,7 @@ class TimepixDevice(Logger):
             self._timer = (self._timer_msb & 0xFFFFFFFF) << 32 | (self._timer_lsb & 0xFFFFFFFF)
             self._longtime.value = self._timer
             self.debug(
-                'Reading heartbeat LSB: {} MSB: {} TIMER: {} '.format(self._timer_lsb, self._timer_msb, self._timer))
+                f'Reading heartbeat LSB: {self._timer_lsb} MSB: {self._timer_msb} TIMER: {self._timer} {self._timer*25e-9} ')
             time.sleep(1.0)
 
     def __init__(self, spidr_device, data_queue):
@@ -74,7 +74,7 @@ class TimepixDevice(Logger):
         self._device.reset()
         self._device.reinitDevice()
 
-        self._longtime = Value('I', 0)
+        self._longtime = Value('L', 0)
         self.setupAcquisition(PixelPipeline)
 
         self._initDACS()

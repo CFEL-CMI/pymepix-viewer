@@ -44,7 +44,7 @@ class FlashIDListener(EventListener, BasePipelineObject):
         #self.info("process FlashID")
         #print('flashidlistener', event)
         data = (event.id, event.time.tv_sec, event.time.tv_usec)
-        print(data)
+        #print(data)
         self.pushOutput(MessageType.FlashData, data)
         #return MessageType.FlashData, event
 
