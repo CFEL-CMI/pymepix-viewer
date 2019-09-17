@@ -21,10 +21,13 @@ class AbstractReaderImpl:
         self.notify = False
         self._listeners = []
         self._sock = None
+        self._signal = {"shutdown": False}
         self._thread = None
 
     def __del__(self):
         self._stop_receiving()
+        self._cleanup_the_socket()
+        self._cleanup_the_thread()
         print("All dead")
 
     def register_listener(self, listener):
@@ -36,6 +39,7 @@ class AbstractReaderImpl:
     def connect(self, host, port):
         """ Connects the socket to its remote """
         self._stop_receiving()
+        self._cleanup_the_socket()
         self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         # We would like to bind the local port also the destination
@@ -51,10 +55,14 @@ class AbstractReaderImpl:
         self._start_receiving()
         return True
 
-    def _receiving_proc(self):
+    def disconnect(self):
+        """Disconnects the socket"""
+        self._stop_receiving()
+
+    def _receiving_proc(self, signal):
         """The function doing all the socket processing"""
         timeout = 100
-        while self._sock is not None:
+        while not signal['shutdown']:
             try:
                 (r, w, e) = select.select([self._sock], [], [], timeout)
                 if self._sock in r:
@@ -68,10 +76,11 @@ class AbstractReaderImpl:
                         self._notify_listeners(event)
                     else:
                         self._notify_listeners_disconnect()
+
             except (socket.timeout, socket.error) as e:
                 print(f"Error in receive: {e}")
-                break  # leave the look
-        self._stop_receiving()
+                break  # leave the loop
+        self._cleanup_the_socket()
         print("Receiving thread is dead!")
 
     # TODO: needs implementation
@@ -95,20 +104,27 @@ class AbstractReaderImpl:
     # TODO: figure out how to start the thread
     def _start_receiving(self):
         """Start the receiving thread/co-routine"""
-        self._thread = Thread(target=self._receiving_proc, name='ReceiverThread')
+        self._cleanup_the_thread()
+        self._signal['shutdown'] = False
+        self._thread = Thread(target=self._receiving_proc, name='ReceiverThread', args=(self._signal,))
+#        self._thread = Thread(target=self._receiving_proc, name='ReceiverThread')
         return self._thread.start()
 
     def _stop_receiving(self):
         """Stop the receiving thread and close the socket"""
+        self._signal['shutdown'] = True
+
+    def _cleanup_the_socket(self):
         if self._sock is not None:
             print("Stopping receive...")
             self._sock.close()
             self._sock = None
+
+    def _cleanup_the_thread(self):
         if self._thread is not None:
             print(" > waiting for thread to die...")
-            self._thread.join()
+            self._thread.join(100)
             print(" > thread is dead")
-            self._thread = None
 
 
     # TODO: this is sequential, problematic if one listener blocks or needs longer

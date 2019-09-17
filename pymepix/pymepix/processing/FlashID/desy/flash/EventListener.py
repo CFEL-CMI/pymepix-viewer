@@ -4,7 +4,7 @@
     :license: GPL v3, see http://www.gnu.org/licenses/
 """
 
-from pymepix.processing.FlashID.desy.flash.EventInfo import EventInfo
+from pymepix.processing.FlashID.desy.flash import EventInfo
 
 
 class EventListener:

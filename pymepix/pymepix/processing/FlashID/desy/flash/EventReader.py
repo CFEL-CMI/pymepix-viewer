@@ -59,6 +59,10 @@ class EventReader(Borg):
         """
         self.__impl.connect(host, port)
 
+    def disconnect(self):
+        """ Disconnect the reciving thread """
+        self.__impl.disconnect();
+
     def enable_notifications(self, enable = True):
         """Enables/disable the notification mechanism"""
         self.__impl.notify = enable

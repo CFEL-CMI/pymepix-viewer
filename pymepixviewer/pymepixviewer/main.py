@@ -156,7 +156,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
     def connectSignals(self):
         self.actionSophy_spx.triggered.connect(self.getSophyFile)
-        self.actionLoad_Hotpixel_Mask.triggered.connect(self.getPixelMaskfile)
+        self.actionHot_Pixel_Mask.triggered.connect(self.getHotPixelMaskFile)
         self._config_panel.viewtab.updateRateChange.connect(self.onDisplayUpdate)
         self._config_panel.viewtab.eventCountChange.connect(self.onEventCountUpdate)
         self._config_panel.viewtab.frameTimeChange.connect(self.onFrameTimeUpdate)
@@ -343,7 +343,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
         self.clearNow.emit()
 
-    def getPixelMaskfile(self):
+    def getHotPixelMaskFile(self):
         fname = QtGui.QFileDialog.getOpenFileName(self, 'Open file',
                                                   '/home', "Hot Pixel Mask (*.npy)")
         logger.debug(fname)
@@ -354,7 +354,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         self._timepix.stop()
 
         try:
-            self._timepix[0].pixelMask = np.load(fname)
+            self._timepix[0].pixelMask = np.load(fname[0])
             # self._timepix[0].pixelMask[:128] = 1
             self._timepix[0].uploadPixels()
         except FileNotFoundError:

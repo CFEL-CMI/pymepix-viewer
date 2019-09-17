@@ -125,11 +125,23 @@ class PacketProcessor(BasePipelineObject):
         pixels = packet[np.logical_or(header == 0xA, header == 0xB)]
         triggers = packet[np.logical_and(np.logical_or(header == 0x4, header == 0x6), subheader == 0xF)]
 
+        """
+        timingInformation = packet[np.logical_and(np.logical_or(header == 0x4, header == 0x6), np.logical_or(subheader == 0x4, subheader == 0x5))]
+        if timingInformation.size > 0:
+            for data in timingInformation:
+                header = ((packet & 0xF000000000000000) >> 60) & 0xF
+                subheader = ((packet & 0x0F00000000000000) >> 56) & 0xF
+                if header == 0x4 and subheader == 0x4: # LSB
+                    0x00FFFFFFFF00
+                elif header == 0x4 and subheader == 0x5: # MSB
+        """
+
+
         if pixels.size > 0:
             self.process_pixels(pixels, longtime)
 
         if triggers.size > 0:
-            #print('triggers', triggers, longtime)
+            # print('triggers', triggers, longtime)
             self.process_triggers(triggers, longtime)
 
         if self._handle_events:
@@ -241,6 +253,7 @@ class PacketProcessor(BasePipelineObject):
         tdc_time = (coarsetime * 25E-9 + trigtime_fine * time_unit * 1E-9)
 
         m_trigTime = tdc_time
+        #self.info(f'Trigger time {np.diff(tdc_time)}')
 
         self.pushOutput(MessageType.TriggerData, m_trigTime)
         # print(f'mtirgtime: {m_trigTime}')
@@ -280,9 +293,9 @@ class PacketProcessor(BasePipelineObject):
         # print('TOA before global',((spidr_time << 14) |ToA)*25*1E-9)
 
         ToA_coarse = self.correct_global_time((spidr_time << 14) | ToA, longtime) & 0xFFFFFFFFFFFF
-        # print('TOA after global',ToA_coarse*25*1E-9,longtime)
+        # print('TOA after global', ToA_coarse*25*1E-9, longtime)
         globalToA = (ToA_coarse << 12) - (FToA << 8)
-        # print('TOA after FTOa',globalToA*time_unit*1E-9)
+        # print('TOA after FTOa', globalToA*time_unit*1E-9)
         globalToA += ((col // 2) % 16) << 8
         globalToA[((col // 2) % 16) == 0] += (16 << 8)
 
@@ -298,7 +311,7 @@ class PacketProcessor(BasePipelineObject):
 
         self.pushOutput(MessageType.PixelData, (x, y, finalToA, ToT))
 
-        # print('PIXEL',finalToA,longtime)
+        # print('PIXEL', finalToA, longtime)
         if self._handle_events:
             if self._x is None:
                 self._x = x

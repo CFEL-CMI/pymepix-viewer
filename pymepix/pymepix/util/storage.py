@@ -53,6 +53,26 @@ def store_toa(f, data):
     np.save(f, y)
     np.save(f, toa)
     np.save(f, tot)
+    '''
+    f = open('test.toa', 'rb')
+    x = []
+    y = []
+    toa = []
+    tot = []
+    with open(fName, 'rb') as f:
+        while True:
+            try:
+                x.append(np.load(f))
+                y.append(np.load(f))
+                toa.append(np.load(f))
+                tot.append(np.load(f))
+            except:
+                break
+    x   = np.concatenate(x)
+    y   = np.concatenate(y)
+    toa = np.concatenate(toa)
+    tot = np.concatenate(tot)
+    '''
 
 
 def store_tof(f, data):

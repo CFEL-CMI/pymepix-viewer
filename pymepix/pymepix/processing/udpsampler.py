@@ -110,7 +110,9 @@ class UdpSampler(BasePipelineObject):
             self._packet_buffer = None
             self._last_update = time.time()
             if packet.size > 0:
+                #self.info(f'{self._longtime.value}, {self._longtime.value*25e-9}')
                 return MessageType.RawData, (packet, self._longtime.value)
+
             else:
                 return None, None
         else:
