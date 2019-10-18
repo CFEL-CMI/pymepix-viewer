@@ -138,11 +138,11 @@ class PacketProcessor(BasePipelineObject):
 
 
         if pixels.size > 0:
-            self.process_pixels(pixels, longtime)
+            self.process_pixels(np.int64(pixels), longtime)
 
         if triggers.size > 0:
             # print('triggers', triggers, longtime)
-            self.process_triggers(triggers, longtime)
+            self.process_triggers(np.int64(triggers), longtime)
 
         if self._handle_events:
 
