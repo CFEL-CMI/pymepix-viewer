@@ -97,8 +97,9 @@ class Pymepix(Logger):
 
         self._data_queue = Queue()
         self._createTimepix()
-        self._spidr.setBiasSupplyEnable(True)
-        self.biasVoltage = 50
+        # TODO: for version testing commented
+        #self._spidr.setBiasSupplyEnable(True)
+        #self.biasVoltage = 50
         self.enablePolling()
         self._data_thread = threading.Thread(target=self.data_thread)
         self._data_thread.daemon = True
@@ -205,7 +206,8 @@ class Pymepix(Logger):
         TdcEnable = 0x0000
         self._spidr.setSpidrReg(0x2B8, TdcEnable)
         self._spidr.enableDecoders(True)
-        self._spidr.datadrivenReadout()
+        # TODO: for version testing
+        #self._spidr.datadrivenReadout()
 
     def start(self):
         """Starts acquisition"""
@@ -220,7 +222,8 @@ class Pymepix(Logger):
 
         for t in self._timepix_devices:
             self.info('Setting up {}'.format(t.deviceName))
-            t.setupDevice()
+            # TODO: for verion testing commented
+            #t.setupDevice()
         self._spidr.restartTimers()
         self._spidr.openShutter()
         for t in self._timepix_devices:
@@ -306,6 +309,13 @@ def main(argv):
 
     # Set the bias voltage
     pymepix.biasVoltage = args.bias
+
+    # load hot pixel mask
+    import numpy as np
+    print('upload pixel mask')
+    pixelMask = np.load('/Users/brombh/PycharmProjects/timepix/analysis/H06HotPixelMask.npy')
+    pymepix[0].pixelMask = pixelMask
+    pymepix[0].uploadPixels()
 
     ext = 'raw'
     if args.decode:

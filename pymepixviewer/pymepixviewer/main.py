@@ -103,11 +103,10 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         logging.getLogger('pymepix').setLevel(logging.INFO)
 
         self._timepix[0].setupAcquisition(pymepix.processing.CentroidPipeline)
-        # self._timepix.
         self._timepix.dataCallback = self.onData
-        self._timepix[0].pixelThreshold = np.zeros(shape=(256, 256), dtype=np.uint8)
-        self._timepix[0].pixelMask = np.zeros(shape=(256, 256), dtype=np.uint8)
-        self._timepix[0].uploadPixels()
+        #self._timepix[0].pixelThreshold = np.zeros(shape=(256, 256), dtype=np.uint8)
+        #self._timepix[0].pixelMask = np.zeros(shape=(256, 256), dtype=np.uint8)
+        #self._timepix[0].uploadPixels()
 
         logger.info('Fine: {} Coarse: {}'.format(self._timepix[0].Vthreshold_fine, self._timepix[0].Vthreshold_coarse))
 

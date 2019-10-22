@@ -60,7 +60,7 @@ class TimepixDevice(Logger):
             self._timer = (self._timer_msb & 0xFFFFFFFF) << 32 | (self._timer_lsb & 0xFFFFFFFF)
             self._longtime.value = self._timer
             self.debug(
-                f'Reading heartbeat LSB: {self._timer_lsb} MSB: {self._timer_msb} TIMER: {self._timer} {self._timer*25e-9} ')
+                f'Reading heartbeat LSB: {self._timer_lsb} MSB: {self._timer_msb} TIMER: {self._timer} {self._timer * 25e-9} ')
             time.sleep(1.0)
 
     def __init__(self, spidr_device, data_queue):
@@ -71,13 +71,15 @@ class TimepixDevice(Logger):
         self._udp_address = (self._device.ipAddrDest, self._device.serverPort)
         self.info('UDP Address is {}:{}'.format(*self._udp_address))
         self._pixel_offset_coords = (0, 0)
-        self._device.reset()
-        self._device.reinitDevice()
+        # TODO: for version testing
+        #self._device.reset()
+        #self._device.reinitDevice()
 
         self._longtime = Value('L', 0)
         self.setupAcquisition(PixelPipeline)
 
-        self._initDACS()
+        # TODO: for version testing
+        # self._initDACS()
 
         self._event_callback = None
 
@@ -279,7 +281,6 @@ class TimepixDevice(Logger):
 
     def uploadPixels(self):
         """Uploads local pixel configuration to timepix"""
-
         self._device.uploadPixelConfig()
 
     def refreshPixels(self):
