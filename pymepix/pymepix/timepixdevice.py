@@ -118,8 +118,8 @@ class TimepixDevice(Logger):
 
         config = self._config_class(*args, **kwargs)
 
-        for code, value in config.dacCodes():
-            self.info('Setting DAC {},{}'.format(code, value))
+        for name, code, value in config.dacCodes():
+            self.info(f'Setting DAC {name}: {value}')
             self.setDac(code, value)
             # time.sleep(0.5)
 
@@ -136,7 +136,7 @@ class TimepixDevice(Logger):
     def setupDevice(self):
         """Sets up valid paramters for acquisition
 
-        This will be manual when other acqusiiton parameters are working
+        This will be manual when other acquisition parameters are working
 
         """
         self.debug('Setting up acqusition')

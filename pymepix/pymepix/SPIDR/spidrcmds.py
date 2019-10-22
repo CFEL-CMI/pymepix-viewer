@@ -28,7 +28,7 @@ class SpidrCmds(IntEnum):
     """A class that packages all the commands under a single name"""
     CMD_NOP                =0x000
 
-    #General: module
+    # General: module
     CMD_GET_SOFTWVERSION   =0x901
     CMD_GET_FIRMWVERSION   =0x902
 
@@ -46,7 +46,7 @@ class SpidrCmds(IntEnum):
     CMD_GET_BOARDID        =0x90E
     CMD_GET_CHIPBOARDID    =0x90F
 
-    #Configuration: devices
+    # Configuration: devices
     CMD_GET_DEVICEID       =0x110
     CMD_GET_DEVICEIDS      =0x111
     CMD_GET_IPADDR_SRC     =0x112
@@ -77,12 +77,12 @@ class SpidrCmds(IntEnum):
     CMD_BURN_EFUSE         =0x129
     ##endif
 
-    #Configuration: pixels
+    # Configuration: pixels
     CMD_SET_PIXCONF        =0x22A
     CMD_GET_PIXCONF        =0x22D
     CMD_RESET_PIXELS       =0x22E
 
-    #Configuration: devices (continued)
+    # Configuration: devices (continued)
     CMD_GET_TPPERIODPHASE  =0x330
     CMD_SET_TPPERIODPHASE  =0x331
     CMD_SET_TPNUMBER       =0x332
@@ -99,18 +99,18 @@ class SpidrCmds(IntEnum):
     CMD_GET_SLVSCONFIG     =0x33E
     CMD_SET_SLVSCONFIG     =0x33F
 
-    #Trigger
+    # Trigger
     CMD_GET_TRIGCONFIG     =0x440
     CMD_SET_TRIGCONFIG     =0x441
     CMD_AUTOTRIG_START     =0x442
     CMD_AUTOTRIG_STOP      =0x443
 
-    #Data-acquisition
+    # Data-acquisition
     CMD_SEQ_READOUT        =0x445
     CMD_DDRIVEN_READOUT    =0x446
     CMD_PAUSE_READOUT      =0x447
 
-    #Monitoring
+    # Monitoring
     CMD_GET_ADC            =0x548
     CMD_GET_REMOTETEMP     =0x549
     CMD_GET_LOCALTEMP      =0x54A
@@ -120,20 +120,20 @@ class SpidrCmds(IntEnum):
     CMD_GET_SPIDR_ADC      =0x54E
     CMD_GET_DVDD_NOW       =0x54F
 
-    #Configuration: timer
+    # Configuration: timer
     CMD_RESTART_TIMERS     =0x550
     CMD_RESET_TIMER        =0x551
     CMD_GET_TIMER          =0x552
     CMD_SET_TIMER          =0x553
 
-    #Trigger (continued)
+    # Trigger (continued)
     CMD_GET_SHUTTERSTART   =0x554
     CMD_GET_SHUTTEREND     =0x555
     CMD_GET_EXTSHUTTERCNTR =0x556
     CMD_GET_SHUTTERCNTR    =0x557
     CMD_RESET_COUNTERS     =0x558
 
-    #Configuration: devices (continued)
+    # Configuration: devices (continued)
     CMD_GET_PWRPULSECONFIG =0x55B
     CMD_SET_PWRPULSECONFIG =0x55C
     CMD_PWRPULSE_ENA       =0x55D
@@ -145,10 +145,10 @@ class SpidrCmds(IntEnum):
     CMD_SET_READOUTSPEED   =0x563
     CMD_GET_READOUTSPEED   =0x564
 
-    #Configuration: timer (continued)
+    # Configuration: timer (continued)
     CMD_T0_SYNC            =0x565
 
-    #Monitoring (continued)
+    # Monitoring (continued)
     CMD_GET_FPGATEMP       =0x568
     CMD_GET_FANSPEED       =0x569
     CMD_SET_FANSPEED       =0x56A
@@ -158,7 +158,7 @@ class SpidrCmds(IntEnum):
     CMD_GET_HUMIDITY       =0x56E
     CMD_GET_PRESSURE       =0x56F
 
-    #Configuration: non-volatile onboard storage
+    # Configuration: non-volatile onboard storage
     CMD_STORE_ADDRPORTS    =0x670
     CMD_STORE_DACS         =0x671
     CMD_STORE_REGISTERS    =0x672
@@ -177,7 +177,7 @@ class SpidrCmds(IntEnum):
     CMD_READ_FLASH         =0x67E
     CMD_WRITE_FLASH        =0x67F
 
-    #Other
+    # Other
     CMD_GET_GPIO           =0x780
     CMD_SET_GPIO           =0x781
     CMD_SET_GPIO_PIN       =0x782
@@ -186,12 +186,12 @@ class SpidrCmds(IntEnum):
     CMD_SET_CHIPBOARDID    =0x785
     CMD_SET_BOARDID        =0x786
 
-    #Reply bit: set in the reply message in the command identifier
+    # Reply bit: set in the reply message in the command identifier
     CMD_REPLY            =0x00010000
 
-    #No-reply bit: set in the command message in the command identifier
-    #indicating to the SPIDR server that no reply is expected
-    #(to speed up certain operations, such as pixel configuration uploads)
+    # No-reply bit: set in the command message in the command identifier
+    # indicating to the SPIDR server that no reply is expected
+    # (to speed up certain operations, such as pixel configuration uploads)
     CMD_NOREPLY          =0x00080000
 
     CMD_MASK             =0x0000FFFF

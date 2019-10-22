@@ -33,7 +33,7 @@ class TimepixConfig(object):
         pass
     
     def dacCodes(self):
-        """ Returns an iterator with format daccode,value"""
+        """ Returns an iterator with format name, daccode, value"""
         pass
     
     def maskPixels(self):
