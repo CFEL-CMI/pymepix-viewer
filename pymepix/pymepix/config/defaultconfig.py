@@ -46,5 +46,5 @@ class DefaultConfig(TimepixConfig):
                 ,('TPX3_VTP_COARSE',       15, 128) # [0-255]
                 ,('TPX3_VTP_FINE',         16, 256) # [0-512]
                 ,('TPX3_IBIAS_CP_PLL',     17, 128) # [0-255]
-                ,('PLL_Vcntrl',            18, 128)]
+                ,('PLL_Vcntrl',            18, 128)]# [0-255]
         return codes
