@@ -41,7 +41,8 @@ requires = []
 
 install_requires = ['numpy','sklearn']
 
-console_scripts = ['pymepix-acq=pymepix.main:main']
+#console_scripts = ['pymepix-acq=pymepix.main:main']
+console_scripts = ['pymepix-acq=pymepix.pymepix:main']
 
 entry_points = {'console_scripts': console_scripts,}
 

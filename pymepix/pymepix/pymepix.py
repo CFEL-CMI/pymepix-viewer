@@ -22,7 +22,7 @@
 
 """Main module for pymepix"""
 
-from .core.log import Logger
+from pymepix.core.log import Logger
 from .SPIDR.spidrcontroller import SPIDRController
 from .SPIDR.spidrdefs import SpidrReadoutSpeed
 from .timepixdevice import TimepixDevice
@@ -97,9 +97,9 @@ class Pymepix(Logger):
 
         self._data_queue = Queue()
         self._createTimepix()
-        # TODO: for version testing commented
-        #self._spidr.setBiasSupplyEnable(True)
-        #self.biasVoltage = 50
+        # DONE
+        self._spidr.setBiasSupplyEnable(True)
+        self.biasVoltage = 50
         self.enablePolling()
         self._data_thread = threading.Thread(target=self.data_thread)
         self._data_thread.daemon = True
@@ -206,8 +206,8 @@ class Pymepix(Logger):
         TdcEnable = 0x0000
         self._spidr.setSpidrReg(0x2B8, TdcEnable)
         self._spidr.enableDecoders(True)
-        # TODO: for version testing
-        #self._spidr.datadrivenReadout()
+        # DONE
+        self._spidr.datadrivenReadout()
 
     def start(self):
         """Starts acquisition"""
@@ -222,13 +222,17 @@ class Pymepix(Logger):
 
         for t in self._timepix_devices:
             self.info('Setting up {}'.format(t.deviceName))
-            # TODO: for verion testing commented
-            #t.setupDevice()
+            t.setupDevice()
         self._spidr.restartTimers()
         self._spidr.openShutter()
         for t in self._timepix_devices:
             self.info('Starting {}'.format(t.deviceName))
             t.start()
+
+        # Get config
+        for t in self._timepix_devices:
+            self.info('Get config {}'.format(t.deviceName))
+            t.getDeviceConfig()
 
         self._running = True
 
@@ -270,7 +274,8 @@ class Pymepix(Logger):
         return self._timepix_devices[num]
 
 
-def main(argv):
+#def main(argv):
+def main():
     import logging
     from .processing.datatypes import MessageType
     from .processing import CentroidPipeline
