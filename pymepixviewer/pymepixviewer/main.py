@@ -25,7 +25,6 @@ from pymepix.processing import MessageType
 import pyqtgraph as pg
 import numpy as np
 import time
-import threading
 from pyqtgraph.Qt import QtCore, QtGui
 from pymepixviewer.panels.timeofflight import TimeOfFlightPanel
 from pymepixviewer.panels.daqconfig import DaqConfigPanel
