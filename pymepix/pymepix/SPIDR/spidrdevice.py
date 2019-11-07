@@ -109,6 +109,7 @@ class SpidrDevice(Logger):
         return dac_data & 0xFFFF
 
     def setDac(self, dac_code, dac_val):
+        # Combine dac_code and dac_val into a single int
         dac_data = ((dac_code & 0xFFFF) << 16) | (dac_val & 0xFFFF)
         self._ctrl.requestSetInt(SpidrCmds.CMD_SET_DAC, self._dev_num, dac_data)
 
