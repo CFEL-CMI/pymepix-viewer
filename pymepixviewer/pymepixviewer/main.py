@@ -25,6 +25,7 @@ from pymepix.processing import MessageType
 import pyqtgraph as pg
 import numpy as np
 import time
+import threading
 from pyqtgraph.Qt import QtCore, QtGui
 from pymepixviewer.panels.timeofflight import TimeOfFlightPanel
 from pymepixviewer.panels.daqconfig import DaqConfigPanel
@@ -35,6 +36,19 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+class GenericThread(QtCore.QThread):
+    def __init__(self, function, *args, **kwargs):
+        QtCore.QThread.__init__(self)
+        self.function = function
+        self.args = args
+        self.kwargs = kwargs
+
+    def __del__(self):
+        self.wait()
+
+    def run(self):
+        self.function(*self.args,**self.kwargs)
+        return
 
 class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
     displayNow = QtCore.pyqtSignal()
@@ -45,9 +59,26 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
     onFlashID  = QtCore.pyqtSignal(object)
     clearNow = QtCore.pyqtSignal()
     modeChange = QtCore.pyqtSignal(object)
+    updateStatusSignal = QtCore.pyqtSignal(object)
 
     fineThresholdUpdate = QtCore.pyqtSignal(float)
     coarseThresholdUpdate = QtCore.pyqtSignal(float)
+
+    def statusUdate(self):
+        logger.info('Starting status update thread')
+
+        while True:
+            fpga       = self._timepix._spidr.fpgaTemperature
+            local      = self._timepix._spidr.localTemperature
+            remote     = self._timepix._spidr.remoteTemperature
+            chipSpeed  = self._timepix._spidr.chipboardFanSpeed
+            spidrSpeed = self._timepix._spidr.spidrFanSpeed
+            queue      = 8#self._timepix._data_queue.qsize()
+
+            self.updateStatusSignal.emit(f'T_(FPGA)={fpga}, T_(loc)={local}, T_(remote)={remote}, Fan(chip)={chipSpeed}, Fan(SPIDR)={spidrSpeed}, Queue={queue}')
+            #self.statusbar.showMessage(, 5000)
+            time.sleep(5)
+
 
     def __init__(self, parent=None):
         super(PymepixDAQ, self).__init__(parent)
@@ -74,6 +105,8 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         time.sleep(1.0)
         self.onModeChange(ViewerMode.TOA)
 
+        self._statusUpdate.start()
+
     def switchToMode(self):
         self._timepix.stop()
         if self._current_mode is ViewerMode.TOA:
@@ -95,7 +128,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
     def startupTimepix(self):
 
         #self._timepix = pymepix.Pymepix(('192.168.1.10', 50000))
-        self._timepix = pymepix.Pymepix(('127.0.0.10', 50010), src_ip_port=('127.0.0.1', 0))
+        self._timepix = pymepix.Pymepix(('127.0.0.10', 50015), src_ip_port=('127.0.0.1', 0))
 
         if len(self._timepix) == 0:
             logger.error('NO TIMEPIX DEVICES DETECTED')
@@ -118,7 +151,6 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
     def closeTimepix(self):
         self._timepix.stop()
-
 
     def setFineThreshold(self, value):
         self._timepix[0].Vthreshold_fine = value
@@ -199,6 +231,10 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         self.onPixelToF.connect(self._config_panel.fileSaver.onTof)
         self.onCentroid.connect(self._config_panel.fileSaver.onCentroid)
         self.onFlashID.connect(self._config_panel.fileSaver.onFlashID)
+
+        from functools import partial
+        self._statusUpdate = GenericThread(self.statusUdate)
+        self.updateStatusSignal.connect(lambda msg: self.statusbar.showMessage(msg, 5000))
 
     def onBiasVoltageUpdate(self, value):
         logger.info('Bias Voltage changed to {} V'.format(value))

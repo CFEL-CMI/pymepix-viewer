@@ -173,6 +173,9 @@ class TimepixDevice(Logger):
         extract current timepix device configuration
         :return: none
         '''
+
+        pass
+
         print(f"pixel threshold: {self.pixelThreshold}")
         print(f"pixel mask: {self.pixelMask}")
         print(f"polarity: {self.polarity}")

@@ -67,6 +67,7 @@ class BasePipelineObject(multiprocessing.Process, ProcessLogger):
                  propogate_input=True):
         ProcessLogger.__init__(self, name)
         multiprocessing.Process.__init__(self)
+        multiprocessing.current_process().name = name
         self.input_queue = input_queue
 
         self.output_queue = []

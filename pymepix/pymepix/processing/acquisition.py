@@ -44,7 +44,7 @@ class PixelPipeline(AcquisitionPipeline):
 
         self.addStage(0, UdpSampler, address, longtime)
         self.addStage(2, PacketProcessor)
-        # self.addStage(5, FlashIDListener)
+        # TODO FlashID: self.addStage(5, FlashIDListener)
         self._reconfigureProcessor()
 
     def _reconfigureProcessor(self):

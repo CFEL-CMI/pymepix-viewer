@@ -169,7 +169,7 @@ class Pymepix(Logger):
 
     @dataCallback.setter
     def dataCallback(self, value):
-        print(value)
+        self.info(value)
         self._event_callback = value
         self.warning('Clearing polling buffer')
         self._poll_buffer.clear()
