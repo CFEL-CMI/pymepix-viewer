@@ -1,9 +1,10 @@
 # Pymepix Viewer
 
-Pymepix-viewer is a basic graphical user interface for data acquisition using the pymepix library.
-It is not meant as a full-fledged and stable DAQ-GUI, but to demonstrate the capabilities of
-`pymepix`, to provide an initial operational system for easy entrance to Timepix operation, and as a
-reference implementation for `pymepix` use.
+Pymepix-viewer is a basic graphical user interface for data acquisition using the [pymepix
+library](https://github.com/CFEL-CMI/pymepix). It is not meant as a full-fledged and stable DAQ-GUI,
+but to demonstrate the capabilities of [pymepix](https://github.com/CFEL-CMI/pymepix), to provide an
+initial operational system for easy entrance to Timepix operation, and as a reference implementation
+for [pymepix](https://github.com/CFEL-CMI/pymepix) use.
 
 
 ## Prerequisites
@@ -24,8 +25,8 @@ or
 ```
 python setup.py install
 ```
-Standard `setuptools` options such as `develop` or `--user` are available; see the
-[documentation](#documentation) for details.
+Standard `setuptools` options such as `develop` or `--user` are available; see, e.g., the
+[pymepix documentation](https://pymepix.readthedocs.io) for some details.
 
 
 ## Running
