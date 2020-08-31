@@ -139,7 +139,7 @@
           <item>
            <widget class="QLineEdit" name="file_prefix">
             <property name="text">
-             <string>test_</string>
+             <string>test</string>
             </property>
            </widget>
           </item>
@@ -162,6 +162,9 @@
           </item>
           <item>
            <widget class="QSpinBox" name="startindex">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="maximum">
              <number>99999</number>
             </property>
@@ -225,6 +228,9 @@
           </item>
           <item>
            <widget class="QLineEdit" name="acq_time">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="text">
              <string>10</string>
             </property>
@@ -256,6 +262,9 @@
           </item>
           <item>
            <widget class="QSpinBox" name="repeat_value">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="minimum">
              <number>1</number>
             </property>

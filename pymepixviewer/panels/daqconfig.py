@@ -69,7 +69,7 @@ class DaqConfigPanel(QtGui.QWidget, Ui_Form):
 
     # def run_acquisition(self,path_name,prefix,raw_checked,blob_checked,exposure,startindex):
 
-    #     self.startAcquisition.emit(path_name,prefix,raw_checked,blob_checked,exposure,startindex)
+    #     self.start_recording.emit(path_name,prefix,raw_checked,blob_checked,exposure,startindex)
     #     self.text_status.setText('Acquiring.....')        
     #     print('STARTING')
     #     if self.acq_time.text() != "":

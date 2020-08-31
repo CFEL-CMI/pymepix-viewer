@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'pymepixviewer\panels\ui\acqconfig.ui'
+# Form implementation generated from reading ui file 'acqconfig.ui'
 #
 # Created by: PyQt5 UI code generator 5.9.2
 #
@@ -90,6 +90,7 @@ class Ui_Form(object):
         self.label_14.setObjectName("label_14")
         self.horizontalLayout_12.addWidget(self.label_14)
         self.startindex = QtWidgets.QSpinBox(self.groupBox_3)
+        self.startindex.setEnabled(False)
         self.startindex.setMaximum(99999)
         self.startindex.setObjectName("startindex")
         self.horizontalLayout_12.addWidget(self.startindex)
@@ -120,6 +121,7 @@ class Ui_Form(object):
         self.label_8.setObjectName("label_8")
         self.horizontalLayout_6.addWidget(self.label_8)
         self.acq_time = QtWidgets.QLineEdit(self.groupBox_3)
+        self.acq_time.setEnabled(False)
         self.acq_time.setObjectName("acq_time")
         self.horizontalLayout_6.addWidget(self.acq_time)
         self.label_9 = QtWidgets.QLabel(self.groupBox_3)
@@ -137,6 +139,7 @@ class Ui_Form(object):
         self.label_13.setObjectName("label_13")
         self.horizontalLayout_11.addWidget(self.label_13)
         self.repeat_value = QtWidgets.QSpinBox(self.groupBox_3)
+        self.repeat_value.setEnabled(False)
         self.repeat_value.setMinimum(1)
         self.repeat_value.setMaximum(99999)
         self.repeat_value.setProperty("value", 1)
@@ -164,7 +167,7 @@ class Ui_Form(object):
         self.label_6.setText(_translate("Form", "Path"))
         self.openpath.setText(_translate("Form", "Open"))
         self.label_7.setText(_translate("Form", "Prefix:"))
-        self.file_prefix.setText(_translate("Form", "test_"))
+        self.file_prefix.setText(_translate("Form", "test"))
         self.label_14.setText(_translate("Form", "Index"))
         self.label_5.setText(_translate("Form", "Storage:"))
         self.write_raw.setText(_translate("Form", "Raw"))
@@ -175,3 +178,4 @@ class Ui_Form(object):
         self.acq_time.setText(_translate("Form", "10"))
         self.label_9.setText(_translate("Form", "s"))
         self.label_13.setText(_translate("Form", "No of Files"))
+
