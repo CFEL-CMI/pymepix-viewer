@@ -124,7 +124,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
     def startupTimepix(self):
 
-        self._timepix = pymepix.Pymepix(('192.168.1.10', 50000))
+        self._timepix = pymepix.Pymepix(('192.168.100.10', 50000))
 
         if len(self._timepix) == 0:
             logger.error('NO TIMEPIX DEVICES DETECTED')
@@ -213,8 +213,8 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         self.clearNow.connect(self._overview_panel.clearData)
         self.modeChange.connect(self._overview_panel.modeChange)
 
-        # self._config_panel.startAcquisition.connect(self.startAcquisition)
-        # self._config_panel.stopAcquisition.connect(self.stopAcquisition)
+        self._config_panel.start_acq.clicked.connect(self.startAcquisition)
+        self._config_panel.end_acq.clicked.connect(self.stopAcquisition)
 
         self._config_panel.viewtab.resetPlots.connect(self.clearNow.emit)
         self._config_panel.proctab.eventWindowChanged.connect(self.setEventWindow)
@@ -318,6 +318,30 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
             self.displayNow.emit()
             # self.displayNow.emit()
             self._last_update = time.time()
+
+    def startAcquisition(self):
+        pipeline = self._timepix._timepix_devices[0]._acquisition_pipeline._stages[0]
+        fname = f'./test-{time.strftime("%Y%m%d-%H%M%S")}.raw'
+        pipeline._pipeline_objects[0].record = True
+        pipeline.udp_sock.send_string(fname)
+        print('filename sent')
+        res = pipline.udp_sock.recv_string()
+        if res == 'OPENED':
+            self.info(f'Acquisition for {fname} started')
+        else:
+            self.warning(f'did not open {res}')
+
+    def stopAcquisition(self):
+        self.info('closing file')
+        pipeline = self._timepix._timepix_devices[0]._acquistion_pipeline._stages[0]
+        pipeline._pipeline_objects[0].record = False
+        pipeline._pipeline_objects[0].close_file = True
+        res = pipline.udp_sock.recv_string()
+        if res == 'CLOSED':
+            self.info(f'file closed')
+        else:
+            self.warning(f'problem, {res}')
+
 
     # def startAcquisition(self,pathname,prefixname,do_raw,do_blob,exposure,startindex):
     #     self._timepix.filePath=pathname

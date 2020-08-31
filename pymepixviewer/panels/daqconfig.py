@@ -126,8 +126,8 @@ class DaqConfigPanel(QtGui.QWidget, Ui_Form):
         # self.display_rate.valueChanged.connect(self.displayRateChange)
         # self.event_count.returnPressed.connect(self.eventCountChanged)
 
-        self.start_acq.clicked.connect(self.startAcqClicked)
-        self.end_acq.clicked.connect(self.endAcqClicked)
+        #self.start_acq.clicked.connect(self.startAcqClicked)
+        #self.end_acq.clicked.connect(self.endAcqClicked)
         self.viewtab.reset_plots.clicked.connect(self.resetPlots.emit)
 
     def openPath(self):
@@ -180,7 +180,6 @@ class DaqConfigPanel(QtGui.QWidget, Ui_Form):
             self.elapsed_time_h.display(h)
 
     def startAcqClicked(self):
-
         filename, index, raw, toa, tof, blob, acq_time, repeats = self._collectAcquisitionSettings()
 
         if self._repeating_thread is not None:
