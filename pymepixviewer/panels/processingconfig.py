@@ -20,8 +20,8 @@
 #
 ##############################################################################
 
-import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui
+
 from .ui.processingconfigui import Ui_Form
 
 

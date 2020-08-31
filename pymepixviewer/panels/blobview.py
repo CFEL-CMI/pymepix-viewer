@@ -20,13 +20,14 @@
 #
 ##############################################################################
 
+from collections import deque
+
+import numpy as np
 import pyqtgraph as pg
-from pyqtgraph.Qt import QtCore, QtGui
+from pyqtgraph.Qt import QtGui
+
 from .ui.blobviewui import Ui_Form
 from ..core.datatypes import ViewerMode
-import threading
-import numpy as np
-from collections import deque
 
 
 class BlobView(QtGui.QWidget, Ui_Form):
@@ -209,7 +210,6 @@ class BlobView(QtGui.QWidget, Ui_Form):
 
 
 def main():
-    import sys
     app = QtGui.QApplication([])
     config = BlobView()
     config.show()

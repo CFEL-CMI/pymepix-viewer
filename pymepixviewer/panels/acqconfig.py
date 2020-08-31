@@ -20,11 +20,12 @@
 #
 ##############################################################################
 
-import pyqtgraph as pg
+import logging
+
 from pyqtgraph.Qt import QtCore, QtGui
+
 from .ui.acqconfigui import Ui_Form
 from ..core.datatypes import ViewerMode
-import logging
 
 logger = logging.getLogger(__name__)
 

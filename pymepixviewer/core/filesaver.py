@@ -20,11 +20,11 @@
 #
 ##############################################################################
 
-from pyqtgraph.Qt import QtCore, QtGui
-from pymepix.util.storage import open_output_file, store_raw, store_toa, store_tof, store_centroid
-from pymepix.processing import MessageType
-import numpy as np
 import logging
+
+import numpy as np
+from pymepix.util.storage import open_output_file, store_raw, store_toa, store_tof, store_centroid
+from pyqtgraph.Qt import QtCore
 
 logger = logging.getLogger(__name__)
 

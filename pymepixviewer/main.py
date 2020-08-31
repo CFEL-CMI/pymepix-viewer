@@ -20,18 +20,19 @@
 #
 ##############################################################################
 
+import logging
+import os
+import time
+
+import numpy as np
 import pymepix
 from pymepix.processing import MessageType
-import pyqtgraph as pg
-import numpy as np
-import time
-from pyqtgraph.Qt import QtCore, QtGui
-from pymepixviewer.panels.timeofflight import TimeOfFlightPanel
-from pymepixviewer.panels.daqconfig import DaqConfigPanel
-from pymepixviewer.panels.blobview import BlobView
-from pymepixviewer.ui.mainui import Ui_MainWindow
 from pymepixviewer.core.datatypes import ViewerMode
-import logging
+from pymepixviewer.panels.blobview import BlobView
+from pymepixviewer.panels.daqconfig import DaqConfigPanel
+from pymepixviewer.panels.timeofflight import TimeOfFlightPanel
+from pymepixviewer.ui.mainui import Ui_MainWindow
+from pyqtgraph.Qt import QtCore, QtGui
 
 logger = logging.getLogger(__name__)
 
@@ -438,7 +439,6 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
 
 def main():
-    import sys
     import logging
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     app = QtGui.QApplication([])

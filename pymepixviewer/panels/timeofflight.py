@@ -20,14 +20,15 @@
 #
 ##############################################################################
 
-import pymepix
+import traceback
+
+import numpy as np
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui
-import numpy as np
-from .ui.timeofflightpanelui import Ui_Form
-from .regionsofinterest import RoiModel, RoiItem
+
+from .regionsofinterest import RoiModel
 from .roidialog import RoiDialog
-import traceback
+from .ui.timeofflightpanelui import Ui_Form
 
 
 class TimeOfFlightPanel(QtGui.QWidget, Ui_Form):
@@ -203,7 +204,6 @@ class TimeOfFlightPanel(QtGui.QWidget, Ui_Form):
 
 
 def main():
-    import sys
     app = QtGui.QApplication([])
     tof = TimeOfFlightPanel()
     tof.show()

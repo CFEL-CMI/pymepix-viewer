@@ -19,14 +19,16 @@
 # along with pymepixviewer.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-import pyqtgraph as pg
+import logging
+import os
+import threading
+import time
+from threading import Thread
+
 from pyqtgraph.Qt import QtCore, QtGui
+
 from .ui.daqconfigui import Ui_Form
 from ..core.filesaver import FileSaver
-import threading
-from threading import Thread
-import time, os
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -206,7 +208,6 @@ class DaqConfigPanel(QtGui.QWidget, Ui_Form):
 
 
 def main():
-    import sys
     app = QtGui.QApplication([])
     config = DaqConfigPanel()
     config.show()

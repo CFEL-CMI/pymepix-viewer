@@ -22,7 +22,6 @@
 
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui
-import weakref
 
 
 class BaseItem(QtCore.QObject):

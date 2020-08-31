@@ -20,9 +20,8 @@
 #
 ##############################################################################
 
-import pymepix
-import pyqtgraph as pg
-from pyqtgraph.Qt import QtCore, QtGui
+from pyqtgraph.Qt import QtGui
+
 from .ui.roidialogui import Ui_Dialog
 
 
@@ -41,7 +40,6 @@ class RoiDialog(QtGui.QDialog, Ui_Dialog):
 
 
 def main():
-    import sys
     app = QtGui.QApplication([])
     tof = RoiDialog()
     if tof.exec_() == QtGui.QDialog.Accepted:
