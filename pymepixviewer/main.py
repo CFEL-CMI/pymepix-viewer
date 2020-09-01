@@ -125,7 +125,8 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
     def startupTimepix(self):
 
-        self._timepix = pymepix.Pymepix(('192.168.100.10', 50000))
+        #self._timepix = pymepix.Pymepix(('192.168.100.10', 50000))
+        self._timepix = pymepix.Pymepix(('127.0.0.1', 50000))
 
         if len(self._timepix) == 0:
             logger.error('NO TIMEPIX DEVICES DETECTED')
@@ -332,6 +333,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         pipeline.udp_sock.send_string(self._fileName)
         res = pipeline.udp_sock.recv_string()
         if res == 'OPENED':
+            self._fileName = pipeline.udp_sock.recv_string()
             logger.debug(f'Recording for {self._fileName} started')
         else:
             logger.warning(f'did not open {res}')
@@ -348,7 +350,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         pipeline._pipeline_objects[0].close_file = True
         res = pipeline.udp_sock.recv_string()
         if res == 'CLOSED':
-            logger.info(f'file closed')
+            logger.info(f'file {self._fileName} closed')
         else:
             logger.warning(f'problem, {res}')
 
