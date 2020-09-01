@@ -328,6 +328,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         fName = f'{self._config_panel.acqtab.file_prefix.text()}'
         self._fileName = os.path.join(path, fName)
 
+        # raw2disk
         pipeline = self._timepix._timepix_devices[0]._acquisition_pipeline._stages[0]
         pipeline._pipeline_objects[0].record = True
         pipeline.udp_sock.send_string(self._fileName)
@@ -338,6 +339,15 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         else:
             logger.warning(f'did not open {res}')
 
+        # trainID
+        pipeline.train_sock.send_string(self._fileName.rstrip('raw') + 'trainID')
+        res = pipeline.train_sock.recv_string()
+        if res == 'OPENED':
+            res = pipeline.train_sock.recv_string()
+            logger.info(f'Recording for {res} started')
+        else:
+            logger.warning(f'did not open {res}')
+
         # setup GUI
         self._config_panel.start_acq.setStyleSheet('QPushButton {color: red;}')
         self._config_panel.start_acq.setText('Recording')
@@ -345,12 +355,21 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         self._config_panel._elapsed_time.restart()
 
     def stop_recording(self):
+        # raw2disk
         pipeline = self._timepix._timepix_devices[0]._acquisition_pipeline._stages[0]
         pipeline._pipeline_objects[0].record = False
         pipeline._pipeline_objects[0].close_file = True
         res = pipeline.udp_sock.recv_string()
         if res == 'CLOSED':
             logger.info(f'file {self._fileName} closed')
+        else:
+            logger.warning(f'problem, {res}')
+
+        # trainID
+        pipeline.train_sock.send_string('STOP RECORDING')
+        res = pipeline.train_sock.recv_string()
+        if res == 'CLOSED':
+            logger.info(f'trainID file closed')
         else:
             logger.warning(f'problem, {res}')
 
