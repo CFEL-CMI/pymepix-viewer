@@ -353,6 +353,11 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         self._config_panel.start_acq.setText('Recording')
         self._config_panel._in_acq = True
         self._config_panel._elapsed_time.restart()
+        try:
+            index = int(self._fileName.split('_')[1])  # assuming 'run_0001_date.raw'
+            self._config_panel.acqtab.startindex.setValue(index)
+        except:
+            self.warning(f'file index cannot be extracted from {self._fileName}')
 
     def stop_recording(self):
         # raw2disk
