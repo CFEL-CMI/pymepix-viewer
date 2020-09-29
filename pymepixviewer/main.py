@@ -328,6 +328,10 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         fName = f'{self._config_panel.acqtab.file_prefix.text()}'
         self._fileName = os.path.join(path, fName)
 
+        self._timepix._spidr.resetTimers()
+        self._timepix._spidr.restartTimers()
+        time.sleep(1)  # give camera time to reset timers
+
         pipeline = self._timepix._timepix_devices[0]._acquisition_pipeline._stages[0]
         pipeline._pipeline_objects[0].record = True
         pipeline.udp_sock.send_string(self._fileName)
