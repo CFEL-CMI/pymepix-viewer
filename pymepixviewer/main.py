@@ -104,6 +104,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         #
         time.sleep(1.0)
         self.onModeChange(ViewerMode.TOA)
+        self._statusUpdate.start()
 
     def switchToMode(self):
         self._timepix.stop()
@@ -125,8 +126,8 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
     def startupTimepix(self):
 
-        #self._timepix = pymepix.Pymepix(('192.168.100.10', 50000))
-        self._timepix = pymepix.Pymepix(('127.0.0.1', 50000))
+        self._timepix = pymepix.Pymepix(('192.168.1.10', 50000))
+        #self._timepix = pymepix.Pymepix(('127.0.0.1', 50000))
 
         if len(self._timepix) == 0:
             logger.error('NO TIMEPIX DEVICES DETECTED')
