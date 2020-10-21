@@ -110,8 +110,18 @@ class BlobView(QtGui.QWidget, Ui_Form):
         self.clearData()
 
     def computeDirectionCosine(self, x, y, tof):
-        x_cm = np.average(x)
-        y_cm = np.average(y)
+        mask = np.logical_and(tof > 5.2, tof < 5.9)
+        x_0 = 133
+        y_0 = 100
+        dx = x[mask] - x_0
+        dy = y[mask] - y_0
+        r = np.sqrt(dx**2 + dy**2)
+        cos_theta = dy/r
+        cos2_theta = cos_theta**2
+        expet_cos_theta = cos_theta.mean()
+        expet_cos2_theta = cos2_theta.mean()
+
+        return expet_cos_theta, expet_cos2_theta
 
     def _updateHist(self):
         h = np.histogram2d(np.concatenate(self._histogram_x), np.concatenate(self._histogram_y),
@@ -155,7 +165,10 @@ class BlobView(QtGui.QWidget, Ui_Form):
 
         self.int_blobs.setText(str(self._int_blob_count))
 
-        self.computeDirectionCosine(x, y, tof)
+        cos_theta, cos2_theta = self.computeDirectionCosine(x, y, tof)
+        self.cos_theta.setText(f'{cos_theta:.3f}')
+        self.cos2_theta.setText(f'{cos2_theta:.3f}')
+
         self._last_trigger = shots.max()
         self.updateTrend(self._last_trigger, avg_blobs)
 
