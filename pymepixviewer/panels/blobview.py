@@ -121,8 +121,9 @@ class BlobView(QtGui.QWidget, Ui_Form):
             r = np.sqrt(dx**2 + dy**2)
             cos_theta = dy/r
             cos2_theta = cos_theta**2
-            expet_cos_theta = (self._histogram * cos_theta).sum() / self._histogram.sum()
-            expet_cos2_theta = (self._histogram * cos2_theta).sum() / self._histogram.sum()
+            mask = r < 50
+            expet_cos_theta = (self._histogram * cos_theta)[mask].sum() / self._histogram[mask].sum()
+            expet_cos2_theta = (self._histogram * cos2_theta)[mask].sum() / self._histogram[mask].sum()
 
             return expet_cos_theta, expet_cos2_theta
         else:
@@ -214,14 +215,31 @@ class BlobView(QtGui.QWidget, Ui_Form):
             if len(self._histogram_x) > 0:
                 self._updateHist()
             if self._histogram is not None:
+                mask_radius = 50
+                x0 = 110.1
+                y0 = 133.1
+
+                x = np.array(256 * [np.arange(0, 256)])
+                y = np.array(256 * [np.arange(0, 256)]).T
+                dx = x - x0
+                dy = y - y0
+
+                r = np.sqrt(dx ** 2 + dy ** 2)
+                cos_theta = dx / r
+                cos2_theta = cos_theta ** 2
+                mask = r < mask_radius
+                expet_cos_theta = (self._histogram * cos_theta)[mask].sum() / self._histogram[mask].sum()
+                expet_cos2_theta = (self._histogram * cos2_theta)[mask].sum() / self._histogram[mask].sum()
+                self.cos_theta.setText(f'{expet_cos_theta:.3f}')
+                self.cos2_theta.setText(f'{expet_cos2_theta:.3f}')
+
                 tmp_img = self._histogram / self._histogram.max()
-                tmp_img[133, 110] = 100
+                tmp_img[int(y0), int(x0)] = 100  # visually mark center position
+                tmp_img[r >= mask_radius] = 0
                 self.image_view.setImage(tmp_img, autoLevels=False, autoRange=False,
                                          autoHistogramRange=False)
-                cos_theta, cos2_theta = self.computeDirectionCosine(self._histogram_x, self._histogram_y)
-                if cos_theta is not None:
-                    self.cos_theta.setText(f'{cos_theta:.3f}')
-                    self.cos2_theta.setText(f'{cos2_theta:.3f}')
+
+
         try:
             self._blob_trend_data.setData(x=np.array(self._blob_trend_trigger), y=np.array(self._blob_trend))
         except:
