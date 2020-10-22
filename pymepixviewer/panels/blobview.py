@@ -190,7 +190,6 @@ class BlobView(QtGui.QWidget, Ui_Form):
             if len(self._histogram_x) > 0:
                 self._updateHist()
             if self._histogram is not None:
-                mask_radius = self.r_spin.value()
                 x0 = self.x0_spin.value() + 0.1  # add small value to prevent division by 0 when calculation r
                 y0 = self.y0_spin.value() + 0.1
 
@@ -200,7 +199,7 @@ class BlobView(QtGui.QWidget, Ui_Form):
                 r = np.sqrt(dx ** 2 + dy ** 2)
                 cos_theta = dx / r
                 cos2_theta = cos_theta ** 2
-                mask = r < mask_radius
+                mask = np.logical_and(r <= self.r_outer.value(), r >= self.r_inner.value())
                 expet_cos_theta = (self._histogram * cos_theta)[mask].sum() / self._histogram[mask].sum()
                 expet_cos2_theta = (self._histogram * cos2_theta)[mask].sum() / self._histogram[mask].sum()
                 self.cos_theta.setText(f'{expet_cos_theta:.3f}')
@@ -208,7 +207,7 @@ class BlobView(QtGui.QWidget, Ui_Form):
 
                 tmp_img = self._histogram / self._histogram.max()
                 tmp_img[int(y0), int(x0)] = 100  # visually mark center position in GUI
-                tmp_img[r >= mask_radius] = 0
+                tmp_img[~mask] = 0
                 self.image_view.setImage(tmp_img, autoLevels=False, autoRange=False,
                                          autoHistogramRange=False)
 
