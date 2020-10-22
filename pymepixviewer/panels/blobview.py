@@ -206,8 +206,8 @@ class BlobView(QtGui.QWidget, Ui_Form):
                 self.cos2_theta.setText(f'{expet_cos2_theta:.3f}')
 
                 tmp_img = self._histogram / self._histogram.max()
-                tmp_img[int(y0), int(x0)] = 100  # visually mark center position in GUI
                 tmp_img[~mask] = 0
+                tmp_img[int(y0), int(x0)] = 100  # visually mark center position in GUI
                 self.image_view.setImage(tmp_img, autoLevels=False, autoRange=False,
                                          autoHistogramRange=False)
 
