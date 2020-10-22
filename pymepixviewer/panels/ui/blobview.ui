@@ -226,7 +226,7 @@
        <item>
         <widget class="QLabel" name="x0_label">
          <property name="text">
-          <string>x0</string>
+          <string>y0</string>
          </property>
         </widget>
        </item>
@@ -236,14 +236,14 @@
           <number>255</number>
          </property>
          <property name="value">
-          <number>128</number>
+          <number>110</number>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QLabel" name="y0_label">
          <property name="text">
-          <string>y0</string>
+          <string>x0</string>
          </property>
         </widget>
        </item>
@@ -253,7 +253,7 @@
           <number>255</number>
          </property>
          <property name="value">
-          <number>128</number>
+          <number>133</number>
          </property>
         </widget>
        </item>

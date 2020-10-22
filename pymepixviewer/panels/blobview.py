@@ -63,6 +63,8 @@ class BlobView(QtGui.QWidget, Ui_Form):
         self._histogram_x = []
         self._histogram_y = []
         self._histogram_bins = 256
+        self._x = np.array(256 * [np.arange(0, 256)])
+        self._y = np.array(256 * [np.arange(0, 256)]).T
         self.checkBox.stateChanged.connect(self.onHistogramCheck)
         self.blob_trend_check.stateChanged.connect(self.onTrendCheck)
         self.histo_binning.valueChanged[int].connect(self.onHistBinChange)
@@ -109,26 +111,6 @@ class BlobView(QtGui.QWidget, Ui_Form):
         self._end_tof = end
         self.clearData()
 
-    def computeDirectionCosine(self, x, y):
-        if len(self._histogram) > 0:
-            x = np.array(256*[np.arange(0, 256)])
-            y = np.array(256*[np.arange(0, 256)]).T
-            x0 = 133.1
-            y0 = 110.1
-            dx = x - x0
-            dy = y - y0
-
-            r = np.sqrt(dx**2 + dy**2)
-            cos_theta = dy/r
-            cos2_theta = cos_theta**2
-            mask = r < 50
-            expet_cos_theta = (self._histogram * cos_theta)[mask].sum() / self._histogram[mask].sum()
-            expet_cos2_theta = (self._histogram * cos2_theta)[mask].sum() / self._histogram[mask].sum()
-
-            return expet_cos_theta, expet_cos2_theta
-        else:
-            return None, None
-
     def _updateHist(self):
         h = np.histogram2d(np.concatenate(self._histogram_x), np.concatenate(self._histogram_y),
                            bins=self._histogram_bins, range=[[0, 256], [0, 256]])
@@ -171,18 +153,11 @@ class BlobView(QtGui.QWidget, Ui_Form):
 
         self.int_blobs.setText(str(self._int_blob_count))
 
-        #cos_theta, cos2_theta = self.computeDirectionCosine(x, y)
-        #if cos_theta is not None:
-        #    self.cos_theta.setText(f'{cos_theta:.3f}')
-        #    self.cos2_theta.setText(f'{cos2_theta:.3f}')
-
         self._last_trigger = shots.max()
         self.updateTrend(self._last_trigger, avg_blobs)
 
         if self._histogram_mode:
             self.updateHistogram(x, y)
-
-
 
     def onCentroid(self, event):
         if self._current_mode in (ViewerMode.Centroid,):
@@ -216,13 +191,11 @@ class BlobView(QtGui.QWidget, Ui_Form):
                 self._updateHist()
             if self._histogram is not None:
                 mask_radius = self.r_spin.value()
-                x0 = self.x0_spin.value() + 0.1#  110.1
+                x0 = self.x0_spin.value() + 0.1  # add small value to prevent division by 0 when calculation r
                 y0 = self.y0_spin.value() + 0.1
 
-                x = np.array(256 * [np.arange(0, 256)])
-                y = np.array(256 * [np.arange(0, 256)]).T
-                dx = x - x0
-                dy = y - y0
+                dx = self._x - x0
+                dy = self._y - y0
 
                 r = np.sqrt(dx ** 2 + dy ** 2)
                 cos_theta = dx / r
@@ -238,7 +211,6 @@ class BlobView(QtGui.QWidget, Ui_Form):
                 tmp_img[r >= mask_radius] = 0
                 self.image_view.setImage(tmp_img, autoLevels=False, autoRange=False,
                                          autoHistogramRange=False)
-
 
         try:
             self._blob_trend_data.setData(x=np.array(self._blob_trend_trigger), y=np.array(self._blob_trend))
