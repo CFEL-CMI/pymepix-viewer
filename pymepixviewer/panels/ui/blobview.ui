@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>618</width>
-    <height>675</height>
+    <width>586</width>
+    <height>776</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -223,12 +223,69 @@
          </property>
         </widget>
        </item>
+       <item>
+        <widget class="QLabel" name="x0_label">
+         <property name="text">
+          <string>x0</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="x0_spin">
+         <property name="maximum">
+          <number>255</number>
+         </property>
+         <property name="value">
+          <number>128</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="y0_label">
+         <property name="text">
+          <string>y0</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="y0_spin">
+         <property name="maximum">
+          <number>255</number>
+         </property>
+         <property name="value">
+          <number>128</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="radius_label">
+         <property name="text">
+          <string>radius</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="r_spin">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>255</number>
+         </property>
+         <property name="value">
+          <number>50</number>
+         </property>
+        </widget>
+       </item>
       </layout>
      </item>
     </layout>
    </item>
    <item>
     <widget class="QCheckBox" name="blob_trend_check">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
      <property name="text">
       <string>Show Blob Trend</string>
      </property>

@@ -2,9 +2,10 @@
 
 # Form implementation generated from reading ui file 'blobview.ui'
 #
-# Created by: PyQt5 UI code generator 5.9.2
+# Created by: PyQt5 UI code generator 5.12.3
 #
 # WARNING! All changes made in this file will be lost!
+
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
@@ -12,7 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
-        Form.resize(618, 675)
+        Form.resize(586, 776)
         self.verticalLayout_6 = QtWidgets.QVBoxLayout(Form)
         self.verticalLayout_6.setObjectName("verticalLayout_6")
         self.horizontalLayout = QtWidgets.QHBoxLayout()
@@ -124,9 +125,35 @@ class Ui_Form(object):
         self.histo_binning.setProperty("value", 256)
         self.histo_binning.setObjectName("histo_binning")
         self.verticalLayout_5.addWidget(self.histo_binning)
+        self.x0_label = QtWidgets.QLabel(Form)
+        self.x0_label.setObjectName("x0_label")
+        self.verticalLayout_5.addWidget(self.x0_label)
+        self.x0_spin = QtWidgets.QSpinBox(Form)
+        self.x0_spin.setMaximum(255)
+        self.x0_spin.setProperty("value", 128)
+        self.x0_spin.setObjectName("x0_spin")
+        self.verticalLayout_5.addWidget(self.x0_spin)
+        self.y0_label = QtWidgets.QLabel(Form)
+        self.y0_label.setObjectName("y0_label")
+        self.verticalLayout_5.addWidget(self.y0_label)
+        self.y0_spin = QtWidgets.QSpinBox(Form)
+        self.y0_spin.setMaximum(255)
+        self.y0_spin.setProperty("value", 128)
+        self.y0_spin.setObjectName("y0_spin")
+        self.verticalLayout_5.addWidget(self.y0_spin)
+        self.radius_label = QtWidgets.QLabel(Form)
+        self.radius_label.setObjectName("radius_label")
+        self.verticalLayout_5.addWidget(self.radius_label)
+        self.r_spin = QtWidgets.QSpinBox(Form)
+        self.r_spin.setMinimum(1)
+        self.r_spin.setMaximum(255)
+        self.r_spin.setProperty("value", 50)
+        self.r_spin.setObjectName("r_spin")
+        self.verticalLayout_5.addWidget(self.r_spin)
         self.horizontalLayout.addLayout(self.verticalLayout_5)
         self.verticalLayout_6.addLayout(self.horizontalLayout)
         self.blob_trend_check = QtWidgets.QCheckBox(Form)
+        self.blob_trend_check.setEnabled(True)
         self.blob_trend_check.setChecked(True)
         self.blob_trend_check.setObjectName("blob_trend_check")
         self.verticalLayout_6.addWidget(self.blob_trend_check)
@@ -156,7 +183,8 @@ class Ui_Form(object):
         self.cos2_theta.setText(_translate("Form", "0"))
         self.checkBox.setText(_translate("Form", "Histogram"))
         self.label.setText(_translate("Form", "Binning"))
+        self.x0_label.setText(_translate("Form", "x0"))
+        self.y0_label.setText(_translate("Form", "y0"))
+        self.radius_label.setText(_translate("Form", "radius"))
         self.blob_trend_check.setText(_translate("Form", "Show Blob Trend"))
-
-
 from pyqtgraph import ImageView, PlotWidget
