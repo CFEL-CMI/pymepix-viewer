@@ -84,6 +84,8 @@ class BlobView(QtGui.QWidget, Ui_Form):
 
     def onHistBinChange(self, value):
         self._histogram_bins = value
+        self._x = np.array(value * [np.arange(0, value)])
+        self._y = np.array(value * [np.arange(0, value)]).T
         if self._histogram_mode:
             self.clearData()
 
@@ -190,20 +192,25 @@ class BlobView(QtGui.QWidget, Ui_Form):
             if len(self._histogram_x) > 0:
                 self._updateHist()
             if self._histogram is not None:
-                x0 = self.x0_spin.value() + 0.1  # add small value to prevent division by 0 when calculation r
-                y0 = self.y0_spin.value() + 0.1
+                binning_fac = 1/(256/self._histogram_bins)
+                # add small value to prevent division by 0 when calculation r
+                x0 = self.x0_spin.value()*binning_fac + 0.1
+                y0 = self.y0_spin.value()*binning_fac + 0.1
 
                 dx = self._x - x0
                 dy = self._y - y0
 
-                r = np.sqrt(dx ** 2 + dy ** 2)
+                r = np.sqrt(dx ** 2 + dy ** 2)*binning_fac
                 cos_theta = dx / r
                 cos2_theta = cos_theta ** 2
-                mask = np.logical_and(r <= self.r_outer.value(), r >= self.r_inner.value())
-                expet_cos_theta = (self._histogram * cos_theta)[mask].sum() / self._histogram[mask].sum()
-                expet_cos2_theta = (self._histogram * cos2_theta)[mask].sum() / self._histogram[mask].sum()
-                self.cos_theta.setText(f'{expet_cos_theta:.3f}')
-                self.cos2_theta.setText(f'{expet_cos2_theta:.3f}')
+                mask = np.logical_and(r <= self.r_outer.value()*binning_fac, r >= self.r_inner.value()*binning_fac)
+                try:
+                    expet_cos_theta = (self._histogram * cos_theta)[mask].sum() / self._histogram[mask].sum()
+                    expet_cos2_theta = (self._histogram * cos2_theta)[mask].sum() / self._histogram[mask].sum()
+                    self.cos_theta.setText(f'{expet_cos_theta:.3f}')
+                    self.cos2_theta.setText(f'{expet_cos2_theta:.3f}')
+                except:
+                    pass
 
                 tmp_img = self._histogram / self._histogram.max()
                 tmp_img[~mask] = 0
