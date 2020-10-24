@@ -235,7 +235,7 @@ class BlobView(QtGui.QWidget, Ui_Form):
                 dx = self._x - x0
                 dy = self._y - y0
 
-                r = np.sqrt(dx ** 2 + dy ** 2) * binning_fac
+                r = np.sqrt(dx ** 2 + dy ** 2)
                 cos_theta = dx / r
                 cos2_theta = cos_theta ** 2
                 mask = np.logical_and(r <= self.r_outer.value() * binning_fac, r >= self.r_inner.value() * binning_fac)
