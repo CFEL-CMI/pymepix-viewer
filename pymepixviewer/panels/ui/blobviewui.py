@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
-        Form.resize(586, 776)
+        Form.resize(459, 831)
         self.verticalLayout_6 = QtWidgets.QVBoxLayout(Form)
         self.verticalLayout_6.setObjectName("verticalLayout_6")
         self.horizontalLayout = QtWidgets.QHBoxLayout()
@@ -160,11 +160,17 @@ class Ui_Form(object):
         self.verticalLayout_5.addWidget(self.r_outer)
         self.horizontalLayout.addLayout(self.verticalLayout_5)
         self.verticalLayout_6.addLayout(self.horizontalLayout)
+        self.horizontalLayout_6 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_6.setObjectName("horizontalLayout_6")
         self.blob_trend_check = QtWidgets.QCheckBox(Form)
         self.blob_trend_check.setEnabled(True)
         self.blob_trend_check.setChecked(True)
         self.blob_trend_check.setObjectName("blob_trend_check")
-        self.verticalLayout_6.addWidget(self.blob_trend_check)
+        self.horizontalLayout_6.addWidget(self.blob_trend_check)
+        self.show_center = QtWidgets.QCheckBox(Form)
+        self.show_center.setObjectName("show_center")
+        self.horizontalLayout_6.addWidget(self.show_center)
+        self.verticalLayout_6.addLayout(self.horizontalLayout_6)
         self.blob_trend = PlotWidget(Form)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
@@ -196,4 +202,5 @@ class Ui_Form(object):
         self.radius_label.setText(_translate("Form", "inner-radius"))
         self.label_2.setText(_translate("Form", "outer-radius"))
         self.blob_trend_check.setText(_translate("Form", "Show Blob Trend"))
+        self.show_center.setText(_translate("Form", "Show Crosshair"))
 from pyqtgraph import ImageView, PlotWidget

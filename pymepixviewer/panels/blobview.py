@@ -24,10 +24,24 @@ from collections import deque
 
 import numpy as np
 import pyqtgraph as pg
-from pyqtgraph.Qt import QtGui
+from pyqtgraph.Qt import QtGui, QtCore
 
 from .ui.blobviewui import Ui_Form
 from ..core.datatypes import ViewerMode
+
+
+class Crosshair(QtGui.QGraphicsItem):
+    def __init__(self):
+        QtGui.QGraphicsItem.__init__(self)
+        self.setFlag(self.ItemIgnoresTransformations)
+
+    def paint(self, p, *args):
+        p.setPen(pg.mkPen('y'))
+        p.drawLine(-10, 0, 10, 0)
+        p.drawLine(0, -10, 0, 10)
+
+    def boundingRect(self):
+        return QtCore.QRectF(-10, -10, 20, 20)
 
 
 class BlobView(QtGui.QWidget, Ui_Form):
@@ -68,8 +82,13 @@ class BlobView(QtGui.QWidget, Ui_Form):
         self.checkBox.stateChanged.connect(self.onHistogramCheck)
         self.blob_trend_check.stateChanged.connect(self.onTrendCheck)
         self.histo_binning.valueChanged[int].connect(self.onHistBinChange)
+        self.show_center.stateChanged.connect(self.on_show_cross_change)
+        self.x0_spin.valueChanged.connect(self.on_move_cross)
+        self.y0_spin.valueChanged.connect(self.on_move_cross)
 
         self._histogram = None
+
+        self.crosshair = Crosshair()
 
     def modeChange(self, mode):
         self._current_mode = mode
@@ -82,12 +101,28 @@ class BlobView(QtGui.QWidget, Ui_Form):
         else:
             return (tof >= 0.0)
 
+    def on_show_cross_change(self):
+        if self.show_center.isChecked():
+            self.image_view.addItem(self.crosshair)
+            self.on_move_cross()
+        else:
+            self.image_view.removeItem(self.crosshair)
+
+    def on_move_cross(self):
+        if self._histogram_mode:
+            binning_fac = 1 / (256 / self._histogram_bins)
+        else:
+            binning_fac = 1
+        self.crosshair.setPos(self.y0_spin.value() * binning_fac,
+                              self.x0_spin.value() * binning_fac)
+
     def onHistBinChange(self, value):
         self._histogram_bins = value
         self._x = np.array(value * [np.arange(0, value)])
         self._y = np.array(value * [np.arange(0, value)]).T
         if self._histogram_mode:
             self.clearData()
+        self.on_show_cross_change()
 
     def onHistogramCheck(self, status):
         if status == 2:
@@ -192,18 +227,18 @@ class BlobView(QtGui.QWidget, Ui_Form):
             if len(self._histogram_x) > 0:
                 self._updateHist()
             if self._histogram is not None:
-                binning_fac = 1/(256/self._histogram_bins)
+                binning_fac = 1 / (256 / self._histogram_bins)
                 # add small value to prevent division by 0 when calculation r
-                x0 = self.x0_spin.value()*binning_fac + 0.1
-                y0 = self.y0_spin.value()*binning_fac + 0.1
+                x0 = self.x0_spin.value() * binning_fac + 0.1
+                y0 = self.y0_spin.value() * binning_fac + 0.1
 
                 dx = self._x - x0
                 dy = self._y - y0
 
-                r = np.sqrt(dx ** 2 + dy ** 2)*binning_fac
+                r = np.sqrt(dx ** 2 + dy ** 2) * binning_fac
                 cos_theta = dx / r
                 cos2_theta = cos_theta ** 2
-                mask = np.logical_and(r <= self.r_outer.value()*binning_fac, r >= self.r_inner.value()*binning_fac)
+                mask = np.logical_and(r <= self.r_outer.value() * binning_fac, r >= self.r_inner.value() * binning_fac)
                 try:
                     expet_cos_theta = (self._histogram * cos_theta)[mask].sum() / self._histogram[mask].sum()
                     expet_cos2_theta = (self._histogram * cos2_theta)[mask].sum() / self._histogram[mask].sum()
@@ -214,7 +249,6 @@ class BlobView(QtGui.QWidget, Ui_Form):
 
                 tmp_img = self._histogram / self._histogram.max()
                 tmp_img[~mask] = 0
-                tmp_img[int(y0), int(x0)] = 100  # visually mark center position in GUI
                 self.image_view.setImage(tmp_img, autoLevels=False, autoRange=False,
                                          autoHistogramRange=False)
 

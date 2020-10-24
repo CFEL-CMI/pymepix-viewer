@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>586</width>
-    <height>776</height>
+    <width>459</width>
+    <height>831</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -299,17 +299,28 @@
     </layout>
    </item>
    <item>
-    <widget class="QCheckBox" name="blob_trend_check">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="text">
-      <string>Show Blob Trend</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
-     </property>
-    </widget>
+    <layout class="QHBoxLayout" name="horizontalLayout_6">
+     <item>
+      <widget class="QCheckBox" name="blob_trend_check">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="text">
+        <string>Show Blob Trend</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="show_center">
+       <property name="text">
+        <string>Show Crosshair</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
    <item>
     <widget class="PlotWidget" name="blob_trend">
