@@ -73,6 +73,8 @@ class BlobView(QtGui.QWidget, Ui_Form):
         self.blob_trend.setLabel('bottom', text='Trigger Number')
         self._last_trigger = 0
 
+        self.image_view.setPredefinedGradient('thermal')
+
         self._histogram_mode = False
         self._histogram_x = []
         self._histogram_y = []
