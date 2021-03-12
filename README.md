@@ -1,3 +1,5 @@
+# Branch description
+This branch is a test to implement a simple REST API to be able to control the GUI from another client, in particular from a Tango server.
 # PymePix Viewer
 
 PymePix-viewer is a basic graphical user interface for data acquisition using the [PymePix
