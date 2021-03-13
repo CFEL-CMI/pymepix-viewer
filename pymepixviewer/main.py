@@ -34,6 +34,9 @@ from pymepixviewer.panels.timeofflight import TimeOfFlightPanel
 from pymepixviewer.ui.mainui import Ui_MainWindow
 from pyqtgraph.Qt import QtCore, QtGui
 
+import zmq
+import socket
+
 logger = logging.getLogger(__name__)
 
 class GenericThread(QtCore.QThread):
@@ -80,6 +83,27 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
             # self.statusbar.showMessage(, 5000)
             time.sleep(5)
 
+    def api_server(self):
+        '''Function to provide a simple remote interface for the GUI using ZMQ'''
+        self.rest_sock = self.ctx.socket(zmq.PULL)
+        self.rest_sock.bind('tcp://*:9033')
+        logger.info(f'API server bind on {socket.gethostbyname(socket.gethostname())}:9033')
+
+        run_server = True
+        while run_server:
+            if self.rest_sock.poll(timeout=0):
+                cmd = self.rest_sock.recv_string()
+                if cmd == 'STOP API SERVER':
+                    logger.info('API server shutting down')
+                    run_server = False
+                elif cmd.startswith('CLIENT CONNECT'):
+                    ip = cmd.split(':')[1].strip()
+                    self.updateStatusSignal.emit(f'ZMQ client connected from {ip}')
+                else:
+                    self.updateStatusSignal.emit(f'API server recieved unknown command {cmd}')
+                    logger.warning(f'API server recieved unknown command "{cmd}"')
+
+
     def __init__(self, parent=None):
         super(PymepixDAQ, self).__init__(parent)
         self.setupUi(self)
@@ -105,6 +129,18 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         time.sleep(1.0)
         self.onModeChange(ViewerMode.TOA)
         self._statusUpdate.start()
+        
+        self.ctx = zmq.Context.instance()
+        self._api_server.start()
+
+    def closeEvent(self, event):
+        sock = self.ctx.socket(zmq.PUSH)
+        sock.connect('tcp://127.0.0.1:9033')
+        sock.send_string('STOP API SERVER')
+        time.sleep(0.5)
+        sock.close()
+
+        super(QtGui.QMainWindow, self).closeEvent(event)
 
     def switchToMode(self):
         self._timepix.stop()
@@ -234,6 +270,8 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
         self._statusUpdate = GenericThread(self.statusUdate)
         self.updateStatusSignal.connect(lambda msg: self.statusbar.showMessage(msg, 5000))
+
+        self._api_server = GenericThread(self.api_server) 
 
     def onBiasVoltageUpdate(self, value):
         logger.info('Bias Voltage changed to {} V'.format(value))
