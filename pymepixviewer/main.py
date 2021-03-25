@@ -99,6 +99,10 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
                 elif cmd.startswith('CLIENT CONNECT'):
                     ip = cmd.split(':')[1].strip()
                     self.updateStatusSignal.emit(f'ZMQ client connected from {ip}')
+                elif cmd == 'START ACQUISITION':
+                    self.startAquisition.emit('datei.txt')
+                elif cmd == 'START ACQUISITION':
+                    self.startAquisition.emit('datei.txt')
                 else:
                     self.updateStatusSignal.emit(f'API server recieved unknown command {cmd}')
                     logger.warning(f'API server recieved unknown command "{cmd}"')
