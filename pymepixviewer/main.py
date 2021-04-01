@@ -90,7 +90,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
     def api_server(self):
         """Function to provide a simple remote interface for the GUI using ZMQ"""
-        self.rest_sock = self.ctx.socket(zmq.PAIR)
+        self.rest_sock = self.ctx.socket(zmq.REP)
         self.rest_sock.connect("tcp://localhost:9033")
         logger.info(f"API server bind on {socket.gethostbyname(socket.gethostname())}:9033")
 
@@ -99,19 +99,18 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
             if self.rest_sock.poll(timeout=0):
                 request = self.rest_sock.recv_json()
                 command = request['command']
-                logger.info(f"API server: {command} command")
+                logger.debug(f"API server: {command} command")
 
                 if command == "STOP API SERVER":
-                    logger.info("API server shutting down")
+                    logger.debug("API server shutting down")
                     run_server = False
                 elif command.startswith("CLIENT CONNECT"):
                     ip = cmd.split(":")[1].strip()
                     self.updateStatusSignal.emit(f"ZMQ client connected from {ip}")
 
-
                 elif command == "PATH":
                     if (request['parameters']['path'] != None):
-                        logger.info(f"API server: Changing path to {request['parameters']['path']}")
+                        logger.debug(f"API server: Changing path to {request['parameters']['path']}")
                         self._config_panel.acqtab.path_name.setText(request['parameters']['path'])
                     path = self._config_panel.acqtab.path_name.text()
                     response = {
@@ -120,7 +119,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
                     self.rest_sock.send_json(response)
                 elif command == "PREFIX":
                     if (request['parameters']['prefix'] != None):
-                        logger.info(f"API server: Changing prefix to {request['parameters']['prefix']}")
+                        logger.debug(f"API server: Changing prefix to {request['parameters']['prefix']}")
                         self._config_panel.acqtab.file_prefix.setText(request['parameters']['prefix'])
                     prefix = self._config_panel.acqtab.file_prefix.text()
                     response = {
@@ -128,17 +127,24 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
                     }
                     self.rest_sock.send_json(response)
                 elif command == "START_ACQUISITION":
-                    print('Starting')
                     self.start_acq_sig.emit()
-                    # TODO: Start 
-
+                    response = {
+                        "result": "STARTED_ACQUISITION"
+                    }
+                    self.rest_sock.send_json(response)
                 elif command == "STOP_ACQUISITION":
                     self.stop_acq_sig.emit()
-                    # TODO: Stop
-
+                    response = {
+                        "result": "STOPPED_ACQUISITION"
+                    }
+                    self.rest_sock.send_json(response)
                 else:
                     self.updateStatusSignal.emit(f"API server recieved unknown command {cmd}")
                     logger.warning(f'API server recieved unknown command "{cmd}"')
+                    response = {
+                        "result": "UNKNOWN_COMMAND"
+                    }
+                    self.rest_sock.send_json(response)
 
     def __init__(self, parent=None):
         super(PymepixDAQ, self).__init__(parent)
@@ -200,8 +206,9 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
     def startupTimepix(self):
 
-        self._timepix = pymepix.Pymepix(("192.168.1.10", 50000))
-        # self._timepix = pymepix.Pymepix(('127.0.0.1', 50000))
+        # self._timepix = pymepix.Pymepix(("192.168.1.10", 50000))
+        self._timepix = pymepix.Pymepix(('127.0.0.1', 50000), ("127.0.0.1", 0))
+
 
         if len(self._timepix) == 0:
             logger.error("NO TIMEPIX DEVICES DETECTED")
