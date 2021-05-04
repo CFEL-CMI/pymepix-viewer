@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 ##############################################################################
 ##
 # This file is part of pymepixviewer
@@ -23,8 +24,14 @@
 import logging
 import os
 import time
+import socket
 
 import numpy as np
+import zmq
+
+# force to load PyQt5 for systems where PyQt4 is still installed
+from PyQt5 import QtCore, QtGui, QtWidgets
+
 import pymepix
 from pymepix.processing import MessageType
 from pymepixviewer.core.datatypes import ViewerMode
@@ -34,8 +41,6 @@ from pymepixviewer.panels.timeofflight import TimeOfFlightPanel
 from pymepixviewer.ui.mainui import Ui_MainWindow
 from pyqtgraph.Qt import QtCore, QtGui
 
-import zmq
-import socket
 
 logger = logging.getLogger(__name__)
 
