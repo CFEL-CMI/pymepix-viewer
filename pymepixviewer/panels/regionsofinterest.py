@@ -20,15 +20,15 @@
 #
 ##############################################################################
 
+import numpy as np
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui
 
 
 class BaseItem(QtCore.QObject):
-
     def __init__(self, parent=None):
         QtCore.QObject.__init__(self)
-        self._data = ['', '', '']
+        self._data = ["", "", ""]
         self._children = []
         self._parent = parent
 
@@ -103,18 +103,28 @@ class RoiItem(BaseItem):
         self._name = name
         self._start_region = start_region
         self._end_region = end_region
+        self._hist_x = np.array([])
+        self._hist_y = np.array([])
 
-        self._roi_item = pg.LinearRegionItem(values=[self._start_region, self._end_region], brush=color)
+        self._roi_item = pg.LinearRegionItem(
+            values=[self._start_region, self._end_region], brush=color
+        )
 
-        self._data = [self._name, '{:4.2e} us'.format(self._start_region * 1E6),
-                      '{:4.2e} us'.format(self._end_region * 1E6)]
+        self._data = [
+            self._name,
+            "{:4.2e} us".format(self._start_region * 1e6),
+            "{:4.2e} us".format(self._end_region * 1e6),
+        ]
         self._roi_item.sigRegionChangeFinished.connect(self.onUserUpdateRoi)
 
     def onUserUpdateRoi(self):
         self._start_region, self._end_region = self._roi_item.getRegion()
 
-        self._data = [self._name, '{:4.2e} us'.format(self._start_region * 1E6),
-                      '{:4.2e} us'.format(self._end_region * 1E6)]
+        self._data = [
+            self._name,
+            "{:4.2e} us".format(self._start_region * 1e6),
+            "{:4.2e} us".format(self._end_region * 1e6),
+        ]
 
         print(self._data)
         self.roiUpdated.emit(self._name, self._start_region, self._end_region)
@@ -130,6 +140,22 @@ class RoiItem(BaseItem):
     def region(self):
         return self._start_region, self._end_region
 
+    @property
+    def histogram(self):
+        """hold the histogram for the individual ROI
+        use this for e.g. calculating the integral
+        """
+        return self._hist_x, self._hist_y
+
+    @histogram.setter
+    def histogram(self, data):
+        self._hist_x = data[0]
+        self._hist_y = data[1]
+
+    @property
+    def roi_sum(self):
+        return self._hist_y.sum()
+
 
 class RoiModel(QtCore.QAbstractItemModel):
     roiUpdated = QtCore.pyqtSignal(str, float, float)
@@ -138,7 +164,7 @@ class RoiModel(QtCore.QAbstractItemModel):
     def __init__(self, parent=None):
         QtCore.QAbstractItemModel.__init__(self, parent)
         self.rootItem = BaseItem()
-        self.rootItem._data = ['Name', 'Start', 'End']
+        self.rootItem._data = ["Name", "Start", "End"]
 
     def onRoiUpdate(self, name, start, end):
         # self.layoutChanged.emit()
@@ -156,9 +182,13 @@ class RoiModel(QtCore.QAbstractItemModel):
 
         if item is not None:
             # Show dialog box that item already exists
-            QtGui.QMessageBox.warning(None, 'Duplicate ROI',
-                                      'Roi with name {} already exists'.format(name),
-                                      QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok);
+            QtGui.QMessageBox.warning(
+                None,
+                "Duplicate ROI",
+                "Roi with name {} already exists".format(name),
+                QtGui.QMessageBox.Ok,
+                QtGui.QMessageBox.Ok,
+            )
             return None
         # print('About to change')
 
@@ -178,9 +208,13 @@ class RoiModel(QtCore.QAbstractItemModel):
 
         if item is None:
             # Show dialog box that item already exists
-            QtGui.QMessageBox.warning(None, 'ROI does not exist',
-                                      'Roi with name {} does not exist'.format(name),
-                                      QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok);
+            QtGui.QMessageBox.warning(
+                None,
+                "ROI does not exist",
+                "Roi with name {} does not exist".format(name),
+                QtGui.QMessageBox.Ok,
+                QtGui.QMessageBox.Ok,
+            )
             return
 
         self.layoutAboutToBeChanged.emit()
@@ -219,7 +253,7 @@ class RoiModel(QtCore.QAbstractItemModel):
         # print(type(childItem))
         parentItem = childItem.parentItem()
 
-        if (parentItem == self.rootItem):
+        if parentItem == self.rootItem:
             return QtCore.QModelIndex()
         if parentItem == None:
             return QtCore.QModelIndex()
@@ -227,10 +261,10 @@ class RoiModel(QtCore.QAbstractItemModel):
 
     def rowCount(self, parent):
 
-        if (parent.column() > 0):
+        if parent.column() > 0:
             return 0
 
-        if (not parent.isValid()):
+        if not parent.isValid():
             parentItem = self.rootItem
         else:
             parentItem = parent.internalPointer()
@@ -244,10 +278,10 @@ class RoiModel(QtCore.QAbstractItemModel):
             return self.rootItem.columnCount()
 
     def data(self, index, role):
-        if (not index.isValid()):
+        if not index.isValid():
             return QtCore.QVariant()
 
-        if (role != QtCore.Qt.DisplayRole):
+        if role != QtCore.Qt.DisplayRole:
             return QtCore.QVariant()
 
         item = index.internalPointer()
@@ -276,9 +310,9 @@ class RoiModel(QtCore.QAbstractItemModel):
 
 def main():
     test_model = RoiModel()
-    test_model.addRegionofInterest('test', 0, 100)
-    test_model.removeRegionofInterest('test')
-    test_model.addRegionofInterest('test', 0, 100)
+    test_model.addRegionofInterest("test", 0, 100)
+    test_model.removeRegionofInterest("test")
+    test_model.addRegionofInterest("test", 0, 100)
 
 
 if __name__ == "__main__":

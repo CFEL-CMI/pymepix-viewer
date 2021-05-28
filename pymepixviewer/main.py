@@ -141,6 +141,13 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
                     self.stop_acq_sig.emit()
                     response = {"result": "STOPPED_ACQUISITION"}
                     self.rest_sock.send_json(response)
+                elif command == "GET_ROI_SUM":
+                    histogram_sums = []
+                    for i in range(self._tof_panel._roi_model.rootItem.childCount()):
+                        roi = self._roi_model.rootItem.child(i)
+                        histogram_sums.append(roi.roi_sum)
+                    response = {"ROI_SUMS": histogram_sums}
+                    self.rest_sock.send_json(response)
                 else:
                     self.updateStatusSignal.emit(f"API server recieved unknown command {cmd}")
                     logger.warning(f'API server recieved unknown command "{cmd}"')
