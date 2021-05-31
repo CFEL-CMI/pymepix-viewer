@@ -154,7 +154,10 @@ class RoiItem(BaseItem):
 
     @property
     def roi_sum(self):
-        return self._hist_y.sum()
+        if self._hist_y is not None:
+            return self._hist_y.sum()
+        else:
+            return None
 
 
 class RoiModel(QtCore.QAbstractItemModel):
