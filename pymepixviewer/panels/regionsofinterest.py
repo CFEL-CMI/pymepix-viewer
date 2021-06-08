@@ -190,7 +190,6 @@ class RoiModel(QtCore.QAbstractItemModel):
         self._old_roi.roiUpdated.disconnect(self.onRoiUpdate)
 
         # rint(self.rootItem)
-        return roi
 
     def index(self, row, column, parent):
 
