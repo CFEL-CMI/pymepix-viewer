@@ -144,9 +144,9 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
                 elif command == "GET_ROI_SUM":
                     histogram_sums = []
                     for i in range(self._tof_panel._roi_model.rootItem.childCount()):
-                        roi = self._roi_model.rootItem.child(i)
-                        histogram_sums.append(roi.roi_sum)
-                    response = {"ROI_SUMS": histogram_sums}
+                        roi = self._tof_panel._roi_model.rootItem.child(i)
+                        histogram_sums.append(int(roi.roi_sum))
+                    response = {"result": histogram_sums}
                     self.rest_sock.send_json(response)
                 else:
                     self.updateStatusSignal.emit(f"API server recieved unknown command {cmd}")
@@ -428,6 +428,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
             self._last_update = time.time()
 
     def start_recording(self):
+        self.clearNow.emit()
         path = self._config_panel.acqtab.path_name.text()
         if len(path) == 0:
             path = "./"  # for raw2disk to recognise it as a filename
