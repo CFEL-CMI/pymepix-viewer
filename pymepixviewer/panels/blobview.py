@@ -36,7 +36,7 @@ class Crosshair(QtGui.QGraphicsItem):
         self.setFlag(self.ItemIgnoresTransformations)
 
     def paint(self, p, *args):
-        p.setPen(pg.mkPen('y'))
+        p.setPen(pg.mkPen("y"))
         p.drawLine(-10, 0, 10, 0)
         p.drawLine(0, -10, 0, 10)
 
@@ -45,7 +45,6 @@ class Crosshair(QtGui.QGraphicsItem):
 
 
 class BlobView(QtGui.QWidget, Ui_Form):
-
     def __init__(self, parent=None, start=None, end=None, current_mode=ViewerMode.TOA):
         super(BlobView, self).__init__(parent)
 
@@ -69,11 +68,11 @@ class BlobView(QtGui.QWidget, Ui_Form):
         self._blob_trend_trigger = deque(maxlen=100)
         self._blob_trend_data = pg.PlotDataItem()
         self.blob_trend.addItem(self._blob_trend_data)
-        self.blob_trend.setLabel('left', text='Blob Count')
-        self.blob_trend.setLabel('bottom', text='Trigger Number')
+        self.blob_trend.setLabel("left", text="Blob Count")
+        self.blob_trend.setLabel("bottom", text="Trigger Number")
         self._last_trigger = 0
 
-        self.image_view.setPredefinedGradient('thermal')
+        self.image_view.setPredefinedGradient("thermal")
 
         self._histogram_mode = False
         self._histogram_x = []
@@ -101,7 +100,7 @@ class BlobView(QtGui.QWidget, Ui_Form):
         if self._start_tof is not None:
             return (tof >= self._start_tof) & (tof < self._end_tof)
         else:
-            return (tof >= 0.0)
+            return tof >= 0.0
 
     def on_show_cross_change(self):
         if self.show_center.isChecked():
@@ -111,12 +110,10 @@ class BlobView(QtGui.QWidget, Ui_Form):
             self.image_view.removeItem(self.crosshair)
 
     def on_move_cross(self):
-        if self._histogram_mode:
-            binning_fac = 1 / (256 / self._histogram_bins)
-        else:
-            binning_fac = 1
-        self.crosshair.setPos(self.y0_spin.value() * binning_fac,
-                              self.x0_spin.value() * binning_fac)
+        binning_fac = 1 / (256 / self._histogram_bins) if self._histogram_mode else 1
+        self.crosshair.setPos(
+            self.y0_spin.value() * binning_fac, self.x0_spin.value() * binning_fac
+        )
 
     def onHistBinChange(self, value):
         self._histogram_bins = value
@@ -127,12 +124,8 @@ class BlobView(QtGui.QWidget, Ui_Form):
         self.on_show_cross_change()
 
     def onHistogramCheck(self, status):
-        if status == 2:
-            self._histogram_mode = True
-            self.clearData()
-        else:
-            self._histogram_mode = False
-            self.clearData()
+        self._histogram_mode = status == 2
+        self.clearData()
 
     def onTrendCheck(self, status):
         if status == 2:
@@ -151,8 +144,12 @@ class BlobView(QtGui.QWidget, Ui_Form):
         self.clearData()
 
     def _updateHist(self):
-        h = np.histogram2d(np.concatenate(self._histogram_x), np.concatenate(self._histogram_y),
-                           bins=self._histogram_bins, range=[[0, 256], [0, 256]])
+        h = np.histogram2d(
+            np.concatenate(self._histogram_x),
+            np.concatenate(self._histogram_y),
+            bins=self._histogram_bins,
+            range=[[0, 256], [0, 256]],
+        )
         self._histogram_x = []
         self._histogram_y = []
         if self._histogram is None:
@@ -188,7 +185,7 @@ class BlobView(QtGui.QWidget, Ui_Form):
 
         avg_blobs = np.sum(counts) / total_triggers
 
-        self.rec_blobs.setText(str(int(avg_blobs)))
+        self.rec_blobs.setText(f"{avg_blobs:.1f}")
 
         self.int_blobs.setText(str(self._int_blob_count))
 
@@ -204,11 +201,16 @@ class BlobView(QtGui.QWidget, Ui_Form):
             self.updateBlobData(cluster_shot, cluster_x, cluster_y, cluster_tof)
 
     def onEvent(self, event):
-        if self._current_mode in (ViewerMode.TOF, ViewerMode.Centroid,):
-
-            if not self._histogram_mode:
-                counter, x, y, tof, tot = event
-                self.updateMatrix(x, y, tof, tot)
+        if (
+            self._current_mode
+            in (
+                ViewerMode.TOF,
+                ViewerMode.Centroid,
+            )
+            and not self._histogram_mode
+        ):
+            counter, x, y, tof, tot = event
+            self.updateMatrix(x, y, tof, tot)
 
     def onToA(self, event):
         if self._current_mode in (ViewerMode.TOA,):
@@ -223,8 +225,12 @@ class BlobView(QtGui.QWidget, Ui_Form):
 
     def plotData(self):
         if not self._histogram_mode:
-            self.image_view.setImage(self._matrix / self._matrix.max(), autoLevels=False, autoRange=False,
-                                     autoHistogramRange=False)
+            self.image_view.setImage(
+                self._matrix / self._matrix.max(),
+                autoLevels=False,
+                autoRange=False,
+                autoHistogramRange=False,
+            )
         else:
             if len(self._histogram_x) > 0:
                 self._updateHist()
@@ -240,22 +246,32 @@ class BlobView(QtGui.QWidget, Ui_Form):
                 r = np.sqrt(dx ** 2 + dy ** 2)
                 cos_theta = dx / r
                 cos2_theta = cos_theta ** 2
-                mask = np.logical_and(r <= self.r_outer.value() * binning_fac, r >= self.r_inner.value() * binning_fac)
+                mask = np.logical_and(
+                    r <= self.r_outer.value() * binning_fac,
+                    r >= self.r_inner.value() * binning_fac,
+                )
                 try:
-                    expet_cos_theta = (self._histogram * cos_theta)[mask].sum() / self._histogram[mask].sum()
-                    expet_cos2_theta = (self._histogram * cos2_theta)[mask].sum() / self._histogram[mask].sum()
-                    self.cos_theta.setText(f'{expet_cos_theta:.3f}')
-                    self.cos2_theta.setText(f'{expet_cos2_theta:.3f}')
+                    expet_cos_theta = (self._histogram * cos_theta)[mask].sum() / self._histogram[
+                        mask
+                    ].sum()
+                    expet_cos2_theta = (self._histogram * cos2_theta)[
+                        mask
+                    ].sum() / self._histogram[mask].sum()
+                    self.cos_theta.setText(f"{expet_cos_theta:.3f}")
+                    self.cos2_theta.setText(f"{expet_cos2_theta:.3f}")
                 except:
                     pass
 
                 tmp_img = self._histogram / self._histogram.max()
                 tmp_img[~mask] = 0
-                self.image_view.setImage(tmp_img, autoLevels=False, autoRange=False,
-                                         autoHistogramRange=False)
+                self.image_view.setImage(
+                    tmp_img, autoLevels=False, autoRange=False, autoHistogramRange=False
+                )
 
         try:
-            self._blob_trend_data.setData(x=np.array(self._blob_trend_trigger), y=np.array(self._blob_trend))
+            self._blob_trend_data.setData(
+                x=np.array(self._blob_trend_trigger), y=np.array(self._blob_trend)
+            )
         except:
             pass
 
