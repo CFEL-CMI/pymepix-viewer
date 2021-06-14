@@ -116,9 +116,9 @@
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="path_name"/>
+           <widget class="QLineEdit" name="path_name">
            <property name="text">
-             <string>/gpfs/cfel/cmi/labs/eCOMO</string>
+             <string>/gpfs/cfel/cmi/labs/eCOMO/fsAttoJune21/raw/timepix/</string>
             </property>
            </widget>
           </item>
@@ -142,6 +142,12 @@
           </item>
           <item>
            <widget class="QLineEdit" name="file_prefix">
+            <property name="toolTip">
+             <string>prefix must not contain &quot;_&quot;</string>
+            </property>
+            <property name="whatsThis">
+             <string/>
+            </property>
             <property name="text">
              <string>ion</string>
             </property>

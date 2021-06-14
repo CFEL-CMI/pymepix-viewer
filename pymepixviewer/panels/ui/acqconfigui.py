@@ -2,11 +2,12 @@
 
 # Form implementation generated from reading ui file 'acqconfig.ui'
 #
-# Created by: PyQt5 UI code generator 5.9.2
+# Created by: PyQt5 UI code generator 5.12.3
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt5 import QtCore, QtWidgets
+
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 
 class Ui_Form(object):
@@ -39,10 +40,10 @@ class Ui_Form(object):
         self.label_19 = QtWidgets.QLabel(self.groupBox_3)
         self.label_19.setObjectName("label_19")
         self.horizontalLayout_18.addWidget(self.label_19)
-        self.fine_threshold = QtWidgets.QSpinBox(self.groupBox_3)
+        self.fine_threshold = QtWidgets.QDoubleSpinBox(self.groupBox_3)
         self.fine_threshold.setPrefix("")
-        self.fine_threshold.setMaximum(511)
-        self.fine_threshold.setSingleStep(1)
+        self.fine_threshold.setMaximum(255.0)
+        self.fine_threshold.setSingleStep(0.5)
         self.fine_threshold.setObjectName("fine_threshold")
         self.horizontalLayout_18.addWidget(self.fine_threshold)
         self.verticalLayout_2.addLayout(self.horizontalLayout_18)
@@ -51,10 +52,10 @@ class Ui_Form(object):
         self.label_20 = QtWidgets.QLabel(self.groupBox_3)
         self.label_20.setObjectName("label_20")
         self.horizontalLayout_19.addWidget(self.label_20)
-        self.coarse_threshold = QtWidgets.QSpinBox(self.groupBox_3)
+        self.coarse_threshold = QtWidgets.QDoubleSpinBox(self.groupBox_3)
         self.coarse_threshold.setPrefix("")
-        self.coarse_threshold.setMaximum(15)
-        self.coarse_threshold.setSingleStep(1)
+        self.coarse_threshold.setMaximum(1.19)
+        self.coarse_threshold.setSingleStep(0.08)
         self.coarse_threshold.setObjectName("coarse_threshold")
         self.horizontalLayout_19.addWidget(self.coarse_threshold)
         self.verticalLayout_2.addLayout(self.horizontalLayout_19)
@@ -76,13 +77,16 @@ class Ui_Form(object):
         self.label_7.setObjectName("label_7")
         self.horizontalLayout_5.addWidget(self.label_7)
         self.file_prefix = QtWidgets.QLineEdit(self.groupBox_3)
+        self.file_prefix.setWhatsThis("")
         self.file_prefix.setObjectName("file_prefix")
         self.horizontalLayout_5.addWidget(self.file_prefix)
         self.verticalLayout_2.addLayout(self.horizontalLayout_5)
         self.horizontalLayout_12 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_12.setObjectName("horizontalLayout_12")
         self.label_14 = QtWidgets.QLabel(self.groupBox_3)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label_14.sizePolicy().hasHeightForWidth())
@@ -131,7 +135,9 @@ class Ui_Form(object):
         self.horizontalLayout_11 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_11.setObjectName("horizontalLayout_11")
         self.label_13 = QtWidgets.QLabel(self.groupBox_3)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label_13.sizePolicy().hasHeightForWidth())
@@ -148,7 +154,9 @@ class Ui_Form(object):
         self.verticalLayout_2.addLayout(self.horizontalLayout_11)
         self.verticalLayout_4.addWidget(self.groupBox_3)
         self.verticalLayout_3.addLayout(self.verticalLayout_4)
-        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        spacerItem = QtWidgets.QSpacerItem(
+            20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
+        )
         self.verticalLayout_3.addItem(spacerItem)
 
         self.retranslateUi(Form)
@@ -160,14 +168,17 @@ class Ui_Form(object):
         self.groupBox_3.setTitle(_translate("Form", "Acquisition"))
         self.label_17.setText(_translate("Form", "Bias Voltage"))
         self.bias_voltage.setSuffix(_translate("Form", " V"))
-        self.label_19.setText(_translate("Form", "Fine Threshold [0, 511]"))
-        self.fine_threshold.setSuffix(_translate("Form", ""))
-        self.label_20.setText(_translate("Form", "Coarse Threshold [0, 15]"))
-        self.coarse_threshold.setSuffix(_translate("Form", ""))
+        self.label_19.setText(_translate("Form", "Fine Threshold"))
+        self.fine_threshold.setSuffix(_translate("Form", "mV"))
+        self.label_20.setText(_translate("Form", "Coarse Threshold"))
+        self.coarse_threshold.setSuffix(_translate("Form", "V"))
         self.label_6.setText(_translate("Form", "Path"))
-        self.path_name.setText(_translate("Form", "/gpfs/cfel/cmi/labs/eCOMO/fsAttoJune21/raw/timepix/"))
+        self.path_name.setText(
+            _translate("Form", "/gpfs/cfel/cmi/labs/eCOMO/fsAttoJune21/raw/timepix/")
+        )
         self.openpath.setText(_translate("Form", "Open"))
         self.label_7.setText(_translate("Form", "Prefix:"))
+        self.file_prefix.setToolTip(_translate("Form", 'prefix must not contain "_"'))
         self.file_prefix.setText(_translate("Form", "ion"))
         self.label_14.setText(_translate("Form", "Index"))
         self.label_5.setText(_translate("Form", "Storage:"))
@@ -179,4 +190,3 @@ class Ui_Form(object):
         self.acq_time.setText(_translate("Form", "10"))
         self.label_9.setText(_translate("Form", "s"))
         self.label_13.setText(_translate("Form", "No of Files"))
-
