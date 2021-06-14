@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>288</width>
+    <width>334</width>
     <height>691</height>
    </rect>
   </property>
@@ -57,23 +57,14 @@
           <item>
            <widget class="QLabel" name="label_19">
             <property name="text">
-             <string>Fine Threshold</string>
+             <string>Fine Threshold  [0, 511]</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QDoubleSpinBox" name="fine_threshold">
-            <property name="prefix">
-             <string/>
-            </property>
-            <property name="suffix">
-             <string>mV</string>
-            </property>
+           <widget class="QSpinBox" name="fine_threshold">
             <property name="maximum">
-             <double>255.000000000000000</double>
-            </property>
-            <property name="singleStep">
-             <double>0.500000000000000</double>
+             <number>511</number>
             </property>
            </widget>
           </item>
@@ -84,23 +75,14 @@
           <item>
            <widget class="QLabel" name="label_20">
             <property name="text">
-             <string>Coarse Threshold</string>
+             <string>Coarse Threshold [0, 15]</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QDoubleSpinBox" name="coarse_threshold">
-            <property name="prefix">
-             <string/>
-            </property>
-            <property name="suffix">
-             <string>V</string>
-            </property>
+           <widget class="QSpinBox" name="coarse_threshold">
             <property name="maximum">
-             <double>1.190000000000000</double>
-            </property>
-            <property name="singleStep">
-             <double>0.080000000000000</double>
+             <number>15</number>
             </property>
            </widget>
           </item>
@@ -138,6 +120,12 @@
           </item>
           <item>
            <widget class="QLineEdit" name="file_prefix">
+            <property name="toolTip">
+             <string>prefix must not contain &quot;_&quot;</string>
+            </property>
+            <property name="whatsThis">
+             <string/>
+            </property>
             <property name="text">
              <string>test</string>
             </property>
