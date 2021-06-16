@@ -36,6 +36,7 @@ from pyqtgraph.Qt import QtCore, QtGui
 
 logger = logging.getLogger(__name__)
 
+
 class GenericThread(QtCore.QThread):
     def __init__(self, function, *args, **kwargs):
         QtCore.QThread.__init__(self)
@@ -47,7 +48,7 @@ class GenericThread(QtCore.QThread):
         self.wait()
 
     def run(self):
-        self.function(*self.args,**self.kwargs)
+        self.function(*self.args, **self.kwargs)
         return
 
 
@@ -65,7 +66,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
     coarseThresholdUpdate = QtCore.pyqtSignal(float)
 
     def statusUdate(self):
-        logger.info('Starting status update thread')
+        logger.info("Starting status update thread")
 
         while True:
             fpga = self._timepix._spidr.fpgaTemperature
@@ -73,10 +74,11 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
             remote = self._timepix._spidr.remoteTemperature
             chipSpeed = self._timepix._spidr.chipboardFanSpeed
             spidrSpeed = self._timepix._spidr.spidrFanSpeed
-            longtime   = self._timepix._timepix_devices[0]._longtime.value*25e-9
+            longtime = self._timepix._timepix_devices[0]._longtime.value * 25e-9
 
             self.updateStatusSignal.emit(
-                f'T_(FPGA)={fpga}, T_(loc)={local}, T_(remote)={remote}, Fan(chip)={chipSpeed}, Fan(SPIDR)={spidrSpeed}, Longtime={longtime:.2f}')
+                f"T_(FPGA)={fpga}, T_(loc)={local}, T_(remote)={remote}, Fan(chip)={chipSpeed}, Fan(SPIDR)={spidrSpeed}, Longtime={longtime:.2f}"
+            )
             # self.statusbar.showMessage(, 5000)
             time.sleep(5)
 
@@ -111,29 +113,31 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         if self._current_mode is ViewerMode.TOA:
             # self._timepix[0].setupAcquisition(pymepix.processing.PixelPipeline)
             self._timepix[0].acquisition.enableEvents = False
-            logger.info('Switch to TOA mode, {}'.format(self._timepix[0].acquisition.enableEvents))
+            logger.info("Switch to TOA mode, {}".format(self._timepix[0].acquisition.enableEvents))
         elif self._current_mode is ViewerMode.TOF:
             # self._timepix[0].setupAcquisition(pymepix.processing.PixelPipeline)
             self._timepix[0].acquisition.enableEvents = True
-            logger.info('Switch to TOF mode, {}'.format(self._timepix[0].acquisition.enableEvents))
+            logger.info("Switch to TOF mode, {}".format(self._timepix[0].acquisition.enableEvents))
         elif self._current_mode is ViewerMode.Centroid:
             # self._timepix[0].setupAcquisition(pymepix.processing.CentroidPipeline)
             self._timepix[0].acquisition.enableEvents = True
-            logger.info('Switch to Centroid mode, {}'.format(self._timepix[0].acquisition.enableEvents))
+            logger.info(
+                "Switch to Centroid mode, {}".format(self._timepix[0].acquisition.enableEvents)
+            )
 
         time.sleep(2.0)
         self._timepix.start()
 
     def startupTimepix(self):
 
-        #self._timepix = pymepix.Pymepix(('192.168.1.10', 50000))
-        self._timepix = pymepix.Pymepix(('127.0.0.1', 50000))
+        self._timepix = pymepix.Pymepix(("192.168.1.10", 50000))
+        # self._timepix = pymepix.Pymepix(("127.0.0.1", 50000))
 
         if len(self._timepix) == 0:
-            logger.error('NO TIMEPIX DEVICES DETECTED')
+            logger.error("NO TIMEPIX DEVICES DETECTED")
             quit()
 
-        logging.getLogger('pymepix').setLevel(logging.INFO)
+        logging.getLogger("pymepix").setLevel(logging.INFO)
 
         self._timepix[0].setupAcquisition(pymepix.processing.CentroidPipeline)
         # self._timepix.
@@ -142,7 +146,11 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         self._timepix[0].pixelMask = np.zeros(shape=(256, 256), dtype=np.uint8)
         self._timepix[0].uploadPixels()
 
-        logger.info('Fine: {} Coarse: {}'.format(self._timepix[0].Vthreshold_fine, self._timepix[0].Vthreshold_coarse))
+        logger.info(
+            "Fine: {} Coarse: {}".format(
+                self._timepix[0].Vthreshold_fine, self._timepix[0].Vthreshold_coarse
+            )
+        )
 
         self.coarseThresholdUpdate.emit(self._timepix[0].Vthreshold_coarse)
         self.fineThresholdUpdate.emit(self._timepix[0].Vthreshold_fine)
@@ -159,31 +167,32 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         self._timepix[0].Vthreshold_coarse = value
 
     def setEventWindow(self, min_v, max_v):
-        logger.info('Setting Event window {} {}'.format(min_v, max_v))
+        logger.info("Setting Event window {} {}".format(min_v, max_v))
         self._timepix[0].acquisition.eventWindow = (min_v, max_v)
 
     def setTotThreshold(self, tot):
-        logger.info('Setting Tot threshold {}'.format(tot))
+        logger.info("Setting Tot threshold {}".format(tot))
         self._timepix[0].acquisition.totThreshold = tot
 
     def setCentroidSkip(self, skip):
-        logger.info('Setting centroid skip {}'.format(skip))
+        logger.info("Setting centroid skip {}".format(skip))
         self._timepix[0].acquisition.centroidSkip = skip
 
     def setBlobProccesses(self, blob):
         import time
-        logger.info('Setting number of blob processes {}'.format(blob))
+
+        logger.info("Setting number of blob processes {}".format(blob))
         self._timepix.stop()
         time.sleep(10)
         self._timepix[0].acquisition.numBlobProcesses = blob
         self._timepix.start()
 
     def setEpsilon(self, epsilon):
-        logger.info('Setting epsilon {}'.format(epsilon))
+        logger.info("Setting epsilon {}".format(epsilon))
         self._timepix[0].acquisition.epsilon = epsilon
 
     def setSamples(self, samples):
-        logger.info('Setting samples {}'.format(samples))
+        logger.info("Setting samples {}".format(samples))
         self._timepix[0].acquisition.samples = samples
 
     def connectSignals(self):
@@ -194,9 +203,11 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         self._config_panel.acqtab.biasVoltageChange.connect(self.onBiasVoltageUpdate)
 
         self._config_panel.acqtab.fine_threshold.editingFinished.connect(
-            lambda: self.setFineThreshold(self._config_panel.acqtab.fine_threshold.value()))
+            lambda: self.setFineThreshold(self._config_panel.acqtab.fine_threshold.value())
+        )
         self._config_panel.acqtab.coarse_threshold.editingFinished.connect(
-            lambda: self.setCoarseThreshold(self._config_panel.acqtab.coarse_threshold.value()))
+            lambda: self.setCoarseThreshold(self._config_panel.acqtab.coarse_threshold.value())
+        )
 
         self.fineThresholdUpdate.connect(self._config_panel.acqtab.fine_threshold.setValue)
         self.coarseThresholdUpdate.connect(self._config_panel.acqtab.coarse_threshold.setValue)
@@ -236,11 +247,11 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         self.updateStatusSignal.connect(lambda msg: self.statusbar.showMessage(msg, 5000))
 
     def onBiasVoltageUpdate(self, value):
-        logger.info('Bias Voltage changed to {} V'.format(value))
+        logger.info("Bias Voltage changed to {} V".format(value))
         self._timepix.biasVoltage = value
 
     def onDisplayUpdate(self, value):
-        logger.info('Display rate changed to {} s'.format(value))
+        logger.info("Display rate changed to {} s".format(value))
         self._display_rate = value
 
     def onEventCountUpdate(self, value):
@@ -248,11 +259,11 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         self._current_event_count = 0
 
     def onFrameTimeUpdate(self, value):
-        logger.info('Frame time set to {} s'.format(value))
+        logger.info("Frame time set to {} s".format(value))
         self._frame_time = value
 
     def onModeChange(self, value):
-        logger.info('Viewer mode changed to {}'.format(value))
+        logger.info("Viewer mode changed to {}".format(value))
         self._current_mode = value
         if self._current_mode is ViewerMode.TOA:
             # Hide TOF panel
@@ -260,7 +271,10 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
             for k, view in self._view_widgets.items():
                 view.hide()
 
-        elif self._current_mode in (ViewerMode.TOF, ViewerMode.Centroid,):
+        elif self._current_mode in (
+            ViewerMode.TOF,
+            ViewerMode.Centroid,
+        ):
             # Show it
             self._dock_tof.show()
             for k, view in self._view_widgets.items():
@@ -286,8 +300,10 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
                 self.clearNow.emit()
                 self._last_frame = time.time()
 
-        if self._current_mode in (ViewerMode.TOF, ViewerMode.Centroid,) and \
-                data_type in (MessageType.EventData, MessageType.CentroidData,):
+        if self._current_mode in (ViewerMode.TOF, ViewerMode.Centroid,) and data_type in (
+            MessageType.EventData,
+            MessageType.CentroidData,
+        ):
 
             event_shots = event[0]
 
@@ -298,20 +314,20 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
             try:
                 num_events = event_shots.max() - event_shots.min() + 1
             except ValueError:
-                logger.warning('Events has no identity {}'.format(event_shots))
+                logger.warning("Events has no identity {}".format(event_shots))
                 return
             self._current_event_count += num_events
 
         if data_type is MessageType.RawData:
             self.onRaw.emit(event)
         elif data_type is MessageType.PixelData:
-            logger.debug('RAW: {}'.format(event))
+            logger.debug("RAW: {}".format(event))
             self.onPixelToA.emit(event)
         elif data_type is MessageType.EventData:
-            logger.debug('TOF: {}'.format(event))
+            logger.debug("TOF: {}".format(event))
             self.onPixelToF.emit(event)
         elif data_type is MessageType.CentroidData:
-            logger.debug('CENTROID: {}'.format(event))
+            logger.debug("CENTROID: {}".format(event))
             self.onCentroid.emit(event)
 
         # if data_type in (MessageType.PixelData,):
@@ -325,8 +341,8 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
     def start_recording(self):
         path = self._config_panel.acqtab.path_name.text()
         if len(path) == 0:
-            path = './'  # for raw2disk to recognise it as a filename
-        fName = f'{self._config_panel.acqtab.file_prefix.text()}'
+            path = "./"  # for raw2disk to recognise it as a filename
+        fName = f"{self._config_panel.acqtab.file_prefix.text()}"
         self._fileName = os.path.join(path, fName)
 
         self._timepix._spidr.resetTimers()
@@ -337,15 +353,16 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         pipeline._pipeline_objects[0].record = True
         pipeline.udp_sock.send_string(self._fileName)
         res = pipeline.udp_sock.recv_string()
-        if res == 'OPENED':
+        if res == "OPENED":
             self._fileName = pipeline.udp_sock.recv_string()
-            logger.debug(f'Recording for {self._fileName} started')
+            logger.debug(f"Recording for {self._fileName} started")
         else:
-            logger.warning(f'did not open {res}')
+            logger.warning(f"did not open {res}")
 
         # setup GUI
-        self._config_panel.start_acq.setStyleSheet('QPushButton {color: red;}')
-        self._config_panel.start_acq.setText('Recording')
+        self._config_panel.start_acq.setStyleSheet("QPushButton {color: red;}")
+        self._config_panel.start_acq.setEnabled(False)
+        self._config_panel.start_acq.setText("Recording")
         self._config_panel._in_acq = True
         self._config_panel._elapsed_time.restart()
 
@@ -354,16 +371,16 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         pipeline._pipeline_objects[0].record = False
         pipeline._pipeline_objects[0].close_file = True
         res = pipeline.udp_sock.recv_string()
-        if res == 'CLOSED':
-            logger.info(f'file {self._fileName} closed')
+        if res == "CLOSED":
+            logger.info(f"file {self._fileName} closed")
         else:
-            logger.warning(f'problem, {res}')
+            logger.warning(f"problem, {res}")
 
         # update GUI
-        self._config_panel.start_acq.setStyleSheet('QPushButton {color: black;}')
-        self._config_panel.start_acq.setText('Start Recording')
+        self._config_panel.start_acq.setStyleSheet("QPushButton {color: black;}")
+        self._config_panel.start_acq.setEnabled(True)
+        self._config_panel.start_acq.setText("Start Recording")
         self._config_panel._in_acq = False
-
 
     # def start_recording(self,pathname,prefixname,do_raw,do_blob,exposure,startindex):
     #     self._timepix.filePath=pathname
@@ -378,11 +395,15 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
     def addViewWidget(self, name, start, end):
         if name in self._view_widgets:
-            QtGui.QMessageBox.warning(self, 'Roi name', 'Roi display of name \'{}\' already exists'.format(name))
+            QtGui.QMessageBox.warning(
+                self, "Roi name", "Roi display of name '{}' already exists".format(name)
+            )
             return
         else:
-            dock_view = QtGui.QDockWidget('Display {}'.format(name), self)
-            blob_view = BlobView(start=start, end=end, parent=self, current_mode=self._current_mode)
+            dock_view = QtGui.QDockWidget("Display {}".format(name), self)
+            blob_view = BlobView(
+                start=start, end=end, parent=self, current_mode=self._current_mode
+            )
             dock_view.setWidget(blob_view)
             self._view_widgets[name] = dock_view
             self.displayNow.connect(blob_view.plotData)
@@ -394,8 +415,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
             self.addDockWidget(QtCore.Qt.RightDockWidgetArea, dock_view)
 
     def getfile(self):
-        fname = QtGui.QFileDialog.getOpenFileName(self, 'Open file',
-                                                  '/home', "SoPhy File (*.spx)")
+        fname = QtGui.QFileDialog.getOpenFileName(self, "Open file", "/home", "SoPhy File (*.spx)")
         logger.debug(fname)
 
         if fname[0] == "":
@@ -407,9 +427,13 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
             self._timepix[0].setConfigClass(pymepix.config.SophyConfig)
             self._timepix[0].loadConfig(fname[0])
         except FileNotFoundError:
-            QtGui.QMessageBox.warning(None, 'File not found',
-                                      'File with name {} not found'.format(fname[0]),
-                                      QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok);
+            QtGui.QMessageBox.warning(
+                None,
+                "File not found",
+                "File with name {} not found".format(fname[0]),
+                QtGui.QMessageBox.Ok,
+                QtGui.QMessageBox.Ok,
+            )
 
         self.coarseThresholdUpdate.emit(self._timepix[0].Vthreshold_coarse)
         self.fineThresholdUpdate.emit(self._timepix[0].Vthreshold_fine)
@@ -419,25 +443,33 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         self.clearNow.emit()
 
     def onRoiChange(self, name, start, end):
-        logger.debug('ROICHANGE', name, start, end)
+        logger.debug("ROICHANGE", name, start, end)
         if name in self._view_widgets:
-            logger.debug('FOUND WIDGET', name, start, end)
+            logger.debug("FOUND WIDGET", name, start, end)
             self._view_widgets[name].widget().onRegionChange(start, end)
         else:
-            logger.debug('Widget for {} does not exist', )
+            logger.debug(
+                "Widget for {} does not exist",
+            )
 
     def setupWindow(self):
         self._tof_panel = TimeOfFlightPanel()
         self._config_panel = DaqConfigPanel()
         self._overview_panel = BlobView()
-        self._dock_tof = QtGui.QDockWidget('Time of Flight', self)
-        self._dock_tof.setFeatures(QtGui.QDockWidget.DockWidgetMovable | QtGui.QDockWidget.DockWidgetFloatable)
+        self._dock_tof = QtGui.QDockWidget("Time of Flight", self)
+        self._dock_tof.setFeatures(
+            QtGui.QDockWidget.DockWidgetMovable | QtGui.QDockWidget.DockWidgetFloatable
+        )
         self._dock_tof.setWidget(self._tof_panel)
-        self._dock_config = QtGui.QDockWidget('Daq Configuration', self)
-        self._dock_config.setFeatures(QtGui.QDockWidget.DockWidgetMovable | QtGui.QDockWidget.DockWidgetFloatable)
+        self._dock_config = QtGui.QDockWidget("Daq Configuration", self)
+        self._dock_config.setFeatures(
+            QtGui.QDockWidget.DockWidgetMovable | QtGui.QDockWidget.DockWidgetFloatable
+        )
         self._dock_config.setWidget(self._config_panel)
-        self._dock_overview = QtGui.QDockWidget('Overview', self)
-        self._dock_overview.setFeatures(QtGui.QDockWidget.DockWidgetMovable | QtGui.QDockWidget.DockWidgetFloatable)
+        self._dock_overview = QtGui.QDockWidget("Overview", self)
+        self._dock_overview.setFeatures(
+            QtGui.QDockWidget.DockWidgetMovable | QtGui.QDockWidget.DockWidgetFloatable
+        )
         self._dock_overview.setWidget(self._overview_panel)
 
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self._dock_tof)
@@ -447,7 +479,10 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
 def main():
     import logging
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
     app = QtGui.QApplication([])
 
     config = PymepixDAQ()
