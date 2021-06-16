@@ -214,8 +214,8 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
     def startupTimepix(self):
 
-        # self._timepix = pymepix.Pymepix(("192.168.1.10", 50000))
-        self._timepix = pymepix.Pymepix(("127.0.0.1", 50000), ("127.0.0.1", 0))
+        self._timepix = pymepix.Pymepix(("192.168.1.10", 50000))
+        # self._timepix = pymepix.Pymepix(("127.0.0.1", 50000))
 
         if len(self._timepix) == 0:
             logger.error("NO TIMEPIX DEVICES DETECTED")
@@ -393,6 +393,10 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
             MessageType.EventData,
             MessageType.CentroidData,
         ):
+<<<<<<< HEAD
+=======
+
+>>>>>>> 94db5e2 (Fix recording can be pressed twice)
             event_shots = event[0]
 
             if self._event_max != -1 and self._current_event_count > self._event_max:
@@ -450,6 +454,10 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
         # setup GUI
         self._config_panel.start_acq.setStyleSheet("QPushButton {color: red;}")
+<<<<<<< HEAD
+=======
+        self._config_panel.start_acq.setEnabled(False)
+>>>>>>> 94db5e2 (Fix recording can be pressed twice)
         self._config_panel.start_acq.setText("Recording")
         self._config_panel._in_acq = True
         self._config_panel._elapsed_time.restart()
@@ -466,6 +474,10 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
         # update GUI
         self._config_panel.start_acq.setStyleSheet("QPushButton {color: black;}")
+<<<<<<< HEAD
+=======
+        self._config_panel.start_acq.setEnabled(True)
+>>>>>>> 94db5e2 (Fix recording can be pressed twice)
         self._config_panel.start_acq.setText("Start Recording")
         self._config_panel._in_acq = False
 
