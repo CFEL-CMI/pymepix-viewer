@@ -51,9 +51,11 @@ class AcquisitionConfig(QtGui.QWidget, Ui_Form):
         self.bias_voltage.valueChanged[int].connect(self.biasVoltageChange.emit)
 
     def openPath(self):
-        directory = QtGui.QFileDialog.getExistingDirectory(self, "Open Directory",
-                                                           "/home",
-                                                           QtGui.QFileDialog.ShowDirsOnly
-                                                           | QtGui.QFileDialog.DontResolveSymlinks)
+        directory = QtGui.QFileDialog.getExistingDirectory(
+            self,
+            "Open Directory",
+            self.path_name.text(),
+            QtGui.QFileDialog.ShowDirsOnly | QtGui.QFileDialog.DontResolveSymlinks,
+        )
 
         self.path_name.setText(directory)
