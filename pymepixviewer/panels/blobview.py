@@ -179,15 +179,28 @@ class BlobView(QtGui.QWidget, Ui_Form):
             self.rec_blobs.setText(str(int(0)))
             return
 
+        # update number for whole detector
         uniq_shot, counts = np.unique(shots, return_counts=True)
-
         self._int_blob_count += np.sum(counts)
-
         avg_blobs = np.sum(counts) / total_triggers
-
-        self.rec_blobs.setText(f"{avg_blobs:.1f}")
-
+        self.rec_blobs.setText(f"{avg_blobs:.3f}")
         self.int_blobs.setText(str(self._int_blob_count))
+
+        ### update numbers for ROI also used by cos2theta
+        # add small value to prevent division by 0 when calculation r
+        x0 = self.x0_spin.value() + 0.1
+        y0 = self.y0_spin.value() + 0.1
+
+        dx = self._x - x0
+        dy = self._y - y0
+
+        r = np.sqrt(dx ** 2 + dy ** 2)
+        mask = np.logical_and(r <= self.r_outer.value(), r >= self.r_inner.value())
+        xy_hist, _, _ = np.histogram2d(x, y, bins=range(257))
+
+        # update number for ROI area
+        avg_blobs_roi = xy_hist[mask].sum() / total_triggers
+        self.int_blobs_roi.setText(f"{avg_blobs_roi:.3f}")
 
         self._last_trigger = shots.max()
         self.updateTrend(self._last_trigger, avg_blobs)
