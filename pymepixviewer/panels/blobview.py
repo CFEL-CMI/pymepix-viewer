@@ -203,7 +203,10 @@ class BlobView(QtGui.QWidget, Ui_Form):
         self.int_blobs_roi.setText(f"{avg_blobs_roi:.3f}")
 
         self._last_trigger = shots.max()
-        self.updateTrend(self._last_trigger, avg_blobs)
+        if self.show_center.isChecked():
+            self.updateTrend(self._last_trigger, avg_blobs_roi)
+        else:
+            self.updateTrend(self._last_trigger, avg_blobs)
 
         if self._histogram_mode:
             self.updateHistogram(x, y)
