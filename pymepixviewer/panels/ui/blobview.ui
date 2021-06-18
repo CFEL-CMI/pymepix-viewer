@@ -48,7 +48,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Blob Count</string>
+            <string>Blobs per shot</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>
@@ -98,6 +98,51 @@
          </item>
          <item>
           <widget class="QLabel" name="int_blobs">
+           <property name="font">
+            <font>
+             <pointsize>16</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>0</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_ROI">
+         <item>
+          <widget class="QLabel" name="label_int_blobs_roi">
+           <property name="font">
+            <font>
+             <pointsize>12</pointsize>
+             <underline>true</underline>
+            </font>
+           </property>
+           <property name="text">
+            <string>Int. Blobs ROI</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSpinBox" name="trig_avg_spin">
+           <property name="maximum">
+            <number>10000</number>
+           </property>
+           <property name="singleStep">
+            <number>50</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="int_blobs_roi">
            <property name="font">
             <font>
              <pointsize>16</pointsize>
@@ -190,8 +235,8 @@
          </property>
          <property name="sizeHint" stdset="0">
           <size>
-           <width>20</width>
-           <height>40</height>
+           <width>17</width>
+           <height>13</height>
           </size>
          </property>
         </spacer>
