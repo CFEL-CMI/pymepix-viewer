@@ -393,10 +393,6 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
             MessageType.EventData,
             MessageType.CentroidData,
         ):
-<<<<<<< HEAD
-=======
-
->>>>>>> 94db5e2 (Fix recording can be pressed twice)
             event_shots = event[0]
 
             if self._event_max != -1 and self._current_event_count > self._event_max:
@@ -454,10 +450,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
         # setup GUI
         self._config_panel.start_acq.setStyleSheet("QPushButton {color: red;}")
-<<<<<<< HEAD
-=======
         self._config_panel.start_acq.setEnabled(False)
->>>>>>> 94db5e2 (Fix recording can be pressed twice)
         self._config_panel.start_acq.setText("Recording")
         self._config_panel._in_acq = True
         self._config_panel._elapsed_time.restart()
@@ -474,10 +467,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
         # update GUI
         self._config_panel.start_acq.setStyleSheet("QPushButton {color: black;}")
-<<<<<<< HEAD
-=======
         self._config_panel.start_acq.setEnabled(True)
->>>>>>> 94db5e2 (Fix recording can be pressed twice)
         self._config_panel.start_acq.setText("Start Recording")
         self._config_panel._in_acq = False
 
