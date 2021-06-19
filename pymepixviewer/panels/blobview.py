@@ -20,6 +20,7 @@
 #
 ##############################################################################
 
+from asyncio.log import logger
 from collections import deque
 
 import numpy as np
@@ -71,6 +72,11 @@ class BlobView(QtGui.QWidget, Ui_Form):
         self.blob_trend.setLabel("left", text="Blob Count")
         self.blob_trend.setLabel("bottom", text="Trigger Number")
         self._last_trigger = 0
+        self._blob_trend_roi = deque(maxlen=100)
+        self._blob_trend_data_roi = pg.PlotDataItem()
+        self.blob_trend_roi.addItem(self._blob_trend_data_roi)
+
+        self._kernel = None  # smoothing kernel
 
         self.image_view.setPredefinedGradient("thermal")
 
@@ -82,10 +88,12 @@ class BlobView(QtGui.QWidget, Ui_Form):
         self._y = np.array(256 * [np.arange(0, 256)]).T
         self.checkBox.stateChanged.connect(self.onHistogramCheck)
         self.blob_trend_check.stateChanged.connect(self.onTrendCheck)
+        self.roi_trend_check.stateChanged.connect(self.onROITrendCheck)
         self.histo_binning.valueChanged[int].connect(self.onHistBinChange)
         self.show_center.stateChanged.connect(self.on_show_cross_change)
         self.x0_spin.valueChanged.connect(self.on_move_cross)
         self.y0_spin.valueChanged.connect(self.on_move_cross)
+        self.trig_avg_spin.valueChanged.connect(self.on_roi_avg_change)
 
         self._histogram = None
 
@@ -133,6 +141,15 @@ class BlobView(QtGui.QWidget, Ui_Form):
         else:
             self.blob_trend.hide()
 
+    def onROITrendCheck(self, status):
+        if status == 2:
+            self.blob_trend_roi.show()
+        else:
+            self.blob_trend_roi.hide()
+
+    def on_roi_avg_change(self, value):
+        self._kernel = np.ones(value) / value if value > 0 else None
+
     def updateMatrix(self, x, y, tof, tot):
         tof_filter = self.getFilter(tof)
 
@@ -171,11 +188,9 @@ class BlobView(QtGui.QWidget, Ui_Form):
 
         x = cluster_x[tof_filter]
         y = cluster_y[tof_filter]
-        tof = cluster_tof[tof_filter]
         shots = cluster_shot[tof_filter]
         if x.size == 0:
             self._last_trigger = cluster_shot.max()
-            # self.updateTrend(self._last_trigger,0)
             self.rec_blobs.setText(str(int(0)))
             return
 
@@ -186,27 +201,17 @@ class BlobView(QtGui.QWidget, Ui_Form):
         self.rec_blobs.setText(f"{avg_blobs:.3f}")
         self.int_blobs.setText(str(self._int_blob_count))
 
-        ### update numbers for ROI also used by cos2theta
-        # add small value to prevent division by 0 when calculation r
-        x0 = self.x0_spin.value() + 0.1
-        y0 = self.y0_spin.value() + 0.1
-
-        dx = self._x - x0
-        dy = self._y - y0
-
-        r = np.sqrt(dx ** 2 + dy ** 2)
+        r, _, _ = self.get_radial_coordinate()
         mask = np.logical_and(r <= self.r_outer.value(), r >= self.r_inner.value())
-        xy_hist, _, _ = np.histogram2d(x, y, bins=range(257))
+        h = np.histogram2d(x, y, bins=self._histogram_bins, range=[[0, 256], [0, 256]])
 
         # update number for ROI area
-        avg_blobs_roi = xy_hist[mask].sum() / total_triggers
+        avg_blobs_roi = h[0][mask].sum() / total_triggers
+        self._blob_trend_roi.append(avg_blobs_roi)
         self.int_blobs_roi.setText(f"{avg_blobs_roi:.3f}")
 
         self._last_trigger = shots.max()
-        if self.show_center.isChecked():
-            self.updateTrend(self._last_trigger, avg_blobs_roi)
-        else:
-            self.updateTrend(self._last_trigger, avg_blobs)
+        self.updateTrend(self._last_trigger, avg_blobs)
 
         if self._histogram_mode:
             self.updateHistogram(x, y)
@@ -251,15 +256,7 @@ class BlobView(QtGui.QWidget, Ui_Form):
             if len(self._histogram_x) > 0:
                 self._updateHist()
             if self._histogram is not None:
-                binning_fac = 1 / (256 / self._histogram_bins)
-                # add small value to prevent division by 0 when calculation r
-                x0 = self.x0_spin.value() * binning_fac + 0.1
-                y0 = self.y0_spin.value() * binning_fac + 0.1
-
-                dx = self._x - x0
-                dy = self._y - y0
-
-                r = np.sqrt(dx ** 2 + dy ** 2)
+                r, dx, binning_fac = self.get_radial_coordinate()
                 cos_theta = dx / r
                 cos2_theta = cos_theta ** 2
                 mask = np.logical_and(
@@ -275,7 +272,7 @@ class BlobView(QtGui.QWidget, Ui_Form):
                     ].sum() / self._histogram[mask].sum()
                     self.cos_theta.setText(f"{expet_cos_theta:.3f}")
                     self.cos2_theta.setText(f"{expet_cos2_theta:.3f}")
-                except:
+                except Exception:
                     pass
 
                 tmp_img = self._histogram / self._histogram.max()
@@ -285,11 +282,32 @@ class BlobView(QtGui.QWidget, Ui_Form):
                 )
 
         try:
-            self._blob_trend_data.setData(
-                x=np.array(self._blob_trend_trigger), y=np.array(self._blob_trend)
-            )
-        except:
+            x = np.array(self._blob_trend_trigger)
+            x_idx = np.argsort(x)
+            y = np.array(self._blob_trend)
+            self._blob_trend_data.setData(x=x[x_idx], y=y[x_idx])
+
+            x = np.array(self._blob_trend_trigger)
+            x_idx = np.argsort(x)
+            if self._kernel is None:
+                y = np.array(self._blob_trend_roi)[x_idx]
+            else:
+                y = np.convolve(np.array(self._blob_trend_roi)[x_idx], self._kernel, mode="same")
+
+            self._blob_trend_data_roi.setData(x=x[x_idx], y=y)
+        except Exception:
             pass
+
+    def get_radial_coordinate(self):
+        binning_fac = 1 / (256 / self._histogram_bins)
+        # add small value to prevent division by 0 when calculation r
+        x0 = self.x0_spin.value() * binning_fac + 0.1
+        y0 = self.y0_spin.value() * binning_fac + 0.1
+
+        dx = self._x - x0
+        dy = self._y - y0
+
+        return np.sqrt(dx ** 2 + dy ** 2), dx, binning_fac
 
     def clearData(self):
         self._matrix[...] = 0.0
