@@ -134,10 +134,13 @@
          <item>
           <widget class="QSpinBox" name="trig_avg_spin">
            <property name="maximum">
-            <number>10000</number>
+            <number>10</number>
            </property>
            <property name="singleStep">
-            <number>50</number>
+            <number>1</number>
+           </property>
+           <property name="value">
+            <number>0</number>
            </property>
           </widget>
          </item>
@@ -261,10 +264,13 @@
           <number>8</number>
          </property>
          <property name="maximum">
-          <number>256</number>
+          <number>1024</number>
          </property>
          <property name="value">
           <number>256</number>
+         </property>
+         <property name="displayIntegerBase">
+          <number>10</number>
          </property>
         </widget>
        </item>
@@ -359,6 +365,16 @@
       </widget>
      </item>
      <item>
+      <widget class="QCheckBox" name="roi_trend_check">
+       <property name="text">
+        <string>Show ROI trend</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QCheckBox" name="show_center">
        <property name="text">
         <string>Show Crosshair</string>
@@ -368,20 +384,40 @@
     </layout>
    </item>
    <item>
-    <widget class="PlotWidget" name="blob_trend">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>1100000</width>
-       <height>3000</height>
-      </size>
-     </property>
-    </widget>
+    <layout class="QHBoxLayout" name="horizontalLayout_6">
+     <item>
+      <widget class="PlotWidget" name="blob_trend">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>1100000</width>
+         <height>3000</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="PlotWidget" name="blob_trend_roi">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>1100000</width>
+         <height>3000</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
