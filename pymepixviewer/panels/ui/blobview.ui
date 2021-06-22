@@ -114,24 +114,8 @@
         </layout>
        </item>
        <item>
-        <layout class="QVBoxLayout" name="verticalLayout_ROI">
-         <item>
-          <widget class="QLabel" name="label_int_blobs_roi">
-           <property name="font">
-            <font>
-             <pointsize>12</pointsize>
-             <underline>true</underline>
-            </font>
-           </property>
-           <property name="text">
-            <string>Int. Blobs ROI</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item>
+        <layout class="QGridLayout" name="gridLayout">
+         <item row="2" column="0">
           <widget class="QSpinBox" name="trig_avg_spin">
            <property name="maximum">
             <number>10</number>
@@ -144,7 +128,14 @@
            </property>
           </widget>
          </item>
-         <item>
+         <item row="2" column="1">
+          <widget class="QCheckBox" name="avg_roi">
+           <property name="text">
+            <string>avg</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0" colspan="2">
           <widget class="QLabel" name="int_blobs_roi">
            <property name="font">
             <font>
@@ -153,6 +144,22 @@
            </property>
            <property name="text">
             <string>0</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0" colspan="2">
+          <widget class="QLabel" name="label_int_blobs_roi">
+           <property name="font">
+            <font>
+             <pointsize>12</pointsize>
+             <underline>true</underline>
+            </font>
+           </property>
+           <property name="text">
+            <string>Int. Blobs ROI</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>
@@ -287,7 +294,7 @@
           <number>255</number>
          </property>
          <property name="value">
-          <number>110</number>
+          <number>127</number>
          </property>
         </widget>
        </item>
@@ -304,7 +311,7 @@
           <number>255</number>
          </property>
          <property name="value">
-          <number>133</number>
+          <number>127</number>
          </property>
         </widget>
        </item>

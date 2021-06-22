@@ -62,19 +62,21 @@ class BlobView(QtGui.QWidget, Ui_Form):
         self._matrix = np.ndarray(shape=(256, 256), dtype=np.float)
         self._matrix[...] = 0.0
 
-        self._blob_trend = deque(maxlen=100)  # np.ndarray(shape=(400,),dtype=np.float)
-        # self._blob_trend[...]=0.0
-        # self._blob_trend_trigger = np.ndarray(shape=(400,),dtype=np.int)
-        # self._blob_trend_trigger[...]=0
-        self._blob_trend_trigger = deque(maxlen=100)
-        self._blob_trend_data = pg.PlotDataItem()
-        self.blob_trend.addItem(self._blob_trend_data)
+        self._blob_trend_trigger = deque(maxlen=100)  # blob trend x-axis
+        self._blob_trend = deque(maxlen=100)  # blob trend y-axis
+        self._blob_trend_graph = pg.PlotDataItem()
+        self.blob_trend.addItem(self._blob_trend_graph)
         self.blob_trend.setLabel("left", text="Blob Count")
         self.blob_trend.setLabel("bottom", text="Trigger Number")
         self._last_trigger = 0
-        self._blob_trend_roi = deque(maxlen=100)
-        self._blob_trend_data_roi = pg.PlotDataItem()
-        self.blob_trend_roi.addItem(self._blob_trend_data_roi)
+        self._blob_trend_roi_xAxe = deque(maxlen=100)  # roi graph x-axis
+        self._blob_trend_roi_xAxe.append(0)  # initialise 1st x value
+        self._blob_trend_roi_yAxe = deque(maxlen=100)  # roi graph y-axis
+        self._blob_trend_roi_yAxe.append(0)  # initialise 1st y value
+        self._blob_trend_roi_sum = 0  # temp variable to sum ions per n triggers
+        self._blob_trend_roi_sum_triCount = 0  # count triggers integrated
+        self._blob_trend_roi_graph = pg.PlotDataItem()
+        self.blob_trend_roi.addItem(self._blob_trend_roi_graph)
 
         self._kernel = None  # smoothing kernel
 
@@ -94,10 +96,15 @@ class BlobView(QtGui.QWidget, Ui_Form):
         self.x0_spin.valueChanged.connect(self.on_move_cross)
         self.y0_spin.valueChanged.connect(self.on_move_cross)
         self.trig_avg_spin.valueChanged.connect(self.on_roi_avg_change)
+        self.avg_roi.stateChanged.connect(self.on_avg_roi_change)
+        # self.r_inner.valueChanged.connect(self.on_redraw_roi)
+        self.r_outer.valueChanged.connect(self.on_redraw_roi)
 
         self._histogram = None
 
         self.crosshair = Crosshair()
+        self.roi_outer = None
+        self._binning_fac = 1
 
     def modeChange(self, mode):
         self._current_mode = mode
@@ -113,20 +120,36 @@ class BlobView(QtGui.QWidget, Ui_Form):
     def on_show_cross_change(self):
         if self.show_center.isChecked():
             self.image_view.addItem(self.crosshair)
+            if self.roi_outer is not None:
+                self.image_view.removeItem(self.roi_outer)
+            self.roi_outer = pg.CircleROI(
+                [0, 0], [1, 1], pen=pg.mkPen("r", width=1), movable=False
+            )
+            self.image_view.addItem(self.roi_outer)
+
+            self.on_redraw_roi()
             self.on_move_cross()
         else:
             self.image_view.removeItem(self.crosshair)
+            self.image_view.removeItem(self.roi_outer)
 
     def on_move_cross(self):
-        binning_fac = 1 / (256 / self._histogram_bins) if self._histogram_mode else 1
-        self.crosshair.setPos(
-            self.y0_spin.value() * binning_fac, self.x0_spin.value() * binning_fac
-        )
+        x0 = self.x0_spin.value()
+        y0 = self.y0_spin.value()
+        radius = self.r_outer.value()
+        self.crosshair.setPos(y0 * self._binning_fac, x0 * self._binning_fac)
+        self.roi_outer.setPos((y0 - radius) * self._binning_fac, (x0 - radius) * self._binning_fac)
+
+    def on_redraw_roi(self):
+        diam = 2 * self.r_outer.value() * self._binning_fac
+        self.roi_outer.setSize(diam, diam)
+        self.on_move_cross()
 
     def onHistBinChange(self, value):
         self._histogram_bins = value
         self._x = np.array(value * [np.arange(0, value)])
         self._y = np.array(value * [np.arange(0, value)]).T
+        self._binning_fac = 1 / (256 / self._histogram_bins) if self._histogram_mode else 1
         if self._histogram_mode:
             self.clearData()
         self.on_show_cross_change()
@@ -149,6 +172,20 @@ class BlobView(QtGui.QWidget, Ui_Form):
 
     def on_roi_avg_change(self, value):
         self._kernel = np.ones(value) / value if value > 0 else None
+
+    def on_avg_roi_change(self, state):
+        if state == 2:
+            self.trig_avg_spin.setMaximum(100_000)
+            self.trig_avg_spin.setSingleStep(100)
+            self.trig_avg_spin.setValue(1_000)
+        else:
+            self.trig_avg_spin.setMaximum(20)
+            self.trig_avg_spin.setSingleStep(1)
+            self.trig_avg_spin.setValue(0)
+        self._blob_trend_roi_xAxe.clear()
+        self._blob_trend_roi_yAxe.clear()
+        self._blob_trend_roi_xAxe.append(0)
+        self._blob_trend_roi_yAxe.append(0)
 
     def updateMatrix(self, x, y, tof, tot):
         tof_filter = self.getFilter(tof)
@@ -207,7 +244,21 @@ class BlobView(QtGui.QWidget, Ui_Form):
 
         # update number for ROI area
         avg_blobs_roi = h[0][mask].sum() / total_triggers
-        self._blob_trend_roi.append(avg_blobs_roi)
+        if not self.avg_roi.isChecked():
+            self._blob_trend_roi_yAxe.append(avg_blobs_roi)  # for not integrating operation
+        else:
+            self._blob_trend_roi_sum += h[0][mask].sum()
+            self._blob_trend_roi_sum_triCount += total_triggers
+            if self._blob_trend_roi_sum_triCount >= self.trig_avg_spin.value():
+                self._blob_trend_roi_xAxe.append(self._blob_trend_roi_xAxe[-1] + 1)
+                self._blob_trend_roi_yAxe.append(0)
+                self._blob_trend_roi_sum_triCount = 0
+                self._blob_trend_roi_sum = 0
+            else:
+                self._blob_trend_roi_yAxe[-1] = (
+                    self._blob_trend_roi_sum / self._blob_trend_roi_sum_triCount
+                )
+
         self.int_blobs_roi.setText(f"{avg_blobs_roi:.3f}")
 
         self._last_trigger = shots.max()
@@ -215,6 +266,12 @@ class BlobView(QtGui.QWidget, Ui_Form):
 
         if self._histogram_mode:
             self.updateHistogram(x, y)
+
+    def updateTrend(self, trigger, avg_blobs):
+
+        self._blob_trend.append(avg_blobs)
+        self._blob_trend_trigger.append(trigger)
+        # self._blob_trend_trigger[-1]= trigger
 
     def onCentroid(self, event):
         if self._current_mode in (ViewerMode.Centroid,):
@@ -237,12 +294,6 @@ class BlobView(QtGui.QWidget, Ui_Form):
         if self._current_mode in (ViewerMode.TOA,):
             x, y, toa, tot = event
             self.updateMatrix(x, y, toa, tot)
-
-    def updateTrend(self, trigger, avg_blobs):
-
-        self._blob_trend.append(avg_blobs)
-        self._blob_trend_trigger.append(trigger)
-        # self._blob_trend_trigger[-1]= trigger
 
     def plotData(self):
         if not self._histogram_mode:
@@ -281,22 +332,28 @@ class BlobView(QtGui.QWidget, Ui_Form):
                     tmp_img, autoLevels=False, autoRange=False, autoHistogramRange=False
                 )
 
-        try:
-            x = np.array(self._blob_trend_trigger)
-            x_idx = np.argsort(x)
-            y = np.array(self._blob_trend)
-            self._blob_trend_data.setData(x=x[x_idx], y=y[x_idx])
+        # standard blob trend
+        x = np.array(self._blob_trend_trigger)
+        x_idx = np.argsort(x)
+        y = np.array(self._blob_trend)
+        self._blob_trend_graph.setData(x=x[x_idx], y=y[x_idx])
 
+        # roi blob trend
+        if not self.avg_roi.isChecked():
             x = np.array(self._blob_trend_trigger)
             x_idx = np.argsort(x)
             if self._kernel is None:
-                y = np.array(self._blob_trend_roi)[x_idx]
+                y = np.array(self._blob_trend_roi_yAxe)[x_idx]
             else:
-                y = np.convolve(np.array(self._blob_trend_roi)[x_idx], self._kernel, mode="same")
+                y = np.convolve(
+                    np.array(self._blob_trend_roi_yAxe)[x_idx], self._kernel, mode="same"
+                )
 
-            self._blob_trend_data_roi.setData(x=x[x_idx], y=y)
-        except Exception:
-            pass
+            self._blob_trend_roi_graph.setData(x=x[x_idx], y=y)
+        else:
+            self._blob_trend_roi_graph.setData(
+                x=np.array(self._blob_trend_roi_xAxe), y=np.array(self._blob_trend_roi_yAxe)
+            )
 
     def get_radial_coordinate(self):
         binning_fac = 1 / (256 / self._histogram_bins)
