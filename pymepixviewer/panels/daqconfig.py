@@ -118,6 +118,7 @@ class DaqConfigPanel(QtGui.QWidget, Ui_Form):
         self._elapsed_time = QtCore.QElapsedTimer()
         self._elapsed_time_thread.timeout.connect(self.updateTimer)
         self._elapsed_time_thread.start(1000)
+        self.end_acq.setEnabled(False)
 
     @property
     def fileSaver(self):

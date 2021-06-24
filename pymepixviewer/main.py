@@ -362,6 +362,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         # setup GUI
         self._config_panel.start_acq.setStyleSheet("QPushButton {color: red;}")
         self._config_panel.start_acq.setEnabled(False)
+        self._config_panel.end_acq.setEnabled(True)
         self._config_panel.start_acq.setText("Recording")
         self._config_panel._in_acq = True
         self._config_panel._elapsed_time.restart()
@@ -379,6 +380,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         # update GUI
         self._config_panel.start_acq.setStyleSheet("QPushButton {color: black;}")
         self._config_panel.start_acq.setEnabled(True)
+        self._config_panel.end_acq.setEnabled(False)
         self._config_panel.start_acq.setText("Start Recording")
         self._config_panel._in_acq = False
 
