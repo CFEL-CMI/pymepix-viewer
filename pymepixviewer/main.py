@@ -101,7 +101,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
         run_server = True
         while run_server:
-            if self.rest_sock.poll(timeout=0):
+            if self.rest_sock.poll(timeout=None):
                 request = self.rest_sock.recv_json()
                 command = request["command"]
                 logger.debug(f"API server: {command} command")
@@ -214,8 +214,8 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
     def startupTimepix(self):
 
-        self._timepix = pymepix.Pymepix(("192.168.1.10", 50000))
-        # self._timepix = pymepix.Pymepix(("127.0.0.1", 50000))
+        # self._timepix = pymepix.Pymepix(("192.168.1.10", 50000))
+        self._timepix = pymepix.Pymepix(("127.0.0.1", 50000))
 
         if len(self._timepix) == 0:
             logger.error("NO TIMEPIX DEVICES DETECTED")
