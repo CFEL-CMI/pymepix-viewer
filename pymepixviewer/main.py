@@ -106,14 +106,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
                 command = request["command"]
                 logger.debug(f"API server: {command} command")
 
-                if command == "STOP API SERVER":
-                    logger.debug("API server shutting down")
-                    run_server = False
-                elif command.startswith("CLIENT CONNECT"):
-                    ip = cmd.split(":")[1].strip()
-                    self.updateStatusSignal.emit(f"ZMQ client connected from {ip}")
-
-                elif command == "PATH":
+                if command == "PATH":
                     if request["parameters"]["path"] != None:
                         logger.debug(
                             f"API server: Changing path to {request['parameters']['path']}"
@@ -149,8 +142,8 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
                     response = {"result": histogram_sums}
                     self.rest_sock.send_json(response)
                 else:
-                    self.updateStatusSignal.emit(f"API server recieved unknown command {cmd}")
-                    logger.warning(f'API server recieved unknown command "{cmd}"')
+                    self.updateStatusSignal.emit(f"API server recieved unknown command {command}")
+                    logger.warning(f'API server recieved unknown command "{command}"')
                     response = {"result": "UNKNOWN_COMMAND"}
                     self.rest_sock.send_json(response)
 
