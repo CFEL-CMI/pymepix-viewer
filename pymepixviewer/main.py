@@ -101,51 +101,50 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
         run_server = True
         while run_server:
-            if self.rest_sock.poll(timeout=None):
-                request = self.rest_sock.recv_json()
-                command = request["command"]
-                logger.debug(f"API server: {command} command")
+            request = self.rest_sock.recv_json()
+            command = request["command"]
+            logger.debug(f"API server: {command} command")
 
-                if command == "PATH":
-                    if request["parameters"]["path"] != None:
-                        logger.debug(
-                            f"API server: Changing path to {request['parameters']['path']}"
-                        )
-                        self._config_panel.acqtab.path_name.setText(request["parameters"]["path"])
-                    path = self._config_panel.acqtab.path_name.text()
-                    response = {"result": path}
-                    self.rest_sock.send_json(response)
-                elif command == "PREFIX":
-                    if request["parameters"]["prefix"] != None:
-                        logger.debug(
-                            f"API server: Changing prefix to {request['parameters']['prefix']}"
-                        )
-                        self._config_panel.acqtab.file_prefix.setText(
-                            request["parameters"]["prefix"]
-                        )
-                    prefix = self._config_panel.acqtab.file_prefix.text()
-                    response = {"result": prefix}
-                    self.rest_sock.send_json(response)
-                elif command == "START_ACQUISITION":
-                    self.start_acq_sig.emit()
-                    response = {"result": "STARTED_ACQUISITION"}
-                    self.rest_sock.send_json(response)
-                elif command == "STOP_ACQUISITION":
-                    self.stop_acq_sig.emit()
-                    response = {"result": "STOPPED_ACQUISITION"}
-                    self.rest_sock.send_json(response)
-                elif command == "GET_ROI_SUM":
-                    histogram_sums = []
-                    for i in range(self._tof_panel._roi_model.rootItem.childCount()):
-                        roi = self._tof_panel._roi_model.rootItem.child(i)
-                        histogram_sums.append(int(roi.roi_sum))
-                    response = {"result": histogram_sums}
-                    self.rest_sock.send_json(response)
-                else:
-                    self.updateStatusSignal.emit(f"API server recieved unknown command {command}")
-                    logger.warning(f'API server recieved unknown command "{command}"')
-                    response = {"result": "UNKNOWN_COMMAND"}
-                    self.rest_sock.send_json(response)
+            if command == "PATH":
+                if request["parameters"]["path"] != None:
+                    logger.debug(
+                        f"API server: Changing path to {request['parameters']['path']}"
+                    )
+                    self._config_panel.acqtab.path_name.setText(request["parameters"]["path"])
+                path = self._config_panel.acqtab.path_name.text()
+                response = {"result": path}
+                self.rest_sock.send_json(response)
+            elif command == "PREFIX":
+                if request["parameters"]["prefix"] != None:
+                    logger.debug(
+                        f"API server: Changing prefix to {request['parameters']['prefix']}"
+                    )
+                    self._config_panel.acqtab.file_prefix.setText(
+                        request["parameters"]["prefix"]
+                    )
+                prefix = self._config_panel.acqtab.file_prefix.text()
+                response = {"result": prefix}
+                self.rest_sock.send_json(response)
+            elif command == "START_ACQUISITION":
+                self.start_acq_sig.emit()
+                response = {"result": "STARTED_ACQUISITION"}
+                self.rest_sock.send_json(response)
+            elif command == "STOP_ACQUISITION":
+                self.stop_acq_sig.emit()
+                response = {"result": "STOPPED_ACQUISITION"}
+                self.rest_sock.send_json(response)
+            elif command == "GET_ROI_SUM":
+                histogram_sums = []
+                for i in range(self._tof_panel._roi_model.rootItem.childCount()):
+                    roi = self._tof_panel._roi_model.rootItem.child(i)
+                    histogram_sums.append(int(roi.roi_sum))
+                response = {"result": histogram_sums}
+                self.rest_sock.send_json(response)
+            else:
+                self.updateStatusSignal.emit(f"API server recieved unknown command {command}")
+                logger.warning(f'API server recieved unknown command "{command}"')
+                response = {"result": "UNKNOWN_COMMAND"}
+                self.rest_sock.send_json(response)
 
     def __init__(self, parent=None):
         super(PymepixDAQ, self).__init__(parent)
