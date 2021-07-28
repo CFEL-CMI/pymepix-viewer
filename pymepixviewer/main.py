@@ -25,12 +25,13 @@ import logging
 import os
 import time
 import socket
+import platform
 
 import numpy as np
 import zmq
 
 # force to load PyQt5 for systems where PyQt4 is still installed
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui
 
 import pymepix
 from pymepix.processing import MessageType
@@ -43,6 +44,9 @@ from pyqtgraph.Qt import QtCore, QtGui
 
 
 logger = logging.getLogger(__name__)
+
+QUEUE_SIZE_WARNING_LIMIT = 30
+QUEUE_SIZE_WARNING_TEXT = "The queue size has passed the warning size of {} packages with {} packages in the queue. The data can not be processed at the rate of arrival. Please consider increasing the number of processes allocated to the centroiding, reducing the data frequency or increase the packages skipped for live processing. The current queue size can be checked in the processing tab. <b>This can have a significant impact on the recorded data! Possible loss of data!</b>"
 
 
 class GenericThread(QtCore.QThread):
@@ -76,6 +80,8 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
     start_acq_sig = QtCore.pyqtSignal()
     stop_acq_sig = QtCore.pyqtSignal()
 
+    show_slow_processing_warning_sig = QtCore.pyqtSignal(int)
+
     def statusUdate(self):
         logger.info("Starting status update thread")
 
@@ -86,6 +92,8 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
             chipSpeed = self._timepix._spidr.chipboardFanSpeed
             spidrSpeed = self._timepix._spidr.spidrFanSpeed
             longtime = self._timepix._timepix_devices[0]._longtime.value * 25e-9
+
+            self.updatePacketProcessorOutputQueueSize()
 
             self.updateStatusSignal.emit(
                 f"T_(FPGA)={fpga}, T_(loc)={local}, T_(remote)={remote}, Fan(chip)={chipSpeed}, Fan(SPIDR)={spidrSpeed}, Longtime={longtime:.2f}"
@@ -149,6 +157,8 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
         super(PymepixDAQ, self).__init__(parent)
         self.setupUi(self)
+
+        self.queue_size_warning_displayed = False
 
         self._current_mode = ViewerMode.TOA
         self.setupWindow()
@@ -271,6 +281,29 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         logger.info("Setting samples {}".format(samples))
         self._timepix[0].acquisition.samples = samples
 
+    def startPacketProcessorOutputQueueSizeTimer(self):
+        queue_size_update_timer = QtCore.QTimer()
+        queue_size_update_timer.timeout.connect(self.updatePacketProcessorOutputQueueSize)
+        queue_size_update_timer.start(500)
+
+    def updatePacketProcessorOutputQueueSize(self):
+        queue_size = -1
+        if platform.system() is not 'Darwin': # qsize does not work for MacOS, see: https://docs.python.org/3/library/multiprocessing.html#multiprocessing.Queue.qsize
+            packet_processor = self._timepix[0].acquisition.getStage(2)
+            queue_size = packet_processor.outputQueue.qsize()
+        self._config_panel.proctab.queue_size_changed.emit(queue_size)
+        if queue_size > QUEUE_SIZE_WARNING_LIMIT and not self.queue_size_warning_displayed:
+            self.show_slow_processing_warning_sig.emit(queue_size)
+            self.queue_size_warning_displayed = True
+        elif queue_size < QUEUE_SIZE_WARNING_LIMIT and self.queue_size_warning_displayed:
+            self.queue_size_warning_displayed = False
+
+    def show_slow_processing_warning(self, queue_size):
+        QtGui.QMessageBox.warning(
+            self, "Slow processing - Centroiding lags behind.", 
+            QUEUE_SIZE_WARNING_TEXT.format(QUEUE_SIZE_WARNING_LIMIT, queue_size)
+        )
+
     def connectSignals(self):
         self.actionSophy_spx.triggered.connect(self.getfile)
         self._config_panel.viewtab.updateRateChange.connect(self.onDisplayUpdate)
@@ -324,6 +357,8 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
         self.start_acq_sig.connect(self.start_recording)
         self.stop_acq_sig.connect(self.stop_recording)
+
+        self.show_slow_processing_warning_sig.connect(self.show_slow_processing_warning)
 
         self._api_server = GenericThread(self.api_server)
 

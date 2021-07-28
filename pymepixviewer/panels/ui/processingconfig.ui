@@ -97,6 +97,27 @@
          </layout>
         </item>
         <item>
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <item>
+           <widget class="QLabel" name="label_queue_size">
+            <property name="toolTip">
+             <string>Not working with MacOS!</string>
+            </property>
+            <property name="text">
+             <string>Centroiding queue size</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLCDNumber" name="lcd_queue_size">
+            <property name="toolTip">
+             <string>Not working with MacOS!</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
          <layout class="QHBoxLayout" name="horizontalLayout_5">
           <item>
            <widget class="QLabel" name="label_7">

@@ -2,12 +2,11 @@
 
 # Form implementation generated from reading ui file 'processingconfig.ui'
 #
-# Created by: PyQt5 UI code generator 5.9.2
+# Created by: PyQt5 UI code generator 5.11.3
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt5 import QtCore, QtWidgets
-
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 class Ui_Form(object):
     def setupUi(self, Form):
@@ -61,6 +60,15 @@ class Ui_Form(object):
         self.tot_threshold.setObjectName("tot_threshold")
         self.horizontalLayout_10.addWidget(self.tot_threshold)
         self.verticalLayout_3.addLayout(self.horizontalLayout_10)
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.label_queue_size = QtWidgets.QLabel(self.groupBox_4)
+        self.label_queue_size.setObjectName("label_queue_size")
+        self.horizontalLayout.addWidget(self.label_queue_size)
+        self.lcd_queue_size = QtWidgets.QLCDNumber(self.groupBox_4)
+        self.lcd_queue_size.setObjectName("lcd_queue_size")
+        self.horizontalLayout.addWidget(self.lcd_queue_size)
+        self.verticalLayout_3.addLayout(self.horizontalLayout)
         self.horizontalLayout_5 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_5.setObjectName("horizontalLayout_5")
         self.label_7 = QtWidgets.QLabel(self.groupBox_4)
@@ -121,13 +129,15 @@ class Ui_Form(object):
         self.groupBox_4.setTitle(_translate("Form", "Centroiding"))
         self.label_8.setText(_translate("Form", "TOT threshold:"))
         self.tot_threshold.setToolTip(_translate("Form", "Determines the TOT threshold"))
+        self.label_queue_size.setToolTip(_translate("Form", "Not working with MacOS!"))
+        self.label_queue_size.setText(_translate("Form", "Centroiding queue size"))
+        self.lcd_queue_size.setToolTip(_translate("Form", "Not working with MacOS!"))
         self.label_7.setText(_translate("Form", "Centroid Skip:"))
-        self.centroid_skip.setToolTip(
-            _translate("Form", "Allows the blob finder to skip every nth packet (1 means all are processed)"))
+        self.centroid_skip.setToolTip(_translate("Form", "Allows the blob finder to skip every nth packet (1 means all are processed)"))
         self.label_9.setText(_translate("Form", "No Process:"))
-        self.blob_num.setToolTip(
-            _translate("Form", "Allows the blob finder to skip every nth packet (1 means all are processed)"))
+        self.blob_num.setToolTip(_translate("Form", "Allows the blob finder to skip every nth packet (1 means all are processed)"))
         self.label_11.setText(_translate("Form", "Epsilon:"))
         self.epsilon.setToolTip(_translate("Form", "Describes the distance between events (pixel space)"))
         self.label_12.setText(_translate("Form", "Num Samples"))
         self.samples.setToolTip(_translate("Form", "Tells how minimum number of pixels to be considered a cluster "))
+

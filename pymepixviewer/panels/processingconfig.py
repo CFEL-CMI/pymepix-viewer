@@ -32,6 +32,7 @@ class ProcessingConfig(QtGui.QWidget, Ui_Form):
     blobNumberChanged = QtCore.pyqtSignal(int)
     samplesChanged = QtCore.pyqtSignal(int)
     epsilonChanged = QtCore.pyqtSignal(float)
+    queue_size_changed = QtCore.pyqtSignal(int)
 
     def __init__(self, parent=None):
         super(ProcessingConfig, self).__init__(parent)
@@ -59,3 +60,5 @@ class ProcessingConfig(QtGui.QWidget, Ui_Form):
     def setupSignals(self):
         self.min_event_window.returnPressed.connect(self.tofEventWindow)
         self.max_event_window.returnPressed.connect(self.tofEventWindow)
+        self.queue_size_changed.connect(self.lcd_queue_size.display)
+
