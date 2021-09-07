@@ -275,7 +275,7 @@ class BlobView(QtGui.QWidget, Ui_Form):
 
     def onCentroid(self, event):
         if self._current_mode in (ViewerMode.Centroid,):
-            cluster_shot, cluster_x, cluster_y, cluster_tof, cluster_tot = event
+            cluster_shot, cluster_x, cluster_y, cluster_tof, cluster_totAvg, cluster_totMax, cluster_size = event
             self.updateBlobData(cluster_shot, cluster_x, cluster_y, cluster_tof)
 
     def onEvent(self, event):
