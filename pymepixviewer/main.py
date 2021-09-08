@@ -279,6 +279,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         
         self._config_panel.proctab.numberProcessesChanged.connect(self.setNumberProcesses)
         self._config_panel.proctab.triggersProcessedChanged.connect(self.setTriggersProcessed)
+        self._config_panel.proctab.triggersProcessedChanged.connect(self._overview_panel.setTriggersProcessed)
         self._config_panel.proctab.epsilonChanged.connect(self.setEpsilon)
         self._config_panel.proctab.samplesChanged.connect(self.setMinSamples)
         self._config_panel.proctab.totThresholdChanged.connect(self.setTotThreshold)
