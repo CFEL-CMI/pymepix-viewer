@@ -76,27 +76,6 @@
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_10">
-          <item>
-           <widget class="QLabel" name="label_8">
-            <property name="text">
-             <string>TOT threshold:</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QSpinBox" name="tot_threshold">
-            <property name="toolTip">
-             <string>Determines the TOT threshold</string>
-            </property>
-            <property name="maximum">
-             <number>30000</number>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
          <layout class="QHBoxLayout" name="horizontalLayout">
           <item>
            <widget class="QLabel" name="label_queue_size">
@@ -104,7 +83,7 @@
              <string>Not working with MacOS!</string>
             </property>
             <property name="text">
-             <string>Centroiding queue size</string>
+             <string>Input Queue Size:</string>
             </property>
            </widget>
           </item>
@@ -122,17 +101,17 @@
           <item>
            <widget class="QLabel" name="label_7">
             <property name="text">
-             <string>Centroid Skip:</string>
+             <string>Triggers Processed:</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QSpinBox" name="centroid_skip">
+           <widget class="QSpinBox" name="triggers_processed">
             <property name="toolTip">
-             <string>Allows the blob finder to skip every nth packet (1 means all are processed)</string>
+             <string>Process every nth trigger frame (1 means all are processed, 2 means every second is processed)</string>
             </property>
-            <property name="maximum">
-             <number>30000</number>
+            <property name="minimum">
+             <number>1</number>
             </property>
            </widget>
           </item>
@@ -143,20 +122,20 @@
           <item>
            <widget class="QLabel" name="label_9">
             <property name="text">
-             <string>No Process:</string>
+             <string>Number Processe:</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QSpinBox" name="blob_num">
+           <widget class="QLineEdit" name="number_processes">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="toolTip">
-             <string>Allows the blob finder to skip every nth packet (1 means all are processed)</string>
-            </property>
-            <property name="minimum">
-             <number>1</number>
-            </property>
-            <property name="maximum">
-             <number>32</number>
+             <string>Number of processes used for centroiding (Press Enter to confirm)</string>
             </property>
            </widget>
           </item>
@@ -174,7 +153,7 @@
           <item>
            <widget class="QDoubleSpinBox" name="epsilon">
             <property name="toolTip">
-             <string>Describes the distance between events (pixel space)</string>
+             <string>Describes the distance between events (DBSCAN parameter)</string>
             </property>
             <property name="value">
              <double>2.000000000000000</double>
@@ -188,17 +167,44 @@
           <item>
            <widget class="QLabel" name="label_12">
             <property name="text">
-             <string>Num Samples</string>
+             <string>Minimum Samples</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QSpinBox" name="samples">
+           <widget class="QSpinBox" name="min_samples">
             <property name="toolTip">
-             <string>Tells how minimum number of pixels to be considered a cluster </string>
+             <string>Minimum number of samples for a core cluster point (DBSCAN parameter)</string>
             </property>
             <property name="value">
              <number>3</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_10">
+          <item>
+           <widget class="QLabel" name="label_8">
+            <property name="text">
+             <string>TOT threshold:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSpinBox" name="tot_threshold">
+            <property name="toolTip">
+             <string>Threshold on the TOT to improve the results and reduce the data volume</string>
+            </property>
+            <property name="minimum">
+             <number>0</number>
+            </property>
+            <property name="maximum">
+             <number>30000</number>
+            </property>
+            <property name="singleStep">
+             <number>25</number>
             </property>
            </widget>
           </item>

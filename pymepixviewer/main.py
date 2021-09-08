@@ -154,6 +154,13 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         logging.getLogger("pymepix").setLevel(logging.INFO)
 
         self._timepix[0].setupAcquisition(pymepix.processing.CentroidPipeline)
+
+        # Initialize gui with current configuration of centroiding pipeline
+        self._config_panel.proctab.epsilon.setValue(self.__get_centroid_calculator().epsilon)
+        self._config_panel.proctab.min_samples.setValue(self.__get_centroid_calculator().min_samples)
+        self._config_panel.proctab.tot_threshold.setValue(self.__get_centroid_calculator().tot_threshold)
+        self._config_panel.proctab.number_processes.setText(str(self._timepix[0].acquisition.numBlobProcesses))
+
         # self._timepix.
         self._timepix.dataCallback = self.onData
         self._timepix[0].pixelThreshold = np.zeros(shape=(256, 256), dtype=np.uint8)
@@ -184,30 +191,30 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         logger.info("Setting Event window {} {}".format(min_v, max_v))
         self._timepix[0].acquisition.eventWindow = (min_v, max_v)
 
-    def setTotThreshold(self, tot):
-        logger.info("Setting Tot threshold {}".format(tot))
-        self._timepix[0].acquisition.totThreshold = tot
+    def setTriggersProcessed(self, triggers_processed):
+        logger.info("Setting centroid skip {}".format(triggers_processed))
+        self.__get_centroid_calculator().triggers_processed = triggers_processed
 
-    def setCentroidSkip(self, skip):
-        logger.info("Setting centroid skip {}".format(skip))
-        self._timepix[0].acquisition.centroidSkip = skip
-
-    def setBlobProccesses(self, blob):
-        import time
-
-        logger.info("Setting number of blob processes {}".format(blob))
+    def setNumberProcesses(self, number_processes):
+        logger.info("Setting number of blob processes {}".format(number_processes))
         self._timepix.stop()
-        time.sleep(10)
-        self._timepix[0].acquisition.numBlobProcesses = blob
+        self._timepix[0].acquisition.numBlobProcesses = number_processes
         self._timepix.start()
 
     def setEpsilon(self, epsilon):
         logger.info("Setting epsilon {}".format(epsilon))
-        self._timepix[0].acquisition.epsilon = epsilon
+        self.__get_centroid_calculator().epsilon = epsilon
 
-    def setSamples(self, samples):
-        logger.info("Setting samples {}".format(samples))
-        self._timepix[0].acquisition.samples = samples
+    def setMinSamples(self, min_samples):
+        logger.info("Setting samples {}".format(min_samples))
+        self.__get_centroid_calculator().min_samples = min_samples
+
+    def setTotThreshold(self, tot_threshold):
+        logger.info("Setting Tot threshold {}".format(tot_threshold))
+        self.__get_centroid_calculator().tot_threshold = tot_threshold
+
+    def __get_centroid_calculator(self):
+        return self._timepix[0].acquisition.centroid_calculator
 
     def startPacketProcessorOutputQueueSizeTimer(self):
         queue_size_update_timer = QtCore.QTimer()
@@ -269,11 +276,12 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
         self._config_panel.viewtab.resetPlots.connect(self.clearNow.emit)
         self._config_panel.proctab.eventWindowChanged.connect(self.setEventWindow)
-        self._config_panel.proctab.totThresholdChanged.connect(self.setTotThreshold)
-        self._config_panel.proctab.centroidSkipChanged.connect(self.setCentroidSkip)
-        self._config_panel.proctab.blobNumberChanged.connect(self.setBlobProccesses)
+        
+        self._config_panel.proctab.numberProcessesChanged.connect(self.setNumberProcesses)
+        self._config_panel.proctab.triggersProcessedChanged.connect(self.setTriggersProcessed)
         self._config_panel.proctab.epsilonChanged.connect(self.setEpsilon)
-        self._config_panel.proctab.samplesChanged.connect(self.setSamples)
+        self._config_panel.proctab.samplesChanged.connect(self.setMinSamples)
+        self._config_panel.proctab.totThresholdChanged.connect(self.setTotThreshold)
 
         self.onRaw.connect(self._config_panel.fileSaver.onRaw)
         self.onPixelToA.connect(self._config_panel.fileSaver.onToa)
