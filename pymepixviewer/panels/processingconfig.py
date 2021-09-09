@@ -25,6 +25,9 @@ from pyqtgraph.Qt import QtCore, QtGui
 from .ui.processingconfigui import Ui_Form
 
 
+EVENT_WINDOW_FACTOR = 1E-6
+
+
 class ProcessingConfig(QtGui.QWidget, Ui_Form):
     eventWindowChanged = QtCore.pyqtSignal(float, float)
     totThresholdChanged = QtCore.pyqtSignal(int)
@@ -44,13 +47,18 @@ class ProcessingConfig(QtGui.QWidget, Ui_Form):
         self.setupSignals()
 
     def setupLines(self):
-        self.min_event_window.setValidator(QtGui.QIntValidator(self))
+        self.min_event_window.setValidator(QtGui.QDoubleValidator(self))
         self.max_event_window.setValidator(QtGui.QDoubleValidator(self))
         self.number_processes.setValidator(QtGui.QIntValidator(self))
 
+    def init_event_window(self, event_window):
+        min_event_window, max_event_window = event_window
+        self.min_event_window.setText(str(min_event_window / EVENT_WINDOW_FACTOR))
+        self.max_event_window.setText(str(max_event_window / EVENT_WINDOW_FACTOR))
+
     def tofEventWindow(self):
-        min_value = float(self.min_event_window.text()) * 1E-6
-        max_value = float(self.max_event_window.text()) * 1E-6
+        min_value = float(self.min_event_window.text()) * EVENT_WINDOW_FACTOR
+        max_value = float(self.max_event_window.text()) * EVENT_WINDOW_FACTOR
         self.eventWindowChanged.emit(min_value, max_value)
 
     def __number_processes_enter_pressed(self):

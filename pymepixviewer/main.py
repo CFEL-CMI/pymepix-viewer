@@ -117,7 +117,6 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         self.connectSignals()
         self.startupTimepix()
 
-        #
         time.sleep(1.0)
         self.onModeChange(ViewerMode.TOA)
         self._statusUpdate.start()
@@ -126,17 +125,17 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         self._timepix.stop()
         if self._current_mode is ViewerMode.TOA:
             # self._timepix[0].setupAcquisition(pymepix.processing.PixelPipeline)
-            self._timepix[0].acquisition.enableEvents = False
-            logger.info("Switch to TOA mode, {}".format(self._timepix[0].acquisition.enableEvents))
+            self.__get_packet_processor().handle_events = False
+            logger.info("Switch to TOA mode, {}".format(self.__get_packet_processor().handle_events))
         elif self._current_mode is ViewerMode.TOF:
             # self._timepix[0].setupAcquisition(pymepix.processing.PixelPipeline)
-            self._timepix[0].acquisition.enableEvents = True
-            logger.info("Switch to TOF mode, {}".format(self._timepix[0].acquisition.enableEvents))
+            self.__get_packet_processor().handle_events = True
+            logger.info("Switch to TOF mode, {}".format(self.__get_packet_processor().handle_events))
         elif self._current_mode is ViewerMode.Centroid:
             # self._timepix[0].setupAcquisition(pymepix.processing.CentroidPipeline)
-            self._timepix[0].acquisition.enableEvents = True
+            self.__get_packet_processor().handle_events  = True
             logger.info(
-                "Switch to Centroid mode, {}".format(self._timepix[0].acquisition.enableEvents)
+                "Switch to Centroid mode, {}".format(self.__get_packet_processor().handle_events)
             )
 
         time.sleep(2.0)
@@ -144,8 +143,8 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
     def startupTimepix(self):
 
-        self._timepix = pymepix.PymepixConnection(("192.168.1.10", 50000))
-        # self._timepix = pymepix.PymepixConnection(("127.0.0.1", 50000))
+        # self._timepix = pymepix.PymepixConnection(("192.168.1.10", 50000))
+        self._timepix = pymepix.PymepixConnection(("127.0.0.1", 50000))
 
         if len(self._timepix) == 0:
             logger.error("NO TIMEPIX DEVICES DETECTED")
@@ -160,6 +159,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         self._config_panel.proctab.min_samples.setValue(self.__get_centroid_calculator().min_samples)
         self._config_panel.proctab.tot_threshold.setValue(self.__get_centroid_calculator().tot_threshold)
         self._config_panel.proctab.number_processes.setText(str(self._timepix[0].acquisition.numBlobProcesses))
+        self._config_panel.proctab.init_event_window(self.__get_packet_processor().event_window)
 
         # self._timepix.
         self._timepix.dataCallback = self.onData
@@ -187,9 +187,9 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
     def setCoarseThreshold(self, value):
         self._timepix[0].Vthreshold_coarse = value
 
-    def setEventWindow(self, min_v, max_v):
-        logger.info("Setting Event window {} {}".format(min_v, max_v))
-        self._timepix[0].acquisition.eventWindow = (min_v, max_v)
+    def setEventWindow(self, event_window_min, event_window_max):
+        logger.info("Setting Event window {} {}".format(event_window_min, event_window_max))
+        self.__get_packet_processor().event_window = (event_window_min, event_window_max)
 
     def setTriggersProcessed(self, triggers_processed):
         logger.info("Setting centroid skip {}".format(triggers_processed))
@@ -215,6 +215,9 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
     def __get_centroid_calculator(self):
         return self._timepix[0].acquisition.centroid_calculator
+
+    def __get_packet_processor(self):
+        return self._timepix[0].acquisition.packet_processor
 
     def startPacketProcessorOutputQueueSizeTimer(self):
         queue_size_update_timer = QtCore.QTimer()
