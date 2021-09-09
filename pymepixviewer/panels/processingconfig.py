@@ -25,7 +25,7 @@ from pyqtgraph.Qt import QtCore, QtGui
 from .ui.processingconfigui import Ui_Form
 
 
-EVENT_WINDOW_FACTOR = 1E-6
+EVENT_WINDOW_FACTOR = 1E6
 
 
 class ProcessingConfig(QtGui.QWidget, Ui_Form):
@@ -53,12 +53,12 @@ class ProcessingConfig(QtGui.QWidget, Ui_Form):
 
     def init_event_window(self, event_window):
         min_event_window, max_event_window = event_window
-        self.min_event_window.setText(str(min_event_window / EVENT_WINDOW_FACTOR))
-        self.max_event_window.setText(str(max_event_window / EVENT_WINDOW_FACTOR))
+        self.min_event_window.setText(f'{(min_event_window * EVENT_WINDOW_FACTOR):.2f}')
+        self.max_event_window.setText(f'{(max_event_window * EVENT_WINDOW_FACTOR):.2f}')
 
     def tofEventWindow(self):
-        min_value = float(self.min_event_window.text()) * EVENT_WINDOW_FACTOR
-        max_value = float(self.max_event_window.text()) * EVENT_WINDOW_FACTOR
+        min_value = float(self.min_event_window.text()) / EVENT_WINDOW_FACTOR
+        max_value = float(self.max_event_window.text()) / EVENT_WINDOW_FACTOR
         self.eventWindowChanged.emit(min_value, max_value)
 
     def __number_processes_enter_pressed(self):
