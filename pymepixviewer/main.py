@@ -33,6 +33,7 @@ from PyQt5 import QtCore, QtGui
 import pymepix
 from pymepix.processing import MessageType
 from pymepixviewer.core.datatypes import ViewerMode
+from pymepixviewer.dialogs.postprocessing import PostProcessing
 from pymepixviewer.panels.blobview import BlobView
 from pymepixviewer.panels.daqconfig import DaqConfigPanel
 from pymepixviewer.panels.timeofflight import TimeOfFlightPanel
@@ -244,6 +245,8 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
     def connectSignals(self):
         self.actionSophy_spx.triggered.connect(self.getfile)
+        self.actionLaunchPostProcessing.triggered.connect(self.launchPostProcessing)
+
         self._config_panel.viewtab.updateRateChange.connect(self.onDisplayUpdate)
         self._config_panel.viewtab.eventCountChange.connect(self.onEventCountUpdate)
         self._config_panel.viewtab.frameTimeChange.connect(self.onFrameTimeUpdate)
@@ -296,6 +299,10 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         self.updateStatusSignal.connect(lambda msg: self.statusbar.showMessage(msg, 5000))
 
         self.show_slow_processing_warning_sig.connect(self.show_slow_processing_warning)
+
+    def launchPostProcessing(self):
+        dialog = PostProcessing()
+        dialog.exec_()
 
     def onBiasVoltageUpdate(self, value):
         logger.info("Bias Voltage changed to {} V".format(value))

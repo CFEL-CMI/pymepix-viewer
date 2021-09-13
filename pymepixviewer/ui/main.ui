@@ -34,6 +34,7 @@
      <addaction name="actionSophy_spx"/>
     </widget>
     <addaction name="menuLoad_Setting"/>
+    <addaction name="actionLaunchPostProcessing"/>
    </widget>
    <addaction name="menuFile"/>
   </widget>
@@ -41,6 +42,11 @@
   <action name="actionSophy_spx">
    <property name="text">
     <string>SoPhy file</string>
+   </property>
+  </action>
+  <action name="actionLaunchPostProcessing">
+   <property name="text">
+    <string>Launch Post Processing</string>
    </property>
   </action>
  </widget>
