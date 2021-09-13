@@ -52,6 +52,9 @@ class PostProcessing(QtGui.QDialog, Ui_Dialog):
             self.processing_thread = Thread(target = self.run_post_processing_threaded)
             self.processing_thread.start()
         else:
+            self.pushButtonStartProcessing.setDisabled(True)
+            self.pushButtonStartProcessing.setText('Stopping')
+            self.setToolTip("Stopping after currently processed file. This can still take a while!")
             self.processing_is_running = False
 
     def __set_disabled_controls(self, disabled):
@@ -68,6 +71,7 @@ class PostProcessing(QtGui.QDialog, Ui_Dialog):
 
     def run_post_processing_threaded(self):
         self.pushButtonStartProcessing.setText('Stop Processing')
+        self.setToolTip("Stop after currently processed file. This can still take a while!")
         self.__set_disabled_controls(True)
         self.processing_is_running = True
 
@@ -84,6 +88,7 @@ class PostProcessing(QtGui.QDialog, Ui_Dialog):
         output_directory = self.lineEditOutputDirectory.text()
         
         for input_file in input_files:
+            self.progressBar.setToolTip(f'Processing: {input_file}')
             if not self.processing_is_running:
                 break
             output_file = f'{output_directory}/{Path(input_file).stem}.{OUTPUT_FILE_EXTENSION}'
@@ -92,4 +97,7 @@ class PostProcessing(QtGui.QDialog, Ui_Dialog):
 
         self.processing_is_running = False
         self.__set_disabled_controls(False)
+        self.progressBar.setToolTip(None)
         self.pushButtonStartProcessing.setText('Start Processing')
+        self.setToolTip(None)
+        self.pushButtonStartProcessing.setDisabled(False)
