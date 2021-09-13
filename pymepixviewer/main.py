@@ -144,8 +144,8 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
     def startupTimepix(self):
 
-        # self._timepix = pymepix.PymepixConnection(("192.168.1.10", 50000))
-        self._timepix = pymepix.PymepixConnection(("127.0.0.1", 50000))
+        self._timepix = pymepix.PymepixConnection(("192.168.1.10", 50000))
+        # self._timepix = pymepix.PymepixConnection(("127.0.0.1", 50000))
 
         if len(self._timepix) == 0:
             logger.error("NO TIMEPIX DEVICES DETECTED")
@@ -301,8 +301,10 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         self.show_slow_processing_warning_sig.connect(self.show_slow_processing_warning)
 
     def launchPostProcessing(self):
+        self._timepix.stop()
         dialog = PostProcessing()
         dialog.exec_()
+        self._timepix.start()
 
     def onBiasVoltageUpdate(self, value):
         logger.info("Bias Voltage changed to {} V".format(value))

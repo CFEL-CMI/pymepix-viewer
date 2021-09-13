@@ -53,7 +53,6 @@ class PostProcessing(QtGui.QDialog, Ui_Dialog):
             self.processing_thread.start()
         else:
             self.processing_is_running = False
-        # thread.join()
 
     def __set_disabled_controls(self, disabled):
         self.pushButtonBrowseInputFiles.setDisabled(disabled)
