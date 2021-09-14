@@ -1,19 +1,17 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'acqconfig.ui'
+# Form implementation generated from reading ui file './pymepix-viewer/pymepixviewer/panels/ui/acqconfig.ui'
 #
-# Created by: PyQt5 UI code generator 5.12.3
+# Created by: PyQt5 UI code generator 5.11.3
 #
 # WARNING! All changes made in this file will be lost!
 
-
 from PyQt5 import QtCore, QtGui, QtWidgets
-
 
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
-        Form.resize(288, 691)
+        Form.resize(334, 691)
         self.verticalLayout_3 = QtWidgets.QVBoxLayout(Form)
         self.verticalLayout_3.setObjectName("verticalLayout_3")
         self.verticalLayout_4 = QtWidgets.QVBoxLayout()
@@ -80,9 +78,7 @@ class Ui_Form(object):
         self.horizontalLayout_12 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_12.setObjectName("horizontalLayout_12")
         self.label_14 = QtWidgets.QLabel(self.groupBox_3)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label_14.sizePolicy().hasHeightForWidth())
@@ -101,16 +97,20 @@ class Ui_Form(object):
         self.label_5.setObjectName("label_5")
         self.horizontalLayout.addWidget(self.label_5)
         self.write_raw = QtWidgets.QCheckBox(self.groupBox_3)
+        self.write_raw.setEnabled(False)
         self.write_raw.setChecked(True)
         self.write_raw.setObjectName("write_raw")
         self.horizontalLayout.addWidget(self.write_raw)
         self.write_pixels = QtWidgets.QCheckBox(self.groupBox_3)
+        self.write_pixels.setEnabled(False)
         self.write_pixels.setObjectName("write_pixels")
         self.horizontalLayout.addWidget(self.write_pixels)
         self.write_tof = QtWidgets.QCheckBox(self.groupBox_3)
+        self.write_tof.setEnabled(False)
         self.write_tof.setObjectName("write_tof")
         self.horizontalLayout.addWidget(self.write_tof)
         self.write_blob = QtWidgets.QCheckBox(self.groupBox_3)
+        self.write_blob.setEnabled(False)
         self.write_blob.setChecked(False)
         self.write_blob.setObjectName("write_blob")
         self.horizontalLayout.addWidget(self.write_blob)
@@ -131,9 +131,7 @@ class Ui_Form(object):
         self.horizontalLayout_11 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_11.setObjectName("horizontalLayout_11")
         self.label_13 = QtWidgets.QLabel(self.groupBox_3)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label_13.sizePolicy().hasHeightForWidth())
@@ -150,9 +148,7 @@ class Ui_Form(object):
         self.verticalLayout_2.addLayout(self.horizontalLayout_11)
         self.verticalLayout_4.addWidget(self.groupBox_3)
         self.verticalLayout_3.addLayout(self.verticalLayout_4)
-        spacerItem = QtWidgets.QSpacerItem(
-            20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
-        )
+        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_3.addItem(spacerItem)
 
         self.retranslateUi(Form)
@@ -169,7 +165,7 @@ class Ui_Form(object):
         self.label_6.setText(_translate("Form", "Path"))
         self.openpath.setText(_translate("Form", "Open"))
         self.label_7.setText(_translate("Form", "Prefix:"))
-        self.file_prefix.setToolTip(_translate("Form", 'prefix must not contain "_"'))
+        self.file_prefix.setToolTip(_translate("Form", "prefix must not contain \"_\""))
         self.file_prefix.setText(_translate("Form", "test"))
         self.label_14.setText(_translate("Form", "Index"))
         self.label_5.setText(_translate("Form", "Storage:"))
@@ -181,3 +177,4 @@ class Ui_Form(object):
         self.acq_time.setText(_translate("Form", "10"))
         self.label_9.setText(_translate("Form", "s"))
         self.label_13.setText(_translate("Form", "No of Files"))
+

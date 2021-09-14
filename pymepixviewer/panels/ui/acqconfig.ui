@@ -171,6 +171,9 @@
           </item>
           <item>
            <widget class="QCheckBox" name="write_raw">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="text">
              <string>Raw</string>
             </property>
@@ -181,6 +184,9 @@
           </item>
           <item>
            <widget class="QCheckBox" name="write_pixels">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="text">
              <string>Pixels</string>
             </property>
@@ -188,6 +194,9 @@
           </item>
           <item>
            <widget class="QCheckBox" name="write_tof">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="text">
              <string>TOF</string>
             </property>
@@ -195,6 +204,9 @@
           </item>
           <item>
            <widget class="QCheckBox" name="write_blob">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="text">
              <string>Blob</string>
             </property>
