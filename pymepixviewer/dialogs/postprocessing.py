@@ -19,6 +19,7 @@ class PostProcessing(QtGui.QDialog, Ui_Dialog):
         self.setupUi(self)
 
         self.processing_is_running = False
+        self._close_allowed = True
 
         self.pushButtonBrowseInputFiles.clicked.connect(self.onBrowseInputFiles)
         self.pushButtonBrowseTimeWalkFile.clicked.connect(self.onBrowseTimeWalkFile)
@@ -26,6 +27,12 @@ class PostProcessing(QtGui.QDialog, Ui_Dialog):
         self.pushButtonBrowseOutputDirectory.clicked.connect(self.onBrowseOutputDirectory)
 
         self.pushButtonStartProcessing.clicked.connect(self.onStartProcessing)
+
+    def closeEvent(self, event):
+        if self._close_allowed:
+            super().closeEvent(event)
+        else:
+            event.ignore()
 
     def onBrowseInputFiles(self):
         file_names, _ = QtGui.QFileDialog.getOpenFileNames(self, 'Choose input file(s)', None, 'All files (*.*);;RAW (*.raw)', 'RAW (*.raw)')
@@ -70,6 +77,7 @@ class PostProcessing(QtGui.QDialog, Ui_Dialog):
     
 
     def run_post_processing_threaded(self):
+        self._close_allowed = False
         self.pushButtonStartProcessing.setText('Stop Processing')
         self.setToolTip("Stop after currently processed file. This can still take a while!")
         self.__set_disabled_controls(True)
@@ -101,3 +109,4 @@ class PostProcessing(QtGui.QDialog, Ui_Dialog):
         self.pushButtonStartProcessing.setText('Start Processing')
         self.setToolTip(None)
         self.pushButtonStartProcessing.setDisabled(False)
+        self._close_allowed = True
