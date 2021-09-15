@@ -37,6 +37,7 @@ from pymepixviewer.dialogs.postprocessing import PostProcessing
 from pymepixviewer.panels.blobview import BlobView
 from pymepixviewer.panels.daqconfig import DaqConfigPanel
 from pymepixviewer.panels.timeofflight import TimeOfFlightPanel
+from pymepixviewer.panels.timepixsetupplotspanel import TimepixSetupPlotsPanel
 from pymepixviewer.ui.mainui import Ui_MainWindow
 from pyqtgraph.Qt import QtCore, QtGui
 
@@ -246,6 +247,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
     def connectSignals(self):
         self.actionSophy_spx.triggered.connect(self.getfile)
         self.actionLaunchPostProcessing.triggered.connect(self.launchPostProcessing)
+        self.actionTimepixSetupPlotsPanel.triggered.connect(self.launchTimepixSetupPlotsPanel)
 
         self._config_panel.viewtab.updateRateChange.connect(self.onDisplayUpdate)
         self._config_panel.viewtab.eventCountChange.connect(self.onEventCountUpdate)
@@ -305,6 +307,13 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         dialog = PostProcessing()
         dialog.exec_()
         self._timepix.start()
+
+    def launchTimepixSetupPlotsPanel(self):
+        self._timepix_setup_plots_panel = TimepixSetupPlotsPanel(self)
+        self.onCentroid.connect(self._timepix_setup_plots_panel.on_centroid)
+        self.onPixelToF.connect(self._timepix_setup_plots_panel.on_event)
+        self.addDockWidget(QtCore.Qt.RightDockWidgetArea, self._timepix_setup_plots_panel)
+        self._timepix_setup_plots_panel.setFloating(True)
 
     def onBiasVoltageUpdate(self, value):
         logger.info("Bias Voltage changed to {} V".format(value))
