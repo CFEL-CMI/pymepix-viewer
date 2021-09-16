@@ -23,32 +23,30 @@ class TimepixSetupPlotsPanel(QtGui.QDockWidget, Ui_DockWidget):
         self.toTRangeMinimumLineEdit.setValidator(QtGui.QIntValidator(self))
         self.toTRangeMaximumLineEdit.setValidator(QtGui.QIntValidator(self))
         self.numberPacketsLineEdit.setValidator(QtGui.QIntValidator(self))
-        # TODO: ToF Range input fields (or alternatively the settings form the tof view)
-        # TODO: Longer time for integration including settings for this
 
 
         # Event Data Plots Preparation
         self._event_data_tot_plt = pg.PlotDataItem()
         self.plt_event_data_histogram_tot.addItem(self._event_data_tot_plt)
-        self.plt_event_data_histogram_tot.setLabel('bottom', text='Time over Threshold', units='ns')
+        self.plt_event_data_histogram_tot.setLabel('bottom', text='ToT', units='ns')
         self.plt_event_data_histogram_tot.setLabel('left', text='Count')
 
         self._event_data_2d_histogram_tof_tot_data = pg.ImageItem()
         self.plt_event_data_2d_histogram_tof_tot.addItem(self._event_data_2d_histogram_tof_tot_data)
-        self.plt_event_data_2d_histogram_tof_tot.setLabel('bottom', text='Time of Flight')
-        self.plt_event_data_2d_histogram_tof_tot.setLabel('left', text='Time over Threshold')
+        self.plt_event_data_2d_histogram_tof_tot.setLabel('bottom', text='ToT')
+        self.plt_event_data_2d_histogram_tof_tot.setLabel('left', text='ToF')
 
 
         # Centroided Data Plots Preparation
         self._centroided_data_tot_plt = pg.PlotDataItem()
         self.plt_centroided_data_histogram_tot.addItem(self._centroided_data_tot_plt)
-        self.plt_centroided_data_histogram_tot.setLabel('bottom', text='Mean Time over Threshold', units='ns')
+        self.plt_centroided_data_histogram_tot.setLabel('bottom', text='Mean ToT', units='ns')
         self.plt_centroided_data_histogram_tot.setLabel('left', text='Count')
 
-        self._centroided_data_2d_histogram_tof_tot_data = pg.ImageItem()
+        self._centroided_data_2d_histogram_tof_tot_data = pg.ImageItem()        
         self.plt_centroided_data_2d_histogram_tof_tot.addItem(self._centroided_data_2d_histogram_tof_tot_data)
-        self.plt_centroided_data_2d_histogram_tof_tot.setLabel('bottom', text='Time of Flight')
-        self.plt_centroided_data_2d_histogram_tof_tot.setLabel('left', text='Mean Time over Threshold')
+        self.plt_centroided_data_2d_histogram_tof_tot.setLabel('bottom', text='Mean ToT')
+        self.plt_centroided_data_2d_histogram_tof_tot.setLabel('left', text='ToF')
 
         self._centroided_data_cluster_size_data = pg.PlotDataItem()
         self.plt_centroided_data_histogram_size.addItem(self._centroided_data_cluster_size_data)
@@ -57,28 +55,31 @@ class TimepixSetupPlotsPanel(QtGui.QDockWidget, Ui_DockWidget):
 
     def __init_event_buffers(self):
         self.__packet_counter_events = 0
-        self.__event_tof = []
-        self.__event_tot = []
+        self.__event_window_tof = []
+        self.__event_window_tot = []
 
     def __init_centroided_buffers(self):
         self.__packet_counter_centroided = 0
-        self.__centroided_tof = []
-        self.__centroided_tot = []
-        self.__centroided_cluster_size = []
+        self.__centroided_window_tof = []
+        self.__centroided_window_tot = []
+        self.__centroided_window_cluster_size = []
 
     def __update_event_buffers(self, tof, tot):
         if (self.__packet_counter_events >= int(self.numberPacketsLineEdit.text())):
-            self.__init_event_buffers()
-        self.__event_tof = np.concatenate((self.__event_tof, tof))
-        self.__event_tot = np.concatenate((self.__event_tot, tot))
+            self.__event_window_tof = self.__event_window_tof[-1:]
+            self.__event_window_tot = self.__event_window_tot[-1:]
+        self.__event_window_tof.append(tof)
+        self.__event_window_tot.append(tot)
         self.__packet_counter_events += 1
 
     def __update_centroided_buffers(self, tof, tot, cluster_size):
         if (self.__packet_counter_centroided >= int(self.numberPacketsLineEdit.text())):
-            self.__init_centroided_buffers()
-        self.__centroided_tof = np.concatenate((self.__centroided_tof, tof))
-        self.__centroided_tot = np.concatenate((self.__centroided_tot, tot))
-        self.__centroided_cluster_size = np.concatenate((self.__centroided_cluster_size, cluster_size))
+            self.__centroided_window_tof = self.__centroided_window_tof[-1:]
+            self.__centroided_window_tot = self.__centroided_window_tot[-1:]
+            self.__centroided_window_cluster_size = self.__centroided_window_cluster_size[-1:]
+        self.__centroided_window_tof.append(tof)
+        self.__centroided_window_tot.append(tot)
+        self.__centroided_window_cluster_size.append(cluster_size)
 
         self.__packet_counter_centroided += 1
 
@@ -95,15 +96,24 @@ class TimepixSetupPlotsPanel(QtGui.QDockWidget, Ui_DockWidget):
         tot_bins = range(int(self.toTRangeMinimumLineEdit.text()), int(self.toTRangeMaximumLineEdit.text()) + 25, 25)
         tof_bins = np.linspace(int(self.toFRangeMinimumLineEdit.text()), int(self.toFRangeMaximumLineEdit.text()), 500)
         image, _, _ = np.histogram2d(tot, tof * 1e6, bins=(tot_bins, tof_bins))
+
+        tr = QtGui.QTransform()
+        plt.setTransform(tr.scale(1 / len(tot_bins) * tot_bins[-2], 1 / len(tof_bins) * tof_bins[-1]))
+
         plt.setImage(image)
 
     def on_event(self, events):
         self.__update_event_buffers(events[3], events[4])
-        self.__update_tot_histogram(self.__event_tot, self._event_data_tot_plt)
-        self.__update_2d_histogram_tof_tot(self.__event_tof, self.__event_tot, self._event_data_2d_histogram_tof_tot_data)
+        tof = np.concatenate(self.__event_window_tof)
+        tot = np.concatenate(self.__event_window_tot)
+        self.__update_tot_histogram(tot, self._event_data_tot_plt)
+        self.__update_2d_histogram_tof_tot(tof, tot, self._event_data_2d_histogram_tof_tot_data)
 
     def on_centroid(self, centroids):
         self.__update_centroided_buffers(centroids[3], centroids[4], centroids[6])
-        self.__update_tot_histogram(self.__centroided_tot, self._centroided_data_tot_plt)
-        self.__update_2d_histogram_tof_tot(self.__centroided_tof, self.__centroided_tot, self._centroided_data_2d_histogram_tof_tot_data)
-        self.__update_cluster_size_histogram(self.__centroided_cluster_size, self._centroided_data_cluster_size_data)
+        tof = np.concatenate(self.__centroided_window_tof)
+        tot = np.concatenate(self.__centroided_window_tot)
+        cluster_size = np.concatenate(self.__centroided_window_cluster_size)
+        self.__update_tot_histogram(tot, self._centroided_data_tot_plt)
+        self.__update_2d_histogram_tof_tot(tof, tot, self._centroided_data_2d_histogram_tof_tot_data)
+        self.__update_cluster_size_histogram(cluster_size, self._centroided_data_cluster_size_data)

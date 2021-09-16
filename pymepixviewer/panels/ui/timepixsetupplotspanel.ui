@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>700</width>
-    <height>491</height>
+    <height>614</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,59 +16,12 @@
   <widget class="QWidget" name="dockWidgetContents">
    <layout class="QHBoxLayout" name="horizontalLayout_2">
     <item>
-     <layout class="QVBoxLayout" name="verticalLayoutEventData">
-      <item>
-       <widget class="QLabel" name="label">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="font">
-         <font>
-          <weight>75</weight>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="text">
-         <string>Event Data</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="PlotWidget" name="plt_event_data_histogram_tot" native="true"/>
-      </item>
-      <item>
-       <widget class="PlotWidget" name="plt_event_data_2d_histogram_tof_tot" native="true"/>
-      </item>
-      <item>
-       <widget class="QLabel" name="label_3">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="font">
-         <font>
-          <weight>75</weight>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="text">
-         <string>Settings/Controls</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item>
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="3" column="0">
        <layout class="QFormLayout" name="formLayout">
+        <property name="sizeConstraint">
+         <enum>QLayout::SetDefaultConstraint</enum>
+        </property>
         <property name="fieldGrowthPolicy">
          <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
         </property>
@@ -155,7 +108,7 @@
         <item row="4" column="0">
          <widget class="QLabel" name="numberPacketsLabel">
           <property name="toolTip">
-           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Number of packets used for integration befor refresh&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Number of packets used for the sliding window calculation of the histograms&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
           <property name="text">
            <string>Number Packets</string>
@@ -171,7 +124,7 @@
            </sizepolicy>
           </property>
           <property name="toolTip">
-           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Number of packets used for integration befor refresh&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Number of packets used for the sliding window calculation of the histograms&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
           <property name="text">
            <string>10</string>
@@ -180,11 +133,35 @@
         </item>
        </layout>
       </item>
-     </layout>
-    </item>
-    <item>
-     <layout class="QVBoxLayout" name="verticalLayoutCentroidedData">
-      <item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="font">
+         <font>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Event Data</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="PlotWidget" name="plt_event_data_2d_histogram_tof_tot" native="true"/>
+      </item>
+      <item row="1" column="0">
+       <widget class="PlotWidget" name="plt_event_data_histogram_tot" native="true"/>
+      </item>
+      <item row="0" column="1">
        <widget class="QLabel" name="label_2">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
@@ -206,13 +183,13 @@
         </property>
        </widget>
       </item>
-      <item>
+      <item row="1" column="1">
        <widget class="PlotWidget" name="plt_centroided_data_histogram_tot" native="true"/>
       </item>
-      <item>
+      <item row="2" column="1">
        <widget class="PlotWidget" name="plt_centroided_data_2d_histogram_tof_tot" native="true"/>
       </item>
-      <item>
+      <item row="3" column="1">
        <widget class="PlotWidget" name="plt_centroided_data_histogram_size" native="true">
         <zorder>verticalLayoutWidget</zorder>
         <zorder>plt_centroided_data_2d_histogram_tof_tot</zorder>
