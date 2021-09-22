@@ -154,19 +154,9 @@ class TimepixSetupPlotsPanel(QtGui.QDockWidget, Ui_DockWidget):
 
     def __update_bins_tot(self, tot_min, tot_max):
         self.__tot_bins = range(tot_min, tot_max + 25, 25)
-        self.__update_image_transform()
 
     def __update_bins_tof(self, tof_min, tof_max):
         self.__tof_bins = np.linspace(tof_min, tof_max, 50)
-        self.__update_image_transform()
-
-    def __update_image_transform(self):
-        if self.__tot_bins is not None and self.__tof_bins is not None:
-            tr = QtGui.QTransform()
-            tr = tr.scale(1 / len(self.__tot_bins) * self.__tot_bins[-2], 1 / len(self.__tof_bins) * self.__tof_bins[-1])
-#            self.plt_event_data_2d_histogram_tof_tot.getImageItem().setTransform(tr)
-#            self._centroided_data_2d_histogram_tof_mean_tot_data.setTransform(tr)
-#            self._centroided_data_2d_histogram_tof_max_tot_data.setTransform(tr)
 
     def __update_events(self, tof, tot):
         # ToT histogram
