@@ -40,13 +40,13 @@
        </widget>
       </item>
       <item row="2" column="0">
-       <widget class="PlotWidget" name="plt_event_data_2d_histogram_tof_tot" native="true"/>
+       <widget class="ImageView" name="plt_event_data_2d_histogram_tof_tot"/>
       </item>
       <item row="4" column="1">
-       <widget class="PlotWidget" name="plt_centroided_data_histogram_size" native="true"/>
+       <widget class="PlotWidget" name="plt_centroided_data_histogram_size"/>
       </item>
       <item row="1" column="1">
-       <widget class="PlotWidget" name="plt_centroided_data_histogram_mean_tot" native="true"/>
+       <widget class="PlotWidget" name="plt_centroided_data_histogram_mean_tot"/>
       </item>
       <item row="0" column="1">
        <widget class="QLabel" name="label_2">
@@ -71,10 +71,10 @@
        </widget>
       </item>
       <item row="1" column="0">
-       <widget class="PlotWidget" name="plt_event_data_histogram_tot" native="true"/>
+       <widget class="PlotWidget" name="plt_event_data_histogram_tot"/>
       </item>
       <item row="2" column="1">
-       <widget class="PlotWidget" name="plt_centroided_data_2d_histogram_tof_mean_tot" native="true"/>
+       <widget class="ImageView" name="plt_centroided_data_2d_histogram_tof_mean_tot"/>
       </item>
       <item row="4" column="0">
        <layout class="QVBoxLayout" name="verticalLayout">
@@ -231,10 +231,10 @@
        </layout>
       </item>
       <item row="1" column="2">
-       <widget class="PlotWidget" name="plt_centroided_data_histogram_max_tot" native="true"/>
+       <widget class="PlotWidget" name="plt_centroided_data_histogram_max_tot"/>
       </item>
       <item row="2" column="2">
-       <widget class="PlotWidget" name="plt_centroided_data_2d_histogram_tof_max_tot" native="true"/>
+       <widget class="ImageView" name="plt_centroided_data_2d_histogram_tof_max_tot"/>
       </item>
      </layout>
     </item>
@@ -244,9 +244,13 @@
  <customwidgets>
   <customwidget>
    <class>PlotWidget</class>
-   <extends>QWidget</extends>
+   <extends>QGraphicsView</extends>
    <header>pyqtgraph</header>
-   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ImageView</class>
+   <extends>QGraphicsView</extends>
+   <header>pyqtgraph</header>
   </customwidget>
  </customwidgets>
  <resources/>

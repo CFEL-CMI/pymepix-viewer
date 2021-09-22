@@ -31,7 +31,7 @@ class Ui_DockWidget(object):
         self.label.setAlignment(QtCore.Qt.AlignCenter)
         self.label.setObjectName("label")
         self.gridLayout.addWidget(self.label, 0, 0, 1, 1)
-        self.plt_event_data_2d_histogram_tof_tot = PlotWidget(self.dockWidgetContents)
+        self.plt_event_data_2d_histogram_tof_tot = ImageView(self.dockWidgetContents)
         self.plt_event_data_2d_histogram_tof_tot.setObjectName("plt_event_data_2d_histogram_tof_tot")
         self.gridLayout.addWidget(self.plt_event_data_2d_histogram_tof_tot, 2, 0, 1, 1)
         self.plt_centroided_data_histogram_size = PlotWidget(self.dockWidgetContents)
@@ -56,7 +56,7 @@ class Ui_DockWidget(object):
         self.plt_event_data_histogram_tot = PlotWidget(self.dockWidgetContents)
         self.plt_event_data_histogram_tot.setObjectName("plt_event_data_histogram_tot")
         self.gridLayout.addWidget(self.plt_event_data_histogram_tot, 1, 0, 1, 1)
-        self.plt_centroided_data_2d_histogram_tof_mean_tot = PlotWidget(self.dockWidgetContents)
+        self.plt_centroided_data_2d_histogram_tof_mean_tot = ImageView(self.dockWidgetContents)
         self.plt_centroided_data_2d_histogram_tof_mean_tot.setObjectName("plt_centroided_data_2d_histogram_tof_mean_tot")
         self.gridLayout.addWidget(self.plt_centroided_data_2d_histogram_tof_mean_tot, 2, 1, 1, 1)
         self.verticalLayout = QtWidgets.QVBoxLayout()
@@ -149,7 +149,7 @@ class Ui_DockWidget(object):
         self.plt_centroided_data_histogram_max_tot = PlotWidget(self.dockWidgetContents)
         self.plt_centroided_data_histogram_max_tot.setObjectName("plt_centroided_data_histogram_max_tot")
         self.gridLayout.addWidget(self.plt_centroided_data_histogram_max_tot, 1, 2, 1, 1)
-        self.plt_centroided_data_2d_histogram_tof_max_tot = PlotWidget(self.dockWidgetContents)
+        self.plt_centroided_data_2d_histogram_tof_max_tot = ImageView(self.dockWidgetContents)
         self.plt_centroided_data_2d_histogram_tof_max_tot.setObjectName("plt_centroided_data_2d_histogram_tof_max_tot")
         self.gridLayout.addWidget(self.plt_centroided_data_2d_histogram_tof_max_tot, 2, 2, 1, 1)
         self.horizontalLayout_2.addLayout(self.gridLayout)
@@ -170,4 +170,4 @@ class Ui_DockWidget(object):
         self.toTRangeMinimumLabel_2.setText(_translate("DockWidget", "ToT Range Minimum"))
         self.toTRangeMaximumLabel.setText(_translate("DockWidget", "ToT Range Maximum"))
 
-from pyqtgraph import PlotWidget
+from pyqtgraph import ImageView, PlotWidget
