@@ -1,10 +1,12 @@
 from collections import deque
+from os import stat
 
 import numpy as np
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui
 
-from.ui.timepixsetupplotspanelui import Ui_DockWidget
+from .ui.timepixsetupplotspanelui import Ui_DockWidget
+from .timepix_setup_histogram import TimepixSetupHistogram
 
 # ATTENTION! If the defined initial values below are equal to the initial values defined in the .ui file, the onChange 
 # events are not triggered for initialization. Be carefull when changing the initial values here and check against those 
@@ -15,6 +17,8 @@ INITIAL_RANGE_TOF_MAXIMUM = 5
 INITIAL_RANGE_TOT_MINIMUM = 0
 INITIAL_RANGE_TOT_MAXIMUM = 1000
 
+CLUSTER_SIZE_BINS = np.linspace(0, 400, 100, dtype=np.float)
+
 class TimepixSetupPlotsPanel(QtGui.QDockWidget, Ui_DockWidget):
 
     def __init__(self, parent=None):
@@ -23,19 +27,10 @@ class TimepixSetupPlotsPanel(QtGui.QDockWidget, Ui_DockWidget):
         # Set up the user interface from Designer.
         self.setupUi(self)
 
-        self.__events_hist_tot_x = None
-        self.__centroids_hist_mean_tot_x = None
-        self.__centroids_hist_max_tot_x = None
-        self.__centroids_hist_cluster_size_x = None
-
-        self.__events_hist_tot_buffer = None
         self.__events_2d_hist_buffer = None
 
-        self.__centroids_hist_mean_tot_buffer = None
-        self.__centroids_hist_max_tot_buffer = None
         self.__centroids_2d_hist_mean_buffer = None
         self.__centroids_2d_hist_max_buffer = None
-        self.__centroids_hist_cluster_size_buffer = None
 
         self.__tot_bins = None
         self.__tof_bins = None
@@ -45,6 +40,8 @@ class TimepixSetupPlotsPanel(QtGui.QDockWidget, Ui_DockWidget):
         self.toFRangeMaximumDoubleSpinBox.valueChanged.connect(self.toFRangeMaximumChanged)
         self.toTRangeMinimumSpinBox.valueChanged.connect(self.toTRangeMinimumChanged)
         self.toTRangeMaximumSpinBox.valueChanged.connect(self.toTRangeMaximumChanged)
+        self.pushButtonReset.clicked.connect(self.__reset_buffers)
+        self.pushButtonSnapshot.clicked.connect(self.__snapshot)
 
         self.numberPacketsSpinBox.setValue(INITIAL_NUMBER_PACKETS)
         self.toFRangeMinimumDoubleSpinBox.setValue(INITIAL_RANGE_TOF_MINIMUM)
@@ -56,28 +53,21 @@ class TimepixSetupPlotsPanel(QtGui.QDockWidget, Ui_DockWidget):
         result = super().setupUi(dock_widget)
 
         # Event Data Plots Preparation
-        self._event_data_tot_plt = self.__setup_hist_ui(self.plt_event_data_histogram_tot, 'Count', 'ToT', 'ns')
+        self._event_data_tot_histogram = TimepixSetupHistogram(self.plt_event_data_histogram_tot, 'Count', 'ToT', 'ns')
         self.plt_event_data_2d_histogram_tof_tot = self.__setup_2d_hist_ui("plt_event_data_2d_histogram_tof_tot", (2, 0), 'ToT', 'ToF')
 
         # Centroided Data Plots Preparation
-        self._centroided_data_mean_tot_plt = self.__setup_hist_ui(self.plt_centroided_data_histogram_mean_tot, 'Count', 'Mean ToT', 'ns')
+        self._centroided_data_mean_tot_histogram = TimepixSetupHistogram(self.plt_centroided_data_histogram_mean_tot, 'Count', 'Mean ToT', 'ns')
         
-        self._centroided_data_max_tot_plt = self.__setup_hist_ui(self.plt_centroided_data_histogram_max_tot, 'Count', 'Max ToT', 'ns')
+        self._centroided_data_max_tot_histogram = TimepixSetupHistogram(self.plt_centroided_data_histogram_max_tot, 'Count', 'Max ToT', 'ns')
 
         self.plt_centroided_data_2d_histogram_tof_mean_tot = self.__setup_2d_hist_ui("plt_centroided_data_2d_histogram_tof_mean_tot", (2, 1), 'Mean ToT', 'ToF')
 
         self.plt_centroided_data_2d_histogram_tof_max_tot = self.__setup_2d_hist_ui("plt_centroided_data_2d_histogram_tof_max_tot", (2, 2), 'Max ToT', 'ToF')
 
-        self._centroided_data_cluster_size_data = self.__setup_hist_ui(self.plt_centroided_data_histogram_size, 'Count', 'Cluster Size', None)
+        self._centroided_data_cluster_size_histogram = TimepixSetupHistogram(self.plt_centroided_data_histogram_size, 'Count', 'Cluster Size', None)
 
         return result
-
-    def __setup_hist_ui(self, plt, label_left, label_bottom, units):
-        plot_data_item = pg.PlotDataItem()
-        plt.addItem(plot_data_item)
-        plt.setLabel('bottom', text=label_bottom, units=units)
-        plt.setLabel('left', text=label_left)
-        return plot_data_item
 
     def __setup_2d_hist_ui(self, name, position, label_left, label_bottom):
         plt_2d_hist = pg.ImageView(view=pg.PlotItem())
@@ -93,14 +83,53 @@ class TimepixSetupPlotsPanel(QtGui.QDockWidget, Ui_DockWidget):
         return plt_2d_hist
 
     def onNumberPacketsChanged(self, number_packets):
-        self.__events_hist_tot_buffer = deque(maxlen=number_packets)
+        if number_packets == 0:
+            number_packets = None
+            self.pushButtonReset.setEnabled(True)
+        else:
+            self.pushButtonReset.setEnabled(False)
+        self.__init_buffers(number_packets)
+
+    def __init_buffers(self, number_packets=None):
+        self._event_data_tot_histogram.init_buffer(number_packets)
         self.__events_2d_hist_buffer = deque(maxlen=number_packets)
 
-        self.__centroids_hist_mean_tot_buffer = deque(maxlen=number_packets)
-        self.__centroids_hist_max_tot_buffer = deque(maxlen=number_packets)
+        self._centroided_data_mean_tot_histogram.init_buffer(number_packets)
+        self._centroided_data_max_tot_histogram.init_buffer(number_packets)
         self.__centroids_2d_hist_mean_buffer = deque(maxlen=number_packets)
         self.__centroids_2d_hist_max_buffer = deque(maxlen=number_packets)
-        self.__centroids_hist_cluster_size_buffer = deque(maxlen=number_packets)
+        self._centroided_data_cluster_size_histogram.init_buffer(number_packets)
+
+    def __reset_buffers(self):
+        self.__reset_tof_buffers()
+        self.__reset_tot_buffers()
+
+    def __reset_tof_buffers(self):
+        if self.__events_2d_hist_buffer is not None:
+            self.__events_2d_hist_buffer.clear()
+        if self.__centroids_2d_hist_mean_buffer is not None:
+            self.__centroids_2d_hist_mean_buffer.clear()
+        if self.__centroids_2d_hist_max_buffer is not None:
+            self.__centroids_2d_hist_max_buffer.clear()
+
+    def __reset_tot_buffers(self):
+        self._event_data_tot_histogram.clear_buffer()
+        if self.__events_2d_hist_buffer is not None:
+            self.__events_2d_hist_buffer.clear()
+
+        self._centroided_data_mean_tot_histogram.clear_buffer()
+        self._centroided_data_max_tot_histogram.clear_buffer()
+        if self.__centroids_2d_hist_mean_buffer is not None:
+            self.__centroids_2d_hist_mean_buffer.clear()
+        if self.__centroids_2d_hist_max_buffer is not None:
+            self.__centroids_2d_hist_max_buffer.clear()
+
+    # TODO: Snapshot button for reference that is added as a curve in addition (possibly also saved)
+    def __snapshot(self):
+        self._event_data_tot_histogram.snapshot(self.__tot_bins)
+        self._centroided_data_max_tot_histogram.snapshot(self.__tot_bins)
+        self._centroided_data_mean_tot_histogram.snapshot(self.__tot_bins)
+        self._centroided_data_cluster_size_histogram.snapshot(CLUSTER_SIZE_BINS)
 
     def toFRangeMinimumChanged(self, tof_range_minimum):
         self.tof_range_changed()
@@ -127,30 +156,10 @@ class TimepixSetupPlotsPanel(QtGui.QDockWidget, Ui_DockWidget):
             self.__update_bins_tot(tot_range_minimum, tot_range_maximum)
 
     def tof_range_changed(self):
-        if self.__events_2d_hist_buffer is not None:
-            self.__events_2d_hist_buffer.clear()
-        if self.__centroids_2d_hist_mean_buffer is not None:
-            self.__centroids_2d_hist_mean_buffer.clear()
-        if self.__centroids_2d_hist_max_buffer is not None:
-            self.__centroids_2d_hist_max_buffer.clear()
+        self.__reset_tof_buffers()
 
     def tot_range_changed(self):
-        if self.__events_hist_tot_buffer is not None:
-            self.__events_hist_tot_buffer.clear()
-        self.__events_hist_tot_x = None
-        if self.__events_2d_hist_buffer is not None:
-            self.__events_2d_hist_buffer.clear()
-
-        if self.__centroids_hist_mean_tot_buffer is not None:
-            self.__centroids_hist_mean_tot_buffer.clear()
-        self.__centroids_hist_mean_tot_x = None
-        if self.__centroids_hist_max_tot_buffer is not None:
-            self.__centroids_hist_max_tot_buffer.clear()
-        self.__centroids_hist_max_tot_x = None
-        if self.__centroids_2d_hist_mean_buffer is not None:
-            self.__centroids_2d_hist_mean_buffer.clear()
-        if self.__centroids_2d_hist_max_buffer is not None:
-            self.__centroids_2d_hist_max_buffer.clear()
+        self.__reset_tot_buffers()
 
     def __update_bins_tot(self, tot_min, tot_max):
         self.__tot_bins = range(tot_min, tot_max + 25, 25)
@@ -159,43 +168,24 @@ class TimepixSetupPlotsPanel(QtGui.QDockWidget, Ui_DockWidget):
         self.__tof_bins = np.linspace(tof_min, tof_max, 50)
 
     def __update_events(self, tof, tot):
-        # ToT histogram
-        y, x = np.histogram(tot, self.__tot_bins)
-        if self.__events_hist_tot_x is None:
-            self.__events_hist_tot_x = x
-        self.__events_hist_tot_buffer.append(y)
-        self._event_data_tot_plt.setData(x=x, y=sum(self.__events_hist_tot_buffer), stepMode='center', fillLevel=0, brush=(0, 0, 255, 150))
-
+        self._event_data_tot_histogram.refresh(tot, self.__tot_bins)
         self.__plot_2d_histogram(tot, tof, (self.__tot_bins, self.__tof_bins), self.__events_2d_hist_buffer, self.plt_event_data_2d_histogram_tof_tot)
 
     def __update_centroids(self, tof, tot_mean, tot_max, cluster_size):
         # ToT (mean) histogram
-        y, x = np.histogram(tot_mean, self.__tot_bins)
-        if self.__centroids_hist_mean_tot_x is None:
-            self.__centroids_hist_mean_tot_x = x
-        self.__centroids_hist_mean_tot_buffer.append(y)
-        self._centroided_data_mean_tot_plt.setData(x=x, y=sum(self.__centroids_hist_mean_tot_buffer), stepMode='center', fillLevel=0, brush=(0, 0, 255, 150))
-
+        self._centroided_data_mean_tot_histogram.refresh(tot_mean, self.__tot_bins)
 
         # ToF-ToT (mean) correlation
         self.__plot_2d_histogram(tot_mean, tof, (self.__tot_bins, self.__tof_bins), self.__centroids_2d_hist_mean_buffer, self.plt_centroided_data_2d_histogram_tof_mean_tot)
 
         # ToT (max) histogram
-        y, x = np.histogram(tot_max, self.__tot_bins)
-        if self.__centroids_hist_max_tot_x is None:
-            self.__centroids_hist_max_tot_x = x
-        self.__centroids_hist_max_tot_buffer.append(y)
-        self._centroided_data_max_tot_plt.setData(x=x, y=sum(self.__centroids_hist_max_tot_buffer), stepMode='center', fillLevel=0, brush=(0, 0, 255, 150))
+        self._centroided_data_max_tot_histogram.refresh(tot_max, self.__tot_bins)
 
         # ToF-ToT (max) correlation
         self.__plot_2d_histogram(tot_max, tof, (self.__tot_bins, self.__tof_bins), self.__centroids_2d_hist_max_buffer, self.plt_centroided_data_2d_histogram_tof_max_tot)
 
         # Cluster size histogram
-        y, x = np.histogram(cluster_size, np.linspace(0, 400, 100, dtype=np.float))
-        if self.__centroids_hist_cluster_size_x is None:
-            self.__centroids_hist_cluster_size_x = x
-        self.__centroids_hist_cluster_size_buffer.append(y)
-        self._centroided_data_cluster_size_data.setData(x=x, y=sum(self.__centroids_hist_cluster_size_buffer), stepMode='center', fillLevel=0, brush=(0, 0, 255, 150))
+        self._centroided_data_cluster_size_histogram.refresh(cluster_size, CLUSTER_SIZE_BINS)
 
     def __plot_2d_histogram(self, data_x, data_y, bins, buffer, plt):
         image, _, _ = np.histogram2d(data_x, data_y * 1e6, bins=bins)
@@ -203,11 +193,11 @@ class TimepixSetupPlotsPanel(QtGui.QDockWidget, Ui_DockWidget):
 
         img = sum(buffer)
 
-        x0, x1 = (0, max(bins[0]))
-        y0, y1 = (0, max(bins[1]))
+        x0, x1 = (bins[0][0], bins[0][-1])
+        y0, y1 = (bins[1][0], bins[1][-1])
         xscale = (x1-x0) / img.shape[0]
         yscale = (y1-y0) / img.shape[1]
-        plt.setImage(img, scale=[xscale, yscale], autoRange=False, autoLevels=False, autoHistogramRange=False)
+        plt.setImage(img / img.max(), scale=[xscale, yscale], pos=[x0, y0], autoRange=False, autoLevels=False, autoHistogramRange=False)
 
     def on_event(self, events):
         self.__update_events(events[3], events[4])
