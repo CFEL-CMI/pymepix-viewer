@@ -1,4 +1,5 @@
 from collections import deque
+import math
 
 import pyqtgraph as pg
 import numpy as np
@@ -6,7 +7,7 @@ from scipy.optimize import curve_fit
 
 class TimepixSetupHistogram():
 
-    def __init__(self, plt, label_left, label_bottom, units):
+    def __init__(self, plt, label_left, label_bottom, units=None):
         self.plt = plt
         self.plot_data_item = self.__setup_hist_ui(label_left, label_bottom, units)
         self.snapshot_plot_data_item = self.__add_plot_data_item(fillLevel=0, brush=(255, 0, 0, 75))
@@ -72,7 +73,7 @@ class TimepixSetupHistogram():
         y, x = np.histogram(tot, tot_bins)
         self.buffer.append(y)
         y = sum(self.buffer)
-        self.plot_data_item.setData(x, y, stepMode='center')
+        self.plot_data_item.setData(x, y , stepMode='center')
 
         index = y.argmax()
         y_max = y.max()
@@ -86,12 +87,29 @@ class TimepixSetupHistogram():
         A, mu, fwhm = popt
         self.legend.getLabel(self.plot_data_item).setText(f'Data ({len(self.buffer)} packets)')
         self.legend_label_fwhm.setText(f'FWHM: {fwhm:.2f}')
-        self.legend_label_mean.setText(f'mean: {np.mean(y) / len(self.buffer):.2f}')
-        self.legend_label_standard_deviation.setText(f'std.: {np.std(y) / len(self.buffer):.2f}')
-        self.legend_label_rms.setText(f'RMS: {np.sqrt(np.mean(np.square(y))) / len(self.buffer):.2f}')
+        self.legend_label_mean.setText(f'mean: {TimepixSetupHistogram.approx_mean(x[:-1], y):.2f}')
+        self.legend_label_standard_deviation.setText(f'std.: {TimepixSetupHistogram.approx_std(x[:-1], y):.2f}')
+        self.legend_label_rms.setText(f'RMS: {TimepixSetupHistogram.approx_rms(x[:-1], y):.2f}')
         self.plot_curve_item.setData(x, TimepixSetupHistogram.__gauss_fwhm(x, *popt))
 
     @staticmethod
     def __gauss_fwhm(x, *p):
         A, mu, fwhm = p
         return A * np.exp(-((x - mu) ** 2) / (2.0 * (fwhm ** 2) / (4 * 2 * np.log(2))))
+
+    @staticmethod
+    def approx_mean(x, y):
+        return (x * y).sum() / y.sum()
+
+    @staticmethod
+    def approx_std(x, y):
+        """ Calculation of the approximated standard deviation of the histogram according to: https://math.stackexchange.com/a/857576"""
+        mean = TimepixSetupHistogram.approx_mean(x, y)
+        size = y.sum()
+
+        return math.sqrt((((x - mean)**2 * y) / size).sum())
+    
+    @staticmethod
+    def approx_rms(x, y):
+        """ Calculation of the approximated RMS of the histogram according to: https://de.mathworks.com/matlabcentral/answers/377179-root-mean-square-value-of-histogram"""
+        return np.sqrt(np.sum(np.square(x) * y) / y.sum())

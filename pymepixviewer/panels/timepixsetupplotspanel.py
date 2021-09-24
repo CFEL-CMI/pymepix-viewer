@@ -53,13 +53,13 @@ class TimepixSetupPlotsPanel(QtGui.QDockWidget, Ui_DockWidget):
         result = super().setupUi(dock_widget)
 
         # Event Data Plots Preparation
-        self._event_data_tot_histogram = TimepixSetupHistogram(self.plt_event_data_histogram_tot, 'Count', 'ToT', 'ns')
+        self._event_data_tot_histogram = TimepixSetupHistogram(self.plt_event_data_histogram_tot, 'Count', 'ToT (ns)')
         self.plt_event_data_2d_histogram_tof_tot = self.__setup_2d_hist_ui("plt_event_data_2d_histogram_tof_tot", (2, 0), 'ToT', 'ToF')
 
         # Centroided Data Plots Preparation
-        self._centroided_data_mean_tot_histogram = TimepixSetupHistogram(self.plt_centroided_data_histogram_mean_tot, 'Count', 'Mean ToT', 'ns')
+        self._centroided_data_mean_tot_histogram = TimepixSetupHistogram(self.plt_centroided_data_histogram_mean_tot, 'Count', 'Mean ToT (ns)')
         
-        self._centroided_data_max_tot_histogram = TimepixSetupHistogram(self.plt_centroided_data_histogram_max_tot, 'Count', 'Max ToT', 'ns')
+        self._centroided_data_max_tot_histogram = TimepixSetupHistogram(self.plt_centroided_data_histogram_max_tot, 'Count', 'Max ToT (ns)')
 
         self.plt_centroided_data_2d_histogram_tof_mean_tot = self.__setup_2d_hist_ui("plt_centroided_data_2d_histogram_tof_mean_tot", (2, 1), 'Mean ToT', 'ToF')
 
@@ -167,18 +167,18 @@ class TimepixSetupPlotsPanel(QtGui.QDockWidget, Ui_DockWidget):
         self.__tof_bins = np.linspace(tof_min, tof_max, 50)
 
     def __update_events(self, tof, tot):
-        self._event_data_tot_histogram.refresh(tot, self.__tot_bins)
+        self._event_data_tot_histogram.refresh(tot, np.array(self.__tot_bins))
         self.__plot_2d_histogram(tot, tof, (self.__tot_bins, self.__tof_bins), self.__events_2d_hist_buffer, self.plt_event_data_2d_histogram_tof_tot)
 
     def __update_centroids(self, tof, tot_mean, tot_max, cluster_size):
         # ToT (mean) histogram
-        self._centroided_data_mean_tot_histogram.refresh(tot_mean, self.__tot_bins)
+        self._centroided_data_mean_tot_histogram.refresh(tot_mean, np.array(self.__tot_bins))
 
         # ToF-ToT (mean) correlation
         self.__plot_2d_histogram(tot_mean, tof, (self.__tot_bins, self.__tof_bins), self.__centroids_2d_hist_mean_buffer, self.plt_centroided_data_2d_histogram_tof_mean_tot)
 
         # ToT (max) histogram
-        self._centroided_data_max_tot_histogram.refresh(tot_max, self.__tot_bins)
+        self._centroided_data_max_tot_histogram.refresh(tot_max, np.array(self.__tot_bins))
 
         # ToF-ToT (max) correlation
         self.__plot_2d_histogram(tot_max, tof, (self.__tot_bins, self.__tof_bins), self.__centroids_2d_hist_max_buffer, self.plt_centroided_data_2d_histogram_tof_max_tot)
@@ -196,7 +196,7 @@ class TimepixSetupPlotsPanel(QtGui.QDockWidget, Ui_DockWidget):
         y0, y1 = (bins[1][0], bins[1][-1])
         xscale = (x1-x0) / img.shape[0]
         yscale = (y1-y0) / img.shape[1]
-        plt.setImage(img / img.max(), scale=[xscale, yscale], pos=[x0, y0], autoRange=False, autoLevels=False, autoHistogramRange=False)
+        plt.setImage(img / img.max(), scale=[xscale, yscale / 1000], pos=[x0, y0 / 1000], autoRange=False, autoLevels=False, autoHistogramRange=False)
 
     def on_event(self, events):
         self.__update_events(events[3], events[4])
