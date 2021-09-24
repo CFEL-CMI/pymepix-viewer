@@ -55,10 +55,6 @@ class TimepixSetupHistogram():
 
     def snapshot(self, tot_bins):
         y, x = np.histogram([], tot_bins)
-        # TODO: Fix this to be transparent and change the color to something other than blue
-        # TODO: Display in addition: number of entries, mean of distribution, for 2d hist (mean and RMS) in x and y, 
-        # TODO: Rename the snapshot button to reference
-        # TODO: add curves to legend
         self.snapshot_plot_data_item.setData(x, sum(self.buffer), stepMode='center', fillLevel=0, brush=(255, 0, 0, 75))
         
 
