@@ -124,7 +124,6 @@ class TimepixSetupPlotsPanel(QtGui.QDockWidget, Ui_DockWidget):
         if self.__centroids_2d_hist_max_buffer is not None:
             self.__centroids_2d_hist_max_buffer.clear()
 
-    # TODO: Snapshot button for reference that is added as a curve in addition (possibly also saved)
     def __snapshot(self):
         self._event_data_tot_histogram.snapshot(self.__tot_bins)
         self._centroided_data_max_tot_histogram.snapshot(self.__tot_bins)
