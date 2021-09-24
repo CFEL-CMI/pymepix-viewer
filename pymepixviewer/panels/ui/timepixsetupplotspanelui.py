@@ -181,6 +181,6 @@ class Ui_DockWidget(object):
         self.pushButtonReset.setToolTip(_translate("DockWidget", "<html><head/><body><p>Reset the current buffer. All frames currently in the buffer will be disregarded. <span style=\" font-weight:600;\">Use this only if Number Packets is 0.</span></p></body></html>"))
         self.pushButtonReset.setText(_translate("DockWidget", "Reset Buffer"))
         self.pushButtonSnapshot.setToolTip(_translate("DockWidget", "<html><head/><body><p>Take a &quot;snapshot&quot; of the current data as a underlay to gathered data.</p></body></html>"))
-        self.pushButtonSnapshot.setText(_translate("DockWidget", "Snapshot"))
+        self.pushButtonSnapshot.setText(_translate("DockWidget", "Take Reference"))
 
 from pyqtgraph import ImageView, PlotWidget

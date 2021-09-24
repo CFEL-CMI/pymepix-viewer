@@ -251,7 +251,7 @@
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Take a &amp;quot;snapshot&amp;quot; of the current data as a underlay to gathered data.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
-             <string>Snapshot</string>
+             <string>Take Reference</string>
             </property>
            </widget>
           </item>
