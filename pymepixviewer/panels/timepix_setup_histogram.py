@@ -37,7 +37,6 @@ class TimepixSetupHistogram():
         style = pg.PlotDataItem(pen='k')
         legend.addItem(style, '')
         self.legend_label_fwhm = legend.getLabel(style)
-        # legend_label_fwhm.setText('Something else')
         style = pg.PlotDataItem(pen='k')
         legend.addItem(style, '')
         self.legend_label_standard_deviation = legend.getLabel(style)
