@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file './pymepix-viewer/pymepixviewer/ui/main.ui'
+# Form implementation generated from reading ui file 'pymepix-viewer/pymepixviewer/ui/main.ui'
 #
 # Created by: PyQt5 UI code generator 5.11.3
 #
@@ -32,10 +32,13 @@ class Ui_MainWindow(object):
         self.actionLaunchPostProcessing.setObjectName("actionLaunchPostProcessing")
         self.actionTimepixSetupPlotsPanel = QtWidgets.QAction(MainWindow)
         self.actionTimepixSetupPlotsPanel.setObjectName("actionTimepixSetupPlotsPanel")
+        self.editPixelMask = QtWidgets.QAction(MainWindow)
+        self.editPixelMask.setObjectName("editPixelMask")
         self.menuLoad_Setting.addAction(self.actionSophy_spx)
         self.menuFile.addAction(self.menuLoad_Setting.menuAction())
         self.menuFile.addAction(self.actionLaunchPostProcessing)
         self.menuFile.addAction(self.actionTimepixSetupPlotsPanel)
+        self.menuFile.addAction(self.editPixelMask)
         self.menubar.addAction(self.menuFile.menuAction())
 
         self.retranslateUi(MainWindow)
@@ -49,4 +52,5 @@ class Ui_MainWindow(object):
         self.actionSophy_spx.setText(_translate("MainWindow", "SoPhy file"))
         self.actionLaunchPostProcessing.setText(_translate("MainWindow", "Launch Post Processing"))
         self.actionTimepixSetupPlotsPanel.setText(_translate("MainWindow", "TimePix Setup Optimization"))
+        self.editPixelMask.setText(_translate("MainWindow", "Edit Pixel Mask"))
 
