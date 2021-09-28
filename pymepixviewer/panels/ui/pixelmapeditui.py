@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file './pymepix-viewer/pymepixviewer/panels/ui/pixelmapedit.ui'
+# Form implementation generated from reading ui file 'pymepix-viewer/pymepixviewer/panels/ui/pixelmapedit.ui'
 #
 # Created by: PyQt5 UI code generator 5.11.3
 #
@@ -16,9 +16,6 @@ class Ui_DockWidget(object):
         self.dockWidgetContents.setObjectName("dockWidgetContents")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.dockWidgetContents)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.graphicsViewPixelMap = ImageView(self.dockWidgetContents)
-        self.graphicsViewPixelMap.setObjectName("graphicsViewPixelMap")
-        self.verticalLayout.addWidget(self.graphicsViewPixelMap)
         DockWidget.setWidget(self.dockWidgetContents)
 
         self.retranslateUi(DockWidget)
@@ -28,4 +25,3 @@ class Ui_DockWidget(object):
         _translate = QtCore.QCoreApplication.translate
         DockWidget.setWindowTitle(_translate("DockWidget", "DockWidget"))
 
-from pyqtgraph import ImageView

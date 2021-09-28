@@ -14,20 +14,9 @@
    <string>DockWidget</string>
   </property>
   <widget class="QWidget" name="dockWidgetContents">
-   <layout class="QVBoxLayout" name="verticalLayout">
-    <item>
-     <widget class="ImageView" name="graphicsViewPixelMap"/>
-    </item>
-   </layout>
+   <layout class="QVBoxLayout" name="verticalLayout"/>
   </widget>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>ImageView</class>
-   <extends>QGraphicsView</extends>
-   <header location="global">pyqtgraph</header>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>
