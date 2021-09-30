@@ -77,7 +77,7 @@ class TimepixSetupHistogram():
 
         index = y.argmax()
         y_max = y.max()
-        while y[index] > y_max / 2:
+        while index < len(y) and y[index] > y_max / 2:
             index += 1
 
         sigma_0 = (x[index] - x[y.argmax()]) * 2
