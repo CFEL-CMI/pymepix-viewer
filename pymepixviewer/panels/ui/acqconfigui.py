@@ -1,19 +1,17 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'acqconfig.ui'
+# Form implementation generated from reading ui file './pymepix-viewer/pymepixviewer/panels/ui/acqconfig.ui'
 #
-# Created by: PyQt5 UI code generator 5.12.3
+# Created by: PyQt5 UI code generator 5.11.3
 #
 # WARNING! All changes made in this file will be lost!
 
-
 from PyQt5 import QtCore, QtGui, QtWidgets
-
 
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
-        Form.resize(288, 691)
+        Form.resize(334, 308)
         self.verticalLayout_3 = QtWidgets.QVBoxLayout(Form)
         self.verticalLayout_3.setObjectName("verticalLayout_3")
         self.verticalLayout_4 = QtWidgets.QVBoxLayout()
@@ -89,65 +87,10 @@ class Ui_Form(object):
         self.label_14.setSizePolicy(sizePolicy)
         self.label_14.setObjectName("label_14")
         self.horizontalLayout_12.addWidget(self.label_14)
-        self.startindex = QtWidgets.QSpinBox(self.groupBox_3)
-        self.startindex.setEnabled(False)
-        self.startindex.setMaximum(99999)
-        self.startindex.setObjectName("startindex")
-        self.horizontalLayout_12.addWidget(self.startindex)
+        self.startIndex = QtWidgets.QLCDNumber(self.groupBox_3)
+        self.startIndex.setObjectName("startIndex")
+        self.horizontalLayout_12.addWidget(self.startIndex)
         self.verticalLayout_2.addLayout(self.horizontalLayout_12)
-        self.horizontalLayout = QtWidgets.QHBoxLayout()
-        self.horizontalLayout.setObjectName("horizontalLayout")
-        self.label_5 = QtWidgets.QLabel(self.groupBox_3)
-        self.label_5.setObjectName("label_5")
-        self.horizontalLayout.addWidget(self.label_5)
-        self.write_raw = QtWidgets.QCheckBox(self.groupBox_3)
-        self.write_raw.setChecked(True)
-        self.write_raw.setObjectName("write_raw")
-        self.horizontalLayout.addWidget(self.write_raw)
-        self.write_pixels = QtWidgets.QCheckBox(self.groupBox_3)
-        self.write_pixels.setObjectName("write_pixels")
-        self.horizontalLayout.addWidget(self.write_pixels)
-        self.write_tof = QtWidgets.QCheckBox(self.groupBox_3)
-        self.write_tof.setObjectName("write_tof")
-        self.horizontalLayout.addWidget(self.write_tof)
-        self.write_blob = QtWidgets.QCheckBox(self.groupBox_3)
-        self.write_blob.setChecked(False)
-        self.write_blob.setObjectName("write_blob")
-        self.horizontalLayout.addWidget(self.write_blob)
-        self.verticalLayout_2.addLayout(self.horizontalLayout)
-        self.horizontalLayout_6 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_6.setObjectName("horizontalLayout_6")
-        self.label_8 = QtWidgets.QLabel(self.groupBox_3)
-        self.label_8.setObjectName("label_8")
-        self.horizontalLayout_6.addWidget(self.label_8)
-        self.acq_time = QtWidgets.QLineEdit(self.groupBox_3)
-        self.acq_time.setEnabled(False)
-        self.acq_time.setObjectName("acq_time")
-        self.horizontalLayout_6.addWidget(self.acq_time)
-        self.label_9 = QtWidgets.QLabel(self.groupBox_3)
-        self.label_9.setObjectName("label_9")
-        self.horizontalLayout_6.addWidget(self.label_9)
-        self.verticalLayout_2.addLayout(self.horizontalLayout_6)
-        self.horizontalLayout_11 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_11.setObjectName("horizontalLayout_11")
-        self.label_13 = QtWidgets.QLabel(self.groupBox_3)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred
-        )
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label_13.sizePolicy().hasHeightForWidth())
-        self.label_13.setSizePolicy(sizePolicy)
-        self.label_13.setObjectName("label_13")
-        self.horizontalLayout_11.addWidget(self.label_13)
-        self.repeat_value = QtWidgets.QSpinBox(self.groupBox_3)
-        self.repeat_value.setEnabled(False)
-        self.repeat_value.setMinimum(1)
-        self.repeat_value.setMaximum(99999)
-        self.repeat_value.setProperty("value", 1)
-        self.repeat_value.setObjectName("repeat_value")
-        self.horizontalLayout_11.addWidget(self.repeat_value)
-        self.verticalLayout_2.addLayout(self.horizontalLayout_11)
         self.verticalLayout_4.addWidget(self.groupBox_3)
         self.verticalLayout_3.addLayout(self.verticalLayout_4)
         spacerItem = QtWidgets.QSpacerItem(
@@ -172,15 +115,7 @@ class Ui_Form(object):
         )
         self.openpath.setText(_translate("Form", "Open"))
         self.label_7.setText(_translate("Form", "Prefix:"))
-        self.file_prefix.setToolTip(_translate("Form", 'prefix must not contain "_"'))
-        self.file_prefix.setText(_translate("Form", "ion"))
+        self.file_prefix.setToolTip(_translate("Form", "prefix must not contain \"_\""))
+        self.file_prefix.setText(_translate("Form", "test"))
         self.label_14.setText(_translate("Form", "Index"))
-        self.label_5.setText(_translate("Form", "Storage:"))
-        self.write_raw.setText(_translate("Form", "Raw"))
-        self.write_pixels.setText(_translate("Form", "Pixels"))
-        self.write_tof.setText(_translate("Form", "TOF"))
-        self.write_blob.setText(_translate("Form", "Blob"))
-        self.label_8.setText(_translate("Form", "Acquisition Time:"))
-        self.acq_time.setText(_translate("Form", "10"))
-        self.label_9.setText(_translate("Form", "s"))
-        self.label_13.setText(_translate("Form", "No of Files"))
+

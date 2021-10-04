@@ -40,20 +40,18 @@ class AcquisitionConfig(QtGui.QWidget, Ui_Form):
         self.setupUi(self)
 
         self._current_mode = ViewerMode.TOA
-        self.setupLines()
         self.connectSignals()
-
-    def setupLines(self):
-        self.acq_time.setValidator(QtGui.QDoubleValidator(self))
 
     def connectSignals(self):
         self.openpath.clicked.connect(self.openPath)
         self.bias_voltage.valueChanged[int].connect(self.biasVoltageChange.emit)
 
     def openPath(self):
-        directory = QtGui.QFileDialog.getExistingDirectory(self, "Open Directory",
-                                                           "/home",
-                                                           QtGui.QFileDialog.ShowDirsOnly
-                                                           | QtGui.QFileDialog.DontResolveSymlinks)
+        directory = QtGui.QFileDialog.getExistingDirectory(
+            self,
+            "Open Directory",
+            self.path_name.text(),
+            QtGui.QFileDialog.ShowDirsOnly | QtGui.QFileDialog.DontResolveSymlinks,
+        )
 
         self.path_name.setText(directory)

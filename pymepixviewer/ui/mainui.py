@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'pymepixviewer/ui/main.ui'
+# Form implementation generated from reading ui file './pymepix-viewer/pymepixviewer/ui/main.ui'
 #
-# Created by: PyQt5 UI code generator 5.9.2
+# Created by: PyQt5 UI code generator 5.11.3
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt5 import QtCore, QtWidgets
-
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -29,8 +28,14 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
         self.actionSophy_spx = QtWidgets.QAction(MainWindow)
         self.actionSophy_spx.setObjectName("actionSophy_spx")
+        self.actionLaunchPostProcessing = QtWidgets.QAction(MainWindow)
+        self.actionLaunchPostProcessing.setObjectName("actionLaunchPostProcessing")
+        self.actionTimepixSetupPlotsPanel = QtWidgets.QAction(MainWindow)
+        self.actionTimepixSetupPlotsPanel.setObjectName("actionTimepixSetupPlotsPanel")
         self.menuLoad_Setting.addAction(self.actionSophy_spx)
         self.menuFile.addAction(self.menuLoad_Setting.menuAction())
+        self.menuFile.addAction(self.actionLaunchPostProcessing)
+        self.menuFile.addAction(self.actionTimepixSetupPlotsPanel)
         self.menubar.addAction(self.menuFile.menuAction())
 
         self.retranslateUi(MainWindow)
@@ -42,3 +47,6 @@ class Ui_MainWindow(object):
         self.menuFile.setTitle(_translate("MainWindow", "File"))
         self.menuLoad_Setting.setTitle(_translate("MainWindow", "Load Setting"))
         self.actionSophy_spx.setText(_translate("MainWindow", "SoPhy file"))
+        self.actionLaunchPostProcessing.setText(_translate("MainWindow", "Launch Post Processing"))
+        self.actionTimepixSetupPlotsPanel.setText(_translate("MainWindow", "TimePix Setup Optimization"))
+

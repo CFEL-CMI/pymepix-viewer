@@ -126,13 +126,7 @@ class TimeOfFlightPanel(QtGui.QWidget, Ui_Form):
         if self._histo_x is None:
             return
         else:
-            self._tof_data.setData(
-                x=self._histo_x,
-                y=self._histo_y,
-                stepMode=True,
-                fillLevel=0,
-                brush=(0, 0, 255, 150),
-            )
+            self._tof_data.setData(x=self._histo_x, y=self._histo_y, stepMode='center', fillLevel=0, brush=(0, 0, 255, 150))
 
     def onRoiUpdate(self, name, start, end):
         self.roiUpdate.emit(name, start, end)
