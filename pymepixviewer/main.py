@@ -20,6 +20,7 @@
 #
 ##############################################################################
 
+import glob
 import logging
 import os
 import time
@@ -402,25 +403,25 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
             self._last_update = time.time()
 
     def start_recording(self):
-        path = self._config_panel.acqtab.path_name.text()
-        if len(path) == 0:
-            path = "./"  # for raw2disk to recognise it as a filename
-        fName = f"{self._config_panel.acqtab.file_prefix.text()}"
-        self._fileName = os.path.join(path, fName)
+        directory = self._config_panel.acqtab.path_name.text()
+        if len(directory) == 0:
+            directory = "./"  # for raw2disk to recognise it as a filename
+        path = os.path.join(directory, self._config_panel.acqtab.file_prefix.text())
+
+        files = np.sort(glob.glob(f"{path}*.raw"))
+        if len(files) > 0:
+            index = int(files[-1].split("_")[-2]) + 1
+        else:
+            index = 0
+        
+        path = f'{path}_{index:04d}_{time.strftime("%Y%m%d-%H%M")}.raw'
+        self._config_panel.acqtab.startIndex.display(index)
 
         self._timepix._spidr.resetTimers()
         self._timepix._spidr.restartTimers()
         time.sleep(1)  # give camera time to reset timers
 
-        pipeline = self._timepix._timepix_devices[0]._acquisition_pipeline._stages[0]
-        pipeline._pipeline_objects[0].record = True
-        pipeline.udp_sock.send_string(self._fileName)
-        res = pipeline.udp_sock.recv_string()
-        if res == "OPENED":
-            self._fileName = pipeline.udp_sock.recv_string()
-            logger.debug(f"Recording for {self._fileName} started")
-        else:
-            logger.warning(f"did not open {res}")
+        self._timepix._timepix_devices[0].start_recording(path)
 
         # setup GUI
         self._config_panel.start_acq.setStyleSheet("QPushButton {color: red;}")
@@ -431,14 +432,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         self._config_panel._elapsed_time.restart()
 
     def stop_recording(self):
-        pipeline = self._timepix._timepix_devices[0]._acquisition_pipeline._stages[0]
-        pipeline._pipeline_objects[0].record = False
-        pipeline._pipeline_objects[0].close_file = True
-        res = pipeline.udp_sock.recv_string()
-        if res == "CLOSED":
-            logger.info(f"file {self._fileName} closed")
-        else:
-            logger.warning(f"problem, {res}")
+        self._timepix._timepix_devices[0].stop_recording()
 
         # update GUI
         self._config_panel.start_acq.setStyleSheet("QPushButton {color: black;}")
