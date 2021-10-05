@@ -31,6 +31,7 @@ logger = logging.getLogger(__name__)
 
 
 class AcquisitionConfig(QtGui.QWidget, Ui_Form):
+    
     biasVoltageChange = QtCore.pyqtSignal(int)
 
     def __init__(self, parent=None):

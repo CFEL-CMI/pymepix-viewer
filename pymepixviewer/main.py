@@ -32,6 +32,7 @@ from PyQt5 import QtCore, QtGui
 
 import pymepix
 from pymepix.processing import MessageType
+from pymepix.processing.acquisition import CentroidPipeline
 from pymepixviewer.core.datatypes import ViewerMode
 from pymepixviewer.dialogs.postprocessing import PostProcessing
 from pymepixviewer.panels.blobview import BlobView
@@ -145,8 +146,9 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
     def startupTimepix(self):
 
-        self._timepix = pymepix.PymepixConnection(("192.168.1.10", 50000))
-        # self._timepix = pymepix.PymepixConnection(("127.0.0.1", 50000))
+        self._timepix = pymepix.PymepixConnection(("192.168.1.10", 50000), pipeline_class=CentroidPipeline)
+        # self._timepix = pymepix.PymepixConnection(("127.0.0.1", 50000), pipeline_class=CentroidPipeline)
+        self._timepix.dataCallback = self.onData
 
         if len(self._timepix) == 0:
             logger.error("NO TIMEPIX DEVICES DETECTED")
@@ -154,20 +156,12 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
         logging.getLogger("pymepix").setLevel(logging.INFO)
 
-        self._timepix[0].setupAcquisition(pymepix.processing.CentroidPipeline)
-
         # Initialize gui with current configuration of centroiding pipeline
         self._config_panel.proctab.epsilon.setValue(self.__get_centroid_calculator().epsilon)
         self._config_panel.proctab.min_samples.setValue(self.__get_centroid_calculator().min_samples)
         self._config_panel.proctab.tot_threshold.setValue(self.__get_centroid_calculator().tot_threshold)
         self._config_panel.proctab.number_processes.setText(str(self._timepix[0].acquisition.numBlobProcesses))
         self._config_panel.proctab.init_event_window(self.__get_packet_processor().event_window)
-
-        # self._timepix.
-        self._timepix.dataCallback = self.onData
-        self._timepix[0].pixelThreshold = np.zeros(shape=(256, 256), dtype=np.uint8)
-        self._timepix[0].pixelMask = np.zeros(shape=(256, 256), dtype=np.uint8)
-        self._timepix[0].uploadPixels()
 
         logger.info(
             "Fine: {} Coarse: {}".format(
