@@ -248,6 +248,8 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         self._config_panel.viewtab.eventCountChange.connect(self.onEventCountUpdate)
         self._config_panel.viewtab.frameTimeChange.connect(self.onFrameTimeUpdate)
         self._config_panel.acqtab.biasVoltageChange.connect(self.onBiasVoltageUpdate)
+        self._config_panel.acqtab.path_name.textChanged.connect(self.updateFileIndex)
+        self._config_panel.acqtab.file_prefix.textChanged.connect(self.updateFileIndex)
 
         self._config_panel.acqtab.fine_threshold.editingFinished.connect(
             lambda: self.setFineThreshold(self._config_panel.acqtab.fine_threshold.value())
@@ -403,16 +405,8 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
             self._last_update = time.time()
 
     def start_recording(self):
-        directory = self._config_panel.acqtab.path_name.text()
-        if len(directory) == 0:
-            directory = "./"  # for raw2disk to recognise it as a filename
-        path = os.path.join(directory, self._config_panel.acqtab.file_prefix.text())
-
-        files = np.sort(glob.glob(f"{path}*.raw"))
-        if len(files) > 0:
-            index = int(files[-1].split("_")[-2]) + 1
-        else:
-            index = 0
+        path = self.__determine_current_path()
+        index = self.__determine_current_file_index(path)
         
         path = f'{path}_{index:04d}_{time.strftime("%Y%m%d-%H%M")}.raw'
         self._config_panel.acqtab.startIndex.display(index)
@@ -440,6 +434,25 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         self._config_panel.end_acq.setEnabled(False)
         self._config_panel.start_acq.setText("Start Recording")
         self._config_panel._in_acq = False
+
+    @staticmethod
+    def __determine_current_file_index(path):
+        files = np.sort(glob.glob(f"{path}*.raw"))
+        if len(files) > 0:
+            index = int(files[-1].split("_")[-2]) + 1
+        else:
+            index = 0
+        return index
+
+    def __determine_current_path(self):
+        directory = self._config_panel.acqtab.path_name.text()
+        if len(directory) == 0:
+            directory = "./"  # for raw2disk to recognise it as a filename
+        return os.path.join(directory, self._config_panel.acqtab.file_prefix.text())
+
+    def updateFileIndex(self): 
+        index = self.__determine_current_file_index(self.__determine_current_path())
+        self._config_panel.acqtab.startIndex.display(index)
 
     def addViewWidget(self, name, start, end):
         if name in self._view_widgets:
