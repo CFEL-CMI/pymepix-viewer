@@ -441,17 +441,6 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         self._config_panel.start_acq.setText("Start Recording")
         self._config_panel._in_acq = False
 
-    # def start_recording(self,pathname,prefixname,do_raw,do_blob,exposure,startindex):
-    #     self._timepix.filePath=pathname
-    #     self._timepix.filePrefix = prefixname
-    #     self._timepix.eventWindowTime = exposure
-
-    #     logger.debug('Do raw',do_raw,'Do_blob',do_blob)
-    #     self._timepix.beginFileWrite(write_raw=do_raw,write_blob=do_blob,start_index=startindex)
-
-    # def stop_recording(self):
-    #     self._timepix.stopFileWrite()
-
     def addViewWidget(self, name, start, end):
         if name in self._view_widgets:
             QtGui.QMessageBox.warning(
