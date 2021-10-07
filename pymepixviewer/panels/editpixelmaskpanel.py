@@ -6,8 +6,8 @@ from pyqtgraph.graphicsItems.ImageItem import ImageItem
 
 from .ui.pixelmapeditui import Ui_DockWidget
 
-class EditPixelMaskPanel(QtGui.QDockWidget, Ui_DockWidget):
 
+class EditPixelMaskPanel(QtGui.QDockWidget, Ui_DockWidget):
     def __init__(self, sophy_config, parent=None):
         super(EditPixelMaskPanel, self).__init__(parent)
 
@@ -24,35 +24,36 @@ class EditPixelMaskPanel(QtGui.QDockWidget, Ui_DockWidget):
 
         self.__is_saved = True
 
-
     def setup_image(self, histogram_data):
         image = pg.ImageView(view=pg.PlotItem())
         self.verticalLayout.addWidget(image)
-        
+
         image.setPredefinedGradient("thermal")
-        image.getView().setLabel('bottom', text="x")
-        image.getView().setLabel('left', text="y")
+        image.getView().setLabel("bottom", text="x")
+        image.getView().setLabel("left", text="y")
         # image.getView().invertY(False)
         image.getView().setAspectLocked(False)
 
         image.getImageItem().mouseClickEvent = self.__image_clicked
 
-        image.setImage(histogram_data, autoRange=False, autoLevels=False, autoHistogramRange=False)
-        
+        image.setImage(
+            histogram_data, autoRange=False, autoLevels=False, autoHistogramRange=False
+        )
+
         return image
 
     def setup_pixel_mask(self, image, mask):
 
         image_item = ImageItem()
-        lookup_table = pg.ColorMap([0, 1],np.array([[0, 0, 0, 0], 
-            [0, 0, 255, 255]])).getLookupTable(alpha=True)
+        lookup_table = pg.ColorMap(
+            [0, 1], np.array([[0, 0, 0, 0], [0, 0, 255, 255]])
+        ).getLookupTable(alpha=True)
         image_item.setLookupTable(lookup_table)
 
         image.addItem(image_item)
         image_item.setImage(mask)
-        
-        return image_item
 
+        return image_item
 
     def __update_pixel_mask(self, x, y):
         if self.__is_saved:
@@ -63,12 +64,10 @@ class EditPixelMaskPanel(QtGui.QDockWidget, Ui_DockWidget):
             self.__sophy_config.saveMask()
             self.__is_saved = True
 
-
     def __image_clicked(self, event):
-        event.accept()  
+        event.accept()
         pos = event.pos()
-        # print(int(pos.x()),int(pos.y()))
-        self.__update_pixel_mask(int(pos.x()),int(pos.y()))
+        self.__update_pixel_mask(int(pos.x()), int(pos.y()))
 
     def onTofData(self, data):
         counter, x, y, tof, tot = data
@@ -77,8 +76,13 @@ class EditPixelMaskPanel(QtGui.QDockWidget, Ui_DockWidget):
         x, y, toa, tot = data
         histogram_data, _, _ = np.histogram2d(x, y, bins=range(256))
         self.__histogram_data += histogram_data
-        
-        self.image.setImage(self.__histogram_data / self.__histogram_data.max(), autoRange=False, autoLevels=False, autoHistogramRange=False)
+
+        self.image.setImage(
+            self.__histogram_data / self.__histogram_data.max(),
+            autoRange=False,
+            autoLevels=False,
+            autoHistogramRange=False,
+        )
 
     def onCentroidData(self, centroids):
         cluster_shot, cluster_x, cluster_y, cluster_tof, cluster_tot = centroids
