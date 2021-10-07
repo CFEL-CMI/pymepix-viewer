@@ -128,6 +128,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         # Initialize SoPhy configuration manually, because the corresponding signal is connected after initialization of the LineEdit.
         # This will load the selected SoPhy configuration file into the camera
         self.__load_sophy_config(self._config_panel.acqtab.sophy_config.text())
+        self._config_panel.proctab.read_settings()
 
         self.onModeChange(ViewerMode.TOA)
         self._statusUpdate.start()
@@ -163,13 +164,6 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
             quit()
 
         logging.getLogger("pymepix").setLevel(logging.INFO)
-
-        # Initialize gui with current configuration of centroiding pipeline
-        self._config_panel.proctab.epsilon.setValue(self.__get_centroid_calculator().epsilon)
-        self._config_panel.proctab.min_samples.setValue(self.__get_centroid_calculator().min_samples)
-        self._config_panel.proctab.tot_threshold.setValue(self.__get_centroid_calculator().tot_threshold)
-        self._config_panel.proctab.number_processes.setText(str(self._timepix[0].acquisition.numBlobProcesses))
-        self._config_panel.proctab.init_event_window(self.__get_packet_processor().event_window)
 
         logger.info(
             "Fine: {} Coarse: {}".format(
