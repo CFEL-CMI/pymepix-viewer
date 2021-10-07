@@ -20,6 +20,7 @@
 #
 ##############################################################################
 
+from PyQt5.QtCore import QSettings
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui
 
@@ -110,6 +111,18 @@ class RoiItem(BaseItem):
                       '{:4.2e} us'.format(self._end_region * 1E6)]
         self._roi_item.sigRegionChangeFinished.connect(self.onUserUpdateRoi)
 
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def start_connection(self):
+        return self._start_region
+
+    @property
+    def end_region(self):
+        return self._end_region
+
     def onUserUpdateRoi(self):
         self._start_region, self._end_region = self._roi_item.getRegion()
 
@@ -152,6 +165,41 @@ class RoiModel(QtCore.QAbstractItemModel):
         return QtCore.QVariant()
 
     def addRegionofInterest(self, name, start, end):
+        roiItem = self.addRegionofInterestWithoutSettings(name, start, end)
+        if roiItem is not None:
+            rois = self.get_rois_from_settings()
+            rois.append((name, start, end))
+            self.write_rois_to_settings(rois)
+        return roiItem
+
+    def get_rois_from_settings(self):
+        settings = QSettings()
+        rois = []
+        size = settings.beginReadArray("regions_of_interest")
+        for index in range(size):
+            settings.setArrayIndex(index)
+            rois.append(self.get_roi_from_settings(settings))
+        settings.endArray()
+        return rois
+
+    def write_rois_to_settings(self, rois):
+        settings = QSettings()
+        settings.remove("regions_of_interest")
+        settings.beginWriteArray("regions_of_interest")
+        for index, (name, start, end) in enumerate(rois):
+            settings.setArrayIndex(index)
+            settings.setValue("name", name)
+            settings.setValue("start", start)
+            settings.setValue("end", end)
+        settings.endArray()
+
+
+    def get_roi_from_settings(self, settings):
+        return settings.value('name', type=str), settings.value('start', type=float), settings.value('end', type=float)
+
+    def addRegionofInterestWithoutSettings(self, name, start, end):
+        """ Add a new region of interest without changing the settings (QSettings). This method is used for loading 
+        the existing regions of interes on initialization. """
         idx, item = self.searchItem(name)
 
         if item is not None:
@@ -180,7 +228,7 @@ class RoiModel(QtCore.QAbstractItemModel):
             # Show dialog box that item already exists
             QtGui.QMessageBox.warning(None, 'ROI does not exist',
                                       'Roi with name {} does not exist'.format(name),
-                                      QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok);
+                                      QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
             return
 
         self.layoutAboutToBeChanged.emit()
@@ -188,6 +236,10 @@ class RoiModel(QtCore.QAbstractItemModel):
         self.layoutChanged.emit()
         # print('REMOVING:',roi)
         self._old_roi.roiUpdated.disconnect(self.onRoiUpdate)
+
+        rois = self.get_rois_from_settings()
+        del rois[idx]
+        self.write_rois_to_settings(rois)
 
         # rint(self.rootItem)
 
@@ -271,6 +323,20 @@ class RoiModel(QtCore.QAbstractItemModel):
 
     def isEmpty(self):
         return self.rootItem.childCount() == 0
+
+    def load_settings(self):
+        settings = QSettings()
+
+        roi_items = []
+
+        size = settings.beginReadArray("regions_of_interest")
+        for index in range(size):
+            settings.setArrayIndex(index)
+            roi_items.append(self.addRegionofInterestWithoutSettings(*self.get_roi_from_settings(settings)))
+
+        settings.endArray()
+
+        return roi_items
 
 
 def main():

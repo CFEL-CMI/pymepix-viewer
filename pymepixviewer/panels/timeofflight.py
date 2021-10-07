@@ -57,6 +57,9 @@ class TimeOfFlightPanel(QtGui.QWidget, Ui_Form):
 
         self.connectSignals()
 
+        for roi_item in self._roi_model.load_settings():
+            self.tof_view.addItem(roi_item.RoiPlotItem)
+
     def connectSignals(self):
         self.add_roi.clicked.connect(self.onAddRoi)
         self.remove_roi.clicked.connect(self.onRemoveRoi)
