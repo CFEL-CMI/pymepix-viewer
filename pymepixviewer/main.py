@@ -20,20 +20,16 @@
 #
 ##############################################################################
 
-import glob
 import logging
-import os
-import time
 import platform
-
-import numpy as np
-
-# force to load PyQt5 for systems where PyQt4 is still installed
-from PyQt5 import QtCore, QtGui
+import time
 
 import pymepix
 from pymepix.processing import MessageType
 from pymepix.processing.acquisition import CentroidPipeline
+# force to load PyQt5 for systems where PyQt4 is still installed
+from PyQt5 import QtCore, QtGui
+
 from pymepixviewer.core.datatypes import ViewerMode
 from pymepixviewer.dialogs.postprocessing import PostProcessing
 from pymepixviewer.panels.blobview import BlobView
@@ -41,7 +37,6 @@ from pymepixviewer.panels.daqconfig import DaqConfigPanel
 from pymepixviewer.panels.timeofflight import TimeOfFlightPanel
 from pymepixviewer.panels.timepixsetupplotspanel import TimepixSetupPlotsPanel
 from pymepixviewer.ui.mainui import Ui_MainWindow
-from pyqtgraph.Qt import QtCore, QtGui
 
 logger = logging.getLogger(__name__)
 
@@ -138,16 +133,26 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         if self._current_mode is ViewerMode.TOA:
             # self._timepix[0].setupAcquisition(pymepix.processing.PixelPipeline)
             self.__get_packet_processor().handle_events = False
-            logger.info("Switch to TOA mode, {}".format(self.__get_packet_processor().handle_events))
+            logger.info(
+                "Switch to TOA mode, {}".format(
+                    self.__get_packet_processor().handle_events
+                )
+            )
         elif self._current_mode is ViewerMode.TOF:
             # self._timepix[0].setupAcquisition(pymepix.processing.PixelPipeline)
             self.__get_packet_processor().handle_events = True
-            logger.info("Switch to TOF mode, {}".format(self.__get_packet_processor().handle_events))
+            logger.info(
+                "Switch to TOF mode, {}".format(
+                    self.__get_packet_processor().handle_events
+                )
+            )
         elif self._current_mode is ViewerMode.Centroid:
             # self._timepix[0].setupAcquisition(pymepix.processing.CentroidPipeline)
-            self.__get_packet_processor().handle_events  = True
+            self.__get_packet_processor().handle_events = True
             logger.info(
-                "Switch to Centroid mode, {}".format(self.__get_packet_processor().handle_events)
+                "Switch to Centroid mode, {}".format(
+                    self.__get_packet_processor().handle_events
+                )
             )
 
         time.sleep(2.0)
@@ -155,7 +160,9 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
     def startupTimepix(self):
 
-        self._timepix = pymepix.PymepixConnection(("192.168.1.10", 50000), pipeline_class=CentroidPipeline)
+        self._timepix = pymepix.PymepixConnection(
+            ("192.168.1.10", 50000), pipeline_class=CentroidPipeline
+        )
         # self._timepix = pymepix.PymepixConnection(("127.0.0.1", 50000), pipeline_class=CentroidPipeline)
         self._timepix.dataCallback = self.onData
 
@@ -186,8 +193,13 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         self._timepix[0].Vthreshold_coarse = value
 
     def setEventWindow(self, event_window_min, event_window_max):
-        logger.info("Setting Event window {} {}".format(event_window_min, event_window_max))
-        self.__get_packet_processor().event_window = (event_window_min, event_window_max)
+        logger.info(
+            "Setting Event window {} {}".format(event_window_min, event_window_max)
+        )
+        self.__get_packet_processor().event_window = (
+            event_window_min,
+            event_window_max,
+        )
 
     def setTriggersProcessed(self, triggers_processed):
         logger.info("Setting centroid skip {}".format(triggers_processed))
@@ -219,46 +231,68 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
     def startPacketProcessorOutputQueueSizeTimer(self):
         queue_size_update_timer = QtCore.QTimer()
-        queue_size_update_timer.timeout.connect(self.updatePacketProcessorOutputQueueSize)
+        queue_size_update_timer.timeout.connect(
+            self.updatePacketProcessorOutputQueueSize
+        )
         queue_size_update_timer.start(500)
 
     def updatePacketProcessorOutputQueueSize(self):
         queue_size = -1
-        if platform.system() is not 'Darwin': # qsize does not work for MacOS, see: https://docs.python.org/3/library/multiprocessing.html#multiprocessing.Queue.qsize
+        if (
+            platform.system() != "Darwin"
+        ):  # qsize does not work for MacOS, see: https://docs.python.org/3/library/multiprocessing.html#multiprocessing.Queue.qsize
             packet_processor = self._timepix[0].acquisition.getStage(2)
             queue_size = packet_processor.outputQueue.qsize()
         self._config_panel.proctab.queue_size_changed.emit(queue_size)
-        if queue_size > QUEUE_SIZE_WARNING_LIMIT and not self.queue_size_warning_displayed:
+        if (
+            queue_size > QUEUE_SIZE_WARNING_LIMIT
+            and not self.queue_size_warning_displayed
+        ):
             self.show_slow_processing_warning_sig.emit(queue_size)
             self.queue_size_warning_displayed = True
-        elif queue_size < QUEUE_SIZE_WARNING_LIMIT and self.queue_size_warning_displayed:
+        elif (
+            queue_size < QUEUE_SIZE_WARNING_LIMIT and self.queue_size_warning_displayed
+        ):
             self.queue_size_warning_displayed = False
 
     def show_slow_processing_warning(self, queue_size):
         QtGui.QMessageBox.warning(
-            self, "Slow processing - Centroiding lags behind.", 
-            QUEUE_SIZE_WARNING_TEXT.format(QUEUE_SIZE_WARNING_LIMIT, queue_size)
+            self,
+            "Slow processing - Centroiding lags behind.",
+            QUEUE_SIZE_WARNING_TEXT.format(QUEUE_SIZE_WARNING_LIMIT, queue_size),
         )
 
     def connectSignals(self):
         self.actionLaunchPostProcessing.triggered.connect(self.launchPostProcessing)
-        self.actionTimepixSetupPlotsPanel.triggered.connect(self.launchTimepixSetupPlotsPanel)
+        self.actionTimepixSetupPlotsPanel.triggered.connect(
+            self.launchTimepixSetupPlotsPanel
+        )
 
         self._config_panel.viewtab.updateRateChange.connect(self.onDisplayUpdate)
         self._config_panel.viewtab.eventCountChange.connect(self.onEventCountUpdate)
         self._config_panel.viewtab.frameTimeChange.connect(self.onFrameTimeUpdate)
         self._config_panel.acqtab.biasVoltageChange.connect(self.onBiasVoltageUpdate)
-        self._config_panel.acqtab.sophy_config.textChanged.connect(self.__load_sophy_config)
+        self._config_panel.acqtab.sophy_config.textChanged.connect(
+            self.__load_sophy_config
+        )
 
         self._config_panel.acqtab.fine_threshold.editingFinished.connect(
-            lambda: self.setFineThreshold(self._config_panel.acqtab.fine_threshold.value())
+            lambda: self.setFineThreshold(
+                self._config_panel.acqtab.fine_threshold.value()
+            )
         )
         self._config_panel.acqtab.coarse_threshold.editingFinished.connect(
-            lambda: self.setCoarseThreshold(self._config_panel.acqtab.coarse_threshold.value())
+            lambda: self.setCoarseThreshold(
+                self._config_panel.acqtab.coarse_threshold.value()
+            )
         )
 
-        self.fineThresholdUpdate.connect(self._config_panel.acqtab.fine_threshold.setValue)
-        self.coarseThresholdUpdate.connect(self._config_panel.acqtab.coarse_threshold.setValue)
+        self.fineThresholdUpdate.connect(
+            self._config_panel.acqtab.fine_threshold.setValue
+        )
+        self.coarseThresholdUpdate.connect(
+            self._config_panel.acqtab.coarse_threshold.setValue
+        )
         self._config_panel.viewtab.modeChange.connect(self.onModeChange)
         self.displayNow.connect(self._tof_panel.displayTof)
         self.onPixelToF.connect(self._tof_panel.onEvent)
@@ -280,10 +314,16 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
         self._config_panel.viewtab.resetPlots.connect(self.clearNow.emit)
         self._config_panel.proctab.eventWindowChanged.connect(self.setEventWindow)
-        
-        self._config_panel.proctab.numberProcessesChanged.connect(self.setNumberProcesses)
-        self._config_panel.proctab.triggersProcessedChanged.connect(self.setTriggersProcessed)
-        self._config_panel.proctab.triggersProcessedChanged.connect(self._overview_panel.setTriggersProcessed)
+
+        self._config_panel.proctab.numberProcessesChanged.connect(
+            self.setNumberProcesses
+        )
+        self._config_panel.proctab.triggersProcessedChanged.connect(
+            self.setTriggersProcessed
+        )
+        self._config_panel.proctab.triggersProcessedChanged.connect(
+            self._overview_panel.setTriggersProcessed
+        )
         self._config_panel.proctab.epsilonChanged.connect(self.setEpsilon)
         self._config_panel.proctab.samplesChanged.connect(self.setMinSamples)
         self._config_panel.proctab.totThresholdChanged.connect(self.setTotThreshold)
@@ -294,7 +334,9 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         self.onCentroid.connect(self._config_panel.fileSaver.onCentroid)
 
         self._statusUpdate = GenericThread(self.statusUdate)
-        self.updateStatusSignal.connect(lambda msg: self.statusbar.showMessage(msg, 5000))
+        self.updateStatusSignal.connect(
+            lambda msg: self.statusbar.showMessage(msg, 5000)
+        )
 
         self.show_slow_processing_warning_sig.connect(self.show_slow_processing_warning)
 
@@ -308,7 +350,9 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         self._timepix_setup_plots_panel = TimepixSetupPlotsPanel(self)
         self.onCentroid.connect(self._timepix_setup_plots_panel.on_centroid)
         self.onPixelToF.connect(self._timepix_setup_plots_panel.on_event)
-        self.addDockWidget(QtCore.Qt.RightDockWidgetArea, self._timepix_setup_plots_panel)
+        self.addDockWidget(
+            QtCore.Qt.RightDockWidgetArea, self._timepix_setup_plots_panel
+        )
         self._timepix_setup_plots_panel.setFloating(True)
 
     def onBiasVoltageUpdate(self, value):
@@ -361,11 +405,17 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         #     self.clearNow.emit()
 
         if self._current_mode is ViewerMode.TOA:
-            if self._frame_time >= 0 and (check_update - self._last_frame) > self._frame_time:
+            if (
+                self._frame_time >= 0
+                and (check_update - self._last_frame) > self._frame_time
+            ):
                 self.clearNow.emit()
                 self._last_frame = time.time()
 
-        if self._current_mode in (ViewerMode.TOF, ViewerMode.Centroid,) and data_type in (
+        if self._current_mode in (
+            ViewerMode.TOF,
+            ViewerMode.Centroid,
+        ) and data_type in (
             MessageType.EventData,
             MessageType.CentroidData,
         ):
@@ -514,7 +564,8 @@ def main():
     import logging
 
     logging.basicConfig(
-        level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
     app = QtGui.QApplication([])
 

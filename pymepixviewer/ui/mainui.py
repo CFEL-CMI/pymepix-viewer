@@ -6,7 +6,8 @@
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtWidgets
+
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -42,6 +43,9 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.menuFile.setTitle(_translate("MainWindow", "File"))
         self.actionSophy_spx.setText(_translate("MainWindow", "SoPhy file"))
-        self.actionLaunchPostProcessing.setText(_translate("MainWindow", "Launch Post Processing"))
-        self.actionTimepixSetupPlotsPanel.setText(_translate("MainWindow", "TimePix Setup Optimization"))
-
+        self.actionLaunchPostProcessing.setText(
+            _translate("MainWindow", "Launch Post Processing")
+        )
+        self.actionTimepixSetupPlotsPanel.setText(
+            _translate("MainWindow", "TimePix Setup Optimization")
+        )

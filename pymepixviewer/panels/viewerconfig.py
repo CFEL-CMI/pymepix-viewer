@@ -24,8 +24,8 @@ import logging
 
 from pyqtgraph.Qt import QtCore, QtGui
 
-from .ui.viewerconfigui import Ui_Form
 from ..core.datatypes import ViewerMode
+from .ui.viewerconfigui import Ui_Form
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +80,10 @@ class ViewerConfig(QtGui.QWidget, Ui_Form):
         if self._current_mode is ViewerMode.TOA:
             self.eventwidget.hide()
             self.framelayout.show()
-        elif self._current_mode in (ViewerMode.TOF, ViewerMode.Centroid,):
+        elif self._current_mode in (
+            ViewerMode.TOF,
+            ViewerMode.Centroid,
+        ):
             self.eventwidget.show()
             self.framelayout.hide()
 
@@ -98,8 +101,8 @@ class ViewerConfig(QtGui.QWidget, Ui_Form):
         if self.time_multi.currentText() == "s":
             frame_time *= 1
         elif self.time_multi.currentText() == "ms":
-            frame_time *= 1E-3
+            frame_time *= 1e-3
 
-        logger.info('Frame time changed to {} s'.format(frame_time))
+        logger.info("Frame time changed to {} s".format(frame_time))
 
         self.frameTimeChange.emit(frame_time)

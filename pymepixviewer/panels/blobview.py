@@ -20,15 +20,14 @@
 #
 ##############################################################################
 
-from asyncio.log import logger
 from collections import deque
 
 import numpy as np
 import pyqtgraph as pg
-from pyqtgraph.Qt import QtGui, QtCore
+from pyqtgraph.Qt import QtCore, QtGui
 
-from .ui.blobviewui import Ui_Form
 from ..core.datatypes import ViewerMode
+from .ui.blobviewui import Ui_Form
 
 
 class Crosshair(QtGui.QGraphicsItem):
@@ -139,7 +138,9 @@ class BlobView(QtGui.QWidget, Ui_Form):
         y0 = self.y0_spin.value()
         radius = self.r_outer.value()
         self.crosshair.setPos(y0 * self._binning_fac, x0 * self._binning_fac)
-        self.roi_outer.setPos((y0 - radius) * self._binning_fac, (x0 - radius) * self._binning_fac)
+        self.roi_outer.setPos(
+            (y0 - radius) * self._binning_fac, (x0 - radius) * self._binning_fac
+        )
 
     def on_redraw_roi(self):
         diam = 2 * self.r_outer.value() * self._binning_fac
@@ -150,7 +151,9 @@ class BlobView(QtGui.QWidget, Ui_Form):
         self._histogram_bins = value
         self._x = np.array(value * [np.arange(0, value)])
         self._y = np.array(value * [np.arange(0, value)]).T
-        self._binning_fac = 1 / (256 / self._histogram_bins) if self._histogram_mode else 1
+        self._binning_fac = (
+            1 / (256 / self._histogram_bins) if self._histogram_mode else 1
+        )
         if self._histogram_mode:
             self.clearData()
         self.on_show_cross_change()
@@ -225,7 +228,9 @@ class BlobView(QtGui.QWidget, Ui_Form):
     def updateBlobData(self, cluster_shot, cluster_x, cluster_y, cluster_tof):
         tof_filter = self.getFilter(cluster_tof)
 
-        total_triggers = ((cluster_shot.max() - cluster_shot.min()) + 1) / self._triggers_processed
+        total_triggers = (
+            (cluster_shot.max() - cluster_shot.min()) + 1
+        ) / self._triggers_processed
 
         x = cluster_x[tof_filter]
         y = cluster_y[tof_filter]
@@ -250,7 +255,9 @@ class BlobView(QtGui.QWidget, Ui_Form):
         # update number for ROI area
         avg_blobs_roi = h[0][mask].sum() / total_triggers
         if not self.avg_roi.isChecked():
-            self._blob_trend_roi_yAxe.append(avg_blobs_roi)  # for not integrating operation
+            self._blob_trend_roi_yAxe.append(
+                avg_blobs_roi
+            )  # for not integrating operation
         else:
             self._blob_trend_roi_sum += h[0][mask].sum()
             self._blob_trend_roi_sum_triCount += total_triggers
@@ -280,7 +287,15 @@ class BlobView(QtGui.QWidget, Ui_Form):
 
     def onCentroid(self, event):
         if self._current_mode in (ViewerMode.Centroid,):
-            cluster_shot, cluster_x, cluster_y, cluster_tof, cluster_totAvg, cluster_totMax, cluster_size = event
+            (
+                cluster_shot,
+                cluster_x,
+                cluster_y,
+                cluster_tof,
+                cluster_totAvg,
+                cluster_totMax,
+                cluster_size,
+            ) = event
             self.updateBlobData(cluster_shot, cluster_x, cluster_y, cluster_tof)
 
     def onEvent(self, event):
@@ -320,9 +335,9 @@ class BlobView(QtGui.QWidget, Ui_Form):
                     r >= self.r_inner.value() * binning_fac,
                 )
                 try:
-                    expet_cos_theta = (self._histogram * cos_theta)[mask].sum() / self._histogram[
+                    expet_cos_theta = (self._histogram * cos_theta)[
                         mask
-                    ].sum()
+                    ].sum() / self._histogram[mask].sum()
                     expet_cos2_theta = (self._histogram * cos2_theta)[
                         mask
                     ].sum() / self._histogram[mask].sum()
@@ -351,13 +366,16 @@ class BlobView(QtGui.QWidget, Ui_Form):
                 y = np.array(self._blob_trend_roi_yAxe)[x_idx]
             else:
                 y = np.convolve(
-                    np.array(self._blob_trend_roi_yAxe)[x_idx], self._kernel, mode="same"
+                    np.array(self._blob_trend_roi_yAxe)[x_idx],
+                    self._kernel,
+                    mode="same",
                 )
 
             self._blob_trend_roi_graph.setData(x=x[x_idx], y=y)
         else:
             self._blob_trend_roi_graph.setData(
-                x=np.array(self._blob_trend_roi_xAxe), y=np.array(self._blob_trend_roi_yAxe)
+                x=np.array(self._blob_trend_roi_xAxe),
+                y=np.array(self._blob_trend_roi_yAxe),
             )
 
     def get_radial_coordinate(self):

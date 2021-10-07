@@ -6,7 +6,8 @@
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtWidgets
+
 
 class Ui_Form(object):
     def setupUi(self, Form):
@@ -91,7 +92,9 @@ class Ui_Form(object):
         self.horizontalLayout_12 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_12.setObjectName("horizontalLayout_12")
         self.label_14 = QtWidgets.QLabel(self.groupBox_3)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label_14.sizePolicy().hasHeightForWidth())
@@ -104,7 +107,9 @@ class Ui_Form(object):
         self.verticalLayout_2.addLayout(self.horizontalLayout_12)
         self.verticalLayout_4.addWidget(self.groupBox_3)
         self.verticalLayout_3.addLayout(self.verticalLayout_4)
-        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        spacerItem = QtWidgets.QSpacerItem(
+            20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
+        )
         self.verticalLayout_3.addItem(spacerItem)
 
         self.retranslateUi(Form)
@@ -123,7 +128,6 @@ class Ui_Form(object):
         self.label_6.setText(_translate("Form", "Path"))
         self.openpath.setText(_translate("Form", "Open"))
         self.label_7.setText(_translate("Form", "Prefix:"))
-        self.file_prefix.setToolTip(_translate("Form", "prefix must not contain \"_\""))
+        self.file_prefix.setToolTip(_translate("Form", 'prefix must not contain "_"'))
         self.file_prefix.setText(_translate("Form", "test"))
         self.label_14.setText(_translate("Form", "Index"))
-

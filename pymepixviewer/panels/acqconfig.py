@@ -20,23 +20,23 @@
 #
 ##############################################################################
 
-from functools import partial
 import glob
 import logging
 import os
 import time
-import numpy as np
+from functools import partial
 
+import numpy as np
 from pyqtgraph.Qt import QtCore, QtGui
 
-from .ui.acqconfigui import Ui_Form
 from ..core.datatypes import ViewerMode
+from .ui.acqconfigui import Ui_Form
 
 logger = logging.getLogger(__name__)
 
 
 class AcquisitionConfig(QtGui.QWidget, Ui_Form):
-    
+
     biasVoltageChange = QtCore.pyqtSignal(int)
 
     def __init__(self, parent=None):
@@ -54,9 +54,11 @@ class AcquisitionConfig(QtGui.QWidget, Ui_Form):
         self.openpath.clicked.connect(self.openPath)
         self.open_sophy_config.clicked.connect(self.on_open_sophy_config)
         self.bias_voltage.valueChanged[int].connect(self.biasVoltageChange.emit)
-        self.path_name.textChanged.connect(partial(self.__save_setting, 'path'))
-        self.file_prefix.textChanged.connect(partial(self.__save_setting, 'prefix'))
-        self.sophy_config.textChanged.connect(partial(self.__save_setting, 'sophyconfig'))
+        self.path_name.textChanged.connect(partial(self.__save_setting, "path"))
+        self.file_prefix.textChanged.connect(partial(self.__save_setting, "prefix"))
+        self.sophy_config.textChanged.connect(
+            partial(self.__save_setting, "sophyconfig")
+        )
 
         self.path_name.textChanged.connect(self.__updateFileIndex)
         self.file_prefix.textChanged.connect(self.__updateFileIndex)
@@ -76,14 +78,14 @@ class AcquisitionConfig(QtGui.QWidget, Ui_Form):
             directory = "./"  # for raw2disk to recognise it as a filename
         return os.path.join(directory, self.file_prefix.text())
 
-    def __updateFileIndex(self, _text): 
+    def __updateFileIndex(self, _text):
         index = self.__determine_current_file_index(self.__determine_current_path())
         self.startIndex.display(index)
 
     def get_path(self):
         path = self.__determine_current_path()
         index = self.__determine_current_file_index(path)
-        
+
         path = f'{path}_{index:04d}_{time.strftime("%Y%m%d-%H%M")}.raw'
         self.startIndex.display(index)
         return path
@@ -99,7 +101,9 @@ class AcquisitionConfig(QtGui.QWidget, Ui_Form):
         self.path_name.setText(directory)
 
     def on_open_sophy_config(self):
-        config_file = QtGui.QFileDialog.getOpenFileName(self, "Select SoPhy configuration file", "/home", "SoPhy File (*.spx)")[0]
+        config_file = QtGui.QFileDialog.getOpenFileName(
+            self, "Select SoPhy configuration file", "/home", "SoPhy File (*.spx)"
+        )[0]
         self.sophy_config.setText(config_file)
 
     def __read_settings(self):

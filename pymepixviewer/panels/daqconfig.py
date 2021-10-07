@@ -27,8 +27,8 @@ from threading import Thread
 
 from pyqtgraph.Qt import QtCore, QtGui
 
-from .ui.daqconfigui import Ui_Form
 from ..core.filesaver import FileSaver
+from .ui.daqconfigui import Ui_Form
 
 logger = logging.getLogger(__name__)
 
@@ -94,7 +94,9 @@ class DaqConfigPanel(QtGui.QWidget, Ui_Form):
                     time.sleep(0.5)
 
             tot_time = time.time() - start
-            logger.info("ENDING, time taken {}s or {} minutes".format(tot_time, tot_time / 60.0))
+            logger.info(
+                "ENDING, time taken {}s or {} minutes".format(tot_time, tot_time / 60.0)
+            )
             self.endAcquisition()
         except Exception as e:
             logger.error(str(e))

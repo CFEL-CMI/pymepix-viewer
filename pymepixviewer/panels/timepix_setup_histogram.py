@@ -1,18 +1,25 @@
-from collections import deque
 import math
+from collections import deque
+import logging
 
-import pyqtgraph as pg
 import numpy as np
+from scipy.optimize.optimize import OptimizeWarning
+import pyqtgraph as pg
 from scipy.optimize import curve_fit
 
-class TimepixSetupHistogram():
+logger = logging.getLogger(__name__)
 
+GAUSSIAN_FITTING_CONSTANT = 2.0 * 4 * 2 * np.log(2)
+
+
+class TimepixSetupHistogram:
     def __init__(self, plt, label_left, label_bottom, units=None):
         self.plt = plt
         self.plot_data_item = self.__setup_hist_ui(label_left, label_bottom, units)
-        self.snapshot_plot_data_item = self.__add_plot_data_item(fillLevel=0, brush=(255, 0, 0, 75))
+        self.snapshot_plot_data_item = self.__add_plot_data_item(
+            fillLevel=0, brush=(255, 0, 0, 75)
+        )
         self.plot_curve_item = self.__setup_gaussian_fit_ui()
-        # self.__setup_text_items()
         self.legend = self.__setup_legend()
 
         self.buffer = None
@@ -24,8 +31,8 @@ class TimepixSetupHistogram():
 
     def __setup_hist_ui(self, label_left, label_bottom, units):
         plot_data_item = self.__add_plot_data_item(fillLevel=0, brush=(0, 0, 255, 255))
-        self.plt.setLabel('bottom', text=label_bottom, units=units)
-        self.plt.setLabel('left', text=label_left)
+        self.plt.setLabel("bottom", text=label_bottom, units=units)
+        self.plt.setLabel("left", text=label_left)
         return plot_data_item
 
     def __setup_gaussian_fit_ui(self):
@@ -36,23 +43,23 @@ class TimepixSetupHistogram():
     def __setup_legend(self):
         legend = self.plt.getPlotItem().addLegend(offset=(-5, 5))
 
-        legend.addItem(self.plot_data_item, 'Data')
-        legend.addItem(self.snapshot_plot_data_item, 'Reference')
+        legend.addItem(self.plot_data_item, "Data")
+        legend.addItem(self.snapshot_plot_data_item, "Reference")
 
-        style = pg.PlotDataItem(pen='k')
-        legend.addItem(style, '')
+        style = pg.PlotDataItem(pen="k")
+        legend.addItem(style, "")
         self.legend_label_fwhm = legend.getLabel(style)
 
-        style = pg.PlotDataItem(pen='k')
-        legend.addItem(style, '')
+        style = pg.PlotDataItem(pen="k")
+        legend.addItem(style, "")
         self.legend_label_mean = legend.getLabel(style)
 
-        style = pg.PlotDataItem(pen='k')
-        legend.addItem(style, '')
+        style = pg.PlotDataItem(pen="k")
+        legend.addItem(style, "")
         self.legend_label_standard_deviation = legend.getLabel(style)
 
-        style = pg.PlotDataItem(pen='k')
-        legend.addItem(style, '')
+        style = pg.PlotDataItem(pen="k")
+        legend.addItem(style, "")
         self.legend_label_rms = legend.getLabel(style)
 
         return legend
@@ -66,14 +73,16 @@ class TimepixSetupHistogram():
 
     def snapshot(self, tot_bins):
         y, x = np.histogram([], tot_bins)
-        self.snapshot_plot_data_item.setData(x, sum(self.buffer), stepMode='center')
-        
+        self.snapshot_plot_data_item.setData(x, sum(self.buffer), stepMode="center")
 
     def refresh(self, tot, tot_bins):
+        # x is not the centers of the bins but the edges. This is not the most accurate
+        # but for the purpose in this case it should not matter. For the sake of saving CPU time
+        # we agreed to leave it this way.
         y, x = np.histogram(tot, tot_bins)
         self.buffer.append(y)
         y = sum(self.buffer)
-        self.plot_data_item.setData(x, y , stepMode='center')
+        self.plot_data_item.setData(x, y, stepMode="center")
 
         index = y.argmax()
         y_max = y.max()
@@ -81,21 +90,37 @@ class TimepixSetupHistogram():
             index += 1
 
         sigma_0 = (x[index] - x[y.argmax()]) * 2
-        popt, pcov = curve_fit(
-            TimepixSetupHistogram.__gauss_fwhm, x[:-1], y, p0=[y_max, x[y.argmax()], sigma_0]
-        )
-        A, mu, fwhm = popt
-        self.legend.getLabel(self.plot_data_item).setText(f'Data ({len(self.buffer)} packets)')
-        self.legend_label_fwhm.setText(f'FWHM: {fwhm:.2f}')
-        self.legend_label_mean.setText(f'mean: {TimepixSetupHistogram.approx_mean(x[:-1], y):.2f}')
-        self.legend_label_standard_deviation.setText(f'std.: {TimepixSetupHistogram.approx_std(x[:-1], y):.2f}')
-        self.legend_label_rms.setText(f'RMS: {TimepixSetupHistogram.approx_rms(x[:-1], y):.2f}')
-        self.plot_curve_item.setData(x, TimepixSetupHistogram.__gauss_fwhm(x, *popt))
+        try:
+            popt, pcov = curve_fit(
+                TimepixSetupHistogram.__gauss_fwhm,
+                x[:-1],
+                y,
+                p0=[y_max, x[y.argmax()], sigma_0],
+            )
+            A, mu, fwhm = popt
+            self.legend.getLabel(self.plot_data_item).setText(
+                f"Data ({len(self.buffer)} packets)"
+            )
+            self.legend_label_fwhm.setText(f"FWHM: {fwhm:.2f}")
+            self.legend_label_mean.setText(
+                f"mean: {TimepixSetupHistogram.approx_mean(x[:-1], y):.2f}"
+            )
+            self.legend_label_standard_deviation.setText(
+                f"std.: {TimepixSetupHistogram.approx_std(x[:-1], y):.2f}"
+            )
+            self.legend_label_rms.setText(
+                f"RMS: {TimepixSetupHistogram.approx_rms(x[:-1], y):.2f}"
+            )
+            self.plot_curve_item.setData(
+                x, TimepixSetupHistogram.__gauss_fwhm(x, *popt)
+            )
+        except (RuntimeError, OptimizeWarning) as e:
+            logger.debug("Gaussian fitting did not succeed.")
 
     @staticmethod
     def __gauss_fwhm(x, *p):
         A, mu, fwhm = p
-        return A * np.exp(-((x - mu) ** 2) / (2.0 * (fwhm ** 2) / (4 * 2 * np.log(2))))
+        return A * np.exp(-((x - mu) ** 2) / ((fwhm ** 2) / GAUSSIAN_FITTING_CONSTANT))
 
     @staticmethod
     def approx_mean(x, y):
@@ -103,13 +128,13 @@ class TimepixSetupHistogram():
 
     @staticmethod
     def approx_std(x, y):
-        """ Calculation of the approximated standard deviation of the histogram according to: https://math.stackexchange.com/a/857576"""
+        """Calculation of the approximated standard deviation of the histogram according to: https://math.stackexchange.com/a/857576"""
         mean = TimepixSetupHistogram.approx_mean(x, y)
         size = y.sum()
 
-        return math.sqrt((((x - mean)**2 * y) / size).sum())
-    
+        return math.sqrt((((x - mean) ** 2 * y) / size).sum())
+
     @staticmethod
     def approx_rms(x, y):
-        """ Calculation of the approximated RMS of the histogram according to: https://de.mathworks.com/matlabcentral/answers/377179-root-mean-square-value-of-histogram"""
+        """Calculation of the approximated RMS of the histogram according to: https://de.mathworks.com/matlabcentral/answers/377179-root-mean-square-value-of-histogram"""
         return np.sqrt(np.sum(np.square(x) * y) / y.sum())
