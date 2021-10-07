@@ -20,7 +20,12 @@
 #
 ##############################################################################
 
+from functools import partial
+import glob
 import logging
+import os
+import time
+import numpy as np
 
 from pyqtgraph.Qt import QtCore, QtGui
 
@@ -43,9 +48,45 @@ class AcquisitionConfig(QtGui.QWidget, Ui_Form):
         self._current_mode = ViewerMode.TOA
         self.connectSignals()
 
+        self.__read_settings()
+
     def connectSignals(self):
         self.openpath.clicked.connect(self.openPath)
+        self.open_sophy_config.clicked.connect(self.on_open_sophy_config)
         self.bias_voltage.valueChanged[int].connect(self.biasVoltageChange.emit)
+        self.path_name.textChanged.connect(partial(self.__save_setting, 'path'))
+        self.file_prefix.textChanged.connect(partial(self.__save_setting, 'prefix'))
+        self.sophy_config.textChanged.connect(partial(self.__save_setting, 'sophyconfig'))
+
+        self.path_name.textChanged.connect(self.__updateFileIndex)
+        self.file_prefix.textChanged.connect(self.__updateFileIndex)
+
+    @staticmethod
+    def __determine_current_file_index(path):
+        files = np.sort(glob.glob(f"{path}*.raw"))
+        if len(files) > 0:
+            index = int(files[-1].split("_")[-2]) + 1
+        else:
+            index = 0
+        return index
+
+    def __determine_current_path(self):
+        directory = self.path_name.text()
+        if len(directory) == 0:
+            directory = "./"  # for raw2disk to recognise it as a filename
+        return os.path.join(directory, self.file_prefix.text())
+
+    def __updateFileIndex(self, _text): 
+        index = self.__determine_current_file_index(self.__determine_current_path())
+        self.startIndex.display(index)
+
+    def get_path(self):
+        path = self.__determine_current_path()
+        index = self.__determine_current_file_index(path)
+        
+        path = f'{path}_{index:04d}_{time.strftime("%Y%m%d-%H%M")}.raw'
+        self.startIndex.display(index)
+        return path
 
     def openPath(self):
         directory = QtGui.QFileDialog.getExistingDirectory(
@@ -56,3 +97,26 @@ class AcquisitionConfig(QtGui.QWidget, Ui_Form):
         )
 
         self.path_name.setText(directory)
+
+    def on_open_sophy_config(self):
+        config_file = QtGui.QFileDialog.getOpenFileName(self, "Select SoPhy configuration file", "/home", "SoPhy File (*.spx)")[0]
+        self.sophy_config.setText(config_file)
+
+    def __read_settings(self):
+        settings = QtCore.QSettings()
+
+        settings.beginGroup("acqconfig")
+        path = settings.value("path")
+        self.path_name.setText(path)
+        prefix = settings.value("prefix")
+        self.file_prefix.setText(prefix)
+        config_file = settings.value("sophyconfig")
+        self.sophy_config.setText(config_file)
+        settings.endGroup()
+
+    def __save_setting(self, key, value):
+        settings = QtCore.QSettings()
+
+        settings.beginGroup("acqconfig")
+        settings.setValue(key, value)
+        settings.endGroup()

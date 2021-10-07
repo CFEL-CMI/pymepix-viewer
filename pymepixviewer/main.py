@@ -102,6 +102,10 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         super(PymepixDAQ, self).__init__(parent)
         self.setupUi(self)
 
+        QtCore.QCoreApplication.setOrganizationName("CFEL-CMI")
+        QtCore.QCoreApplication.setOrganizationDomain("mysoft.com")
+        QtCore.QCoreApplication.setApplicationName("Pymepix Viewer")
+
         self.queue_size_warning_displayed = False
 
         self._current_mode = ViewerMode.TOA
@@ -121,7 +125,10 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         self.connectSignals()
         self.startupTimepix()
 
-        time.sleep(1.0)
+        # Initialize SoPhy configuration manually, because the corresponding signal is connected after initialization of the LineEdit.
+        # This will load the selected SoPhy configuration file into the camera
+        self.__load_sophy_config(self._config_panel.acqtab.sophy_config.text())
+
         self.onModeChange(ViewerMode.TOA)
         self._statusUpdate.start()
 
@@ -175,7 +182,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
         self._timepix.start()
 
-    def closeTimepix(self):
+    def onClose(self):
         self._timepix.stop()
 
     def setFineThreshold(self, value):
@@ -240,7 +247,6 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         )
 
     def connectSignals(self):
-        self.actionSophy_spx.triggered.connect(self.getfile)
         self.actionLaunchPostProcessing.triggered.connect(self.launchPostProcessing)
         self.actionTimepixSetupPlotsPanel.triggered.connect(self.launchTimepixSetupPlotsPanel)
 
@@ -248,8 +254,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         self._config_panel.viewtab.eventCountChange.connect(self.onEventCountUpdate)
         self._config_panel.viewtab.frameTimeChange.connect(self.onFrameTimeUpdate)
         self._config_panel.acqtab.biasVoltageChange.connect(self.onBiasVoltageUpdate)
-        self._config_panel.acqtab.path_name.textChanged.connect(self.updateFileIndex)
-        self._config_panel.acqtab.file_prefix.textChanged.connect(self.updateFileIndex)
+        self._config_panel.acqtab.sophy_config.textChanged.connect(self.__load_sophy_config)
 
         self._config_panel.acqtab.fine_threshold.editingFinished.connect(
             lambda: self.setFineThreshold(self._config_panel.acqtab.fine_threshold.value())
@@ -405,11 +410,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
             self._last_update = time.time()
 
     def start_recording(self):
-        path = self.__determine_current_path()
-        index = self.__determine_current_file_index(path)
-        
-        path = f'{path}_{index:04d}_{time.strftime("%Y%m%d-%H%M")}.raw'
-        self._config_panel.acqtab.startIndex.display(index)
+        path = self._config_panel.acqtab.get_path()
 
         self._timepix._spidr.resetTimers()
         self._timepix._spidr.restartTimers()
@@ -435,25 +436,6 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         self._config_panel.start_acq.setText("Start Recording")
         self._config_panel._in_acq = False
 
-    @staticmethod
-    def __determine_current_file_index(path):
-        files = np.sort(glob.glob(f"{path}*.raw"))
-        if len(files) > 0:
-            index = int(files[-1].split("_")[-2]) + 1
-        else:
-            index = 0
-        return index
-
-    def __determine_current_path(self):
-        directory = self._config_panel.acqtab.path_name.text()
-        if len(directory) == 0:
-            directory = "./"  # for raw2disk to recognise it as a filename
-        return os.path.join(directory, self._config_panel.acqtab.file_prefix.text())
-
-    def updateFileIndex(self): 
-        index = self.__determine_current_file_index(self.__determine_current_path())
-        self._config_panel.acqtab.startIndex.display(index)
-
     def addViewWidget(self, name, start, end):
         if name in self._view_widgets:
             QtGui.QMessageBox.warning(
@@ -475,33 +457,29 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
             self.modeChange.connect(blob_view.modeChange)
             self.addDockWidget(QtCore.Qt.RightDockWidgetArea, dock_view)
 
-    def getfile(self):
-        fname = QtGui.QFileDialog.getOpenFileName(self, "Open file", "/home", "SoPhy File (*.spx)")
-        logger.debug(fname)
+    def __load_sophy_config(self, config_filename):
+        if config_filename is not None and config_filename != "":
+            self._timepix.stop()
 
-        if fname[0] == "":
-            return
+            try:
+                self._timepix[0].setConfigClass(pymepix.config.SophyConfig)
+                self._timepix[0].loadConfig(config_filename)
+                logger.info(f"Loaded SoPhy config {config_filename}")
+            except FileNotFoundError:
+                QtGui.QMessageBox.warning(
+                    None,
+                    "Sophy config file not found",
+                    f"File with name {config_filename} not found",
+                    QtGui.QMessageBox.Ok,
+                    QtGui.QMessageBox.Ok,
+                )
 
-        self._timepix.stop()
+            self.coarseThresholdUpdate.emit(self._timepix[0].Vthreshold_coarse)
+            self.fineThresholdUpdate.emit(self._timepix[0].Vthreshold_fine)
 
-        try:
-            self._timepix[0].setConfigClass(pymepix.config.SophyConfig)
-            self._timepix[0].loadConfig(fname[0])
-        except FileNotFoundError:
-            QtGui.QMessageBox.warning(
-                None,
-                "File not found",
-                "File with name {} not found".format(fname[0]),
-                QtGui.QMessageBox.Ok,
-                QtGui.QMessageBox.Ok,
-            )
+            self._timepix.start()
 
-        self.coarseThresholdUpdate.emit(self._timepix[0].Vthreshold_coarse)
-        self.fineThresholdUpdate.emit(self._timepix[0].Vthreshold_fine)
-
-        self._timepix.start()
-
-        self.clearNow.emit()
+            self.clearNow.emit()
 
     def onRoiChange(self, name, start, end):
         logger.debug("ROICHANGE", name, start, end)
@@ -547,7 +525,7 @@ def main():
     app = QtGui.QApplication([])
 
     config = PymepixDAQ()
-    app.lastWindowClosed.connect(config.closeTimepix)
+    app.lastWindowClosed.connect(config.onClose)
     config.show()
 
     app.exec_()
