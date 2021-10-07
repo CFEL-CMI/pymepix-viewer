@@ -56,6 +56,7 @@ class BlobView(QtGui.QWidget, Ui_Form):
         self._end_tof = end
 
         self._int_blob_count = 0
+        self._triggers_processed = 1
 
         self._current_mode = current_mode
 
@@ -197,6 +198,9 @@ class BlobView(QtGui.QWidget, Ui_Form):
         self._end_tof = end
         self.clearData()
 
+    def setTriggersProcessed(self, triggers_processed):
+        self._triggers_processed = triggers_processed
+
     def _updateHist(self):
         h = np.histogram2d(
             np.concatenate(self._histogram_x),
@@ -221,7 +225,7 @@ class BlobView(QtGui.QWidget, Ui_Form):
     def updateBlobData(self, cluster_shot, cluster_x, cluster_y, cluster_tof):
         tof_filter = self.getFilter(cluster_tof)
 
-        total_triggers = (cluster_shot.max() - cluster_shot.min()) + 1
+        total_triggers = ((cluster_shot.max() - cluster_shot.min()) + 1) / self._triggers_processed
 
         x = cluster_x[tof_filter]
         y = cluster_y[tof_filter]
@@ -234,6 +238,7 @@ class BlobView(QtGui.QWidget, Ui_Form):
         # update number for whole detector
         uniq_shot, counts = np.unique(shots, return_counts=True)
         self._int_blob_count += np.sum(counts)
+
         avg_blobs = np.sum(counts) / total_triggers
         self.rec_blobs.setText(f"{avg_blobs:.3f}")
         self.int_blobs.setText(str(self._int_blob_count))
@@ -275,7 +280,7 @@ class BlobView(QtGui.QWidget, Ui_Form):
 
     def onCentroid(self, event):
         if self._current_mode in (ViewerMode.Centroid,):
-            cluster_shot, cluster_x, cluster_y, cluster_tof, cluster_tot = event
+            cluster_shot, cluster_x, cluster_y, cluster_tof, cluster_totAvg, cluster_totMax, cluster_size = event
             self.updateBlobData(cluster_shot, cluster_x, cluster_y, cluster_tof)
 
     def onEvent(self, event):
