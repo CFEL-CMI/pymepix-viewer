@@ -29,6 +29,7 @@
     </property>
     <addaction name="actionLaunchPostProcessing"/>
     <addaction name="actionTimepixSetupPlotsPanel"/>
+    <addaction name="editPixelMask"/>
    </widget>
    <addaction name="menuFile"/>
   </widget>
@@ -41,6 +42,11 @@
   <action name="actionTimepixSetupPlotsPanel">
    <property name="text">
     <string>TimePix Setup Optimization</string>
+   </property>
+  </action>
+  <action name="editPixelMask">
+   <property name="text">
+    <string>Edit Pixel Mask</string>
    </property>
   </action>
  </widget>

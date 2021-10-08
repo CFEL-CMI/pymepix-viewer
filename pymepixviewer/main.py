@@ -34,6 +34,7 @@ from pymepixviewer.core.datatypes import ViewerMode
 from pymepixviewer.dialogs.postprocessing import PostProcessing
 from pymepixviewer.panels.blobview import BlobView
 from pymepixviewer.panels.daqconfig import DaqConfigPanel
+from pymepixviewer.panels.editpixelmaskpanel import EditPixelMaskPanel
 from pymepixviewer.panels.timeofflight import TimeOfFlightPanel
 from pymepixviewer.panels.timepixsetupplotspanel import TimepixSetupPlotsPanel
 from pymepixviewer.ui.mainui import Ui_MainWindow
@@ -268,6 +269,9 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
             self.launchTimepixSetupPlotsPanel
         )
 
+        self.editPixelMask.setDisabled(True) # Disabled until a configuration file has been loaded
+        self.editPixelMask.triggered.connect(self.launchEditPixelMask)
+
         self._config_panel.viewtab.updateRateChange.connect(self.onDisplayUpdate)
         self._config_panel.viewtab.eventCountChange.connect(self.onEventCountUpdate)
         self._config_panel.viewtab.frameTimeChange.connect(self.onFrameTimeUpdate)
@@ -345,6 +349,16 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         dialog = PostProcessing()
         dialog.exec_()
         self._timepix.start()
+
+    def launchEditPixelMask(self):
+        panel = EditPixelMaskPanel(self._timepix[0].config, self)
+        
+        self.onPixelToA.connect(panel.onToaData)
+        self.onPixelToF.connect(panel.onTofData)
+        self.onCentroid.connect(panel.onCentroidData)
+        
+        self.addDockWidget(QtCore.Qt.RightDockWidgetArea, panel)
+        panel.setFloating(True)
 
     def launchTimepixSetupPlotsPanel(self):
         self._timepix_setup_plots_panel = TimepixSetupPlotsPanel(self)
@@ -508,7 +522,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
             try:
                 self._timepix[0].setConfigClass(pymepix.config.SophyConfig)
                 self._timepix[0].loadConfig(config_filename)
-                logger.info(f"Loaded SoPhy config {config_filename}")
+                self.editPixelMask.setDisabled(False)
             except FileNotFoundError:
                 QtGui.QMessageBox.warning(
                     None,
