@@ -20,20 +20,13 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>22</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
      <string>File</string>
     </property>
-    <widget class="QMenu" name="menuLoad_Setting">
-     <property name="title">
-      <string>Load Setting</string>
-     </property>
-     <addaction name="actionSophy_spx"/>
-    </widget>
-    <addaction name="menuLoad_Setting"/>
     <addaction name="actionLaunchPostProcessing"/>
     <addaction name="actionTimepixSetupPlotsPanel"/>
     <addaction name="editPixelMask"/>
@@ -41,17 +34,12 @@
    <addaction name="menuFile"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <action name="actionSophy_spx">
-   <property name="text">
-    <string>SoPhy file</string>
-   </property>
-  </action>
   <action name="actionLaunchPostProcessing">
    <property name="text">
     <string>Launch Post Processing</string>
    </property>
-   </action>
-   <action name="actionTimepixSetupPlotsPanel">
+  </action>
+  <action name="actionTimepixSetupPlotsPanel">
    <property name="text">
     <string>TimePix Setup Optimization</string>
    </property>

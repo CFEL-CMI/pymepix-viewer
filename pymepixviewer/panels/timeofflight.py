@@ -48,14 +48,17 @@ class TimeOfFlightPanel(QtGui.QWidget, Ui_Form):
         self._histo_y = None
         self._tof_data = pg.PlotDataItem()
         self.tof_view.addItem(self._tof_data)
-        self.tof_view.setLabel('bottom', text='Time of Flight', units='s')
-        self.tof_view.setLabel('left', text='Hits')
+        self.tof_view.setLabel("bottom", text="Time of Flight", units="s")
+        self.tof_view.setLabel("left", text="Hits")
         self.roi_list.setModel(self._roi_model)
 
         self._blob_tof_mode = False
         self.setupTofConfig()
 
         self.connectSignals()
+
+        for roi_item in self._roi_model.load_settings():
+            self.tof_view.addItem(roi_item.RoiPlotItem)
 
     def connectSignals(self):
         self.add_roi.clicked.connect(self.onAddRoi)
@@ -81,7 +84,7 @@ class TimeOfFlightPanel(QtGui.QWidget, Ui_Form):
 
         try:
             start = float(self.event_start.text()) * 1e-6
-            end = float(self.event_end.text()) * 1E-6
+            end = float(self.event_end.text()) * 1e-6
             binning = int(self.bin_size.text())
         except Exception as e:
             print(str(e))
@@ -102,7 +105,10 @@ class TimeOfFlightPanel(QtGui.QWidget, Ui_Form):
 
     def _updateTof(self, tof):
 
-        y, x = np.histogram(tof, np.linspace(self._tof_start, self._tof_end, self._tof_bin, dtype=np.float))
+        y, x = np.histogram(
+            tof,
+            np.linspace(self._tof_start, self._tof_end, self._tof_bin, dtype=np.float),
+        )
         if self._histo_x is None:
             self._histo_x = x
             self._histo_y = y
@@ -113,7 +119,13 @@ class TimeOfFlightPanel(QtGui.QWidget, Ui_Form):
         if self._histo_x is None:
             return
         else:
-            self._tof_data.setData(x=self._histo_x, y=self._histo_y, stepMode='center', fillLevel=0, brush=(0, 0, 255, 150))
+            self._tof_data.setData(
+                x=self._histo_x,
+                y=self._histo_y,
+                stepMode="center",
+                fillLevel=0,
+                brush=(0, 0, 255, 150),
+            )
 
     def onRoiUpdate(self, name, start, end):
         self.roiUpdate.emit(name, start, end)
@@ -126,25 +138,39 @@ class TimeOfFlightPanel(QtGui.QWidget, Ui_Form):
             if create_roi.exec_() == QtGui.QDialog.Accepted:
                 name, start, end = create_roi.roiParams()
                 if name == "":
-                    QtGui.QMessageBox.warning(self, 'Invalid name', 'Please enter a name')
+                    QtGui.QMessageBox.warning(
+                        self, "Invalid name", "Please enter a name"
+                    )
                     continue
                 if self._roi_model.roiNameExists(name):
-                    QtGui.QMessageBox.warning(self, 'Roi name', 'Roi name \'{}\' already exists'.format(name))
+                    QtGui.QMessageBox.warning(
+                        self, "Roi name", "Roi name '{}' already exists".format(name)
+                    )
                     continue
                 else:
                     try:
                         start = float(start)
-                    except:
-                        QtGui.QMessageBox.warning(self, 'Invalid start region', 'Please enter a valid start region')
+                    except Exception:
+                        QtGui.QMessageBox.warning(
+                            self,
+                            "Invalid start region",
+                            "Please enter a valid start region",
+                        )
                         continue
 
                     try:
                         end = float(end)
-                    except:
-                        QtGui.QMessageBox.warning(self, 'Invalid end region', 'Please enter a valid end region')
+                    except Exception:
+                        QtGui.QMessageBox.warning(
+                            self,
+                            "Invalid end region",
+                            "Please enter a valid end region",
+                        )
                         continue
-                    print('Adding roi')
-                    roi_item = self._roi_model.addRegionofInterest(name, start * 1e-6, end * 1E-6)
+                    print("Adding roi")
+                    roi_item = self._roi_model.addRegionofInterest(
+                        name, start * 1e-6, end * 1e-6
+                    )
 
                     self.tof_view.addItem(roi_item.RoiPlotItem)
 
@@ -158,11 +184,13 @@ class TimeOfFlightPanel(QtGui.QWidget, Ui_Form):
         modelIndex = self.roi_list.currentIndex()
         roi = modelIndex.internalPointer()
 
-        ret = QtGui.QMessageBox.warning(self, 'Remove ROI',
-                                        'Are you sure you want to remove\n the ROI  \'{}\' ??'.format(roi.columnName),
-                                        QtGui.QMessageBox.Ok |
-                                        QtGui.QMessageBox.Cancel,
-                                        QtGui.QMessageBox.Cancel)
+        ret = QtGui.QMessageBox.warning(
+            self,
+            "Remove ROI",
+            "Are you sure you want to remove\n the ROI  '{}' ??".format(roi.columnName),
+            QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel,
+            QtGui.QMessageBox.Cancel,
+        )
         if ret == QtGui.QMessageBox.Ok:
             self._roi_model.removeRegionofInterest(roi.columnName)
             self.tof_view.removeItem(roi.RoiPlotItem)
@@ -174,7 +202,7 @@ class TimeOfFlightPanel(QtGui.QWidget, Ui_Form):
         modelIndex = self.roi_list.currentIndex()
         roi = modelIndex.internalPointer()
         if roi is None:
-            QtGui.QMessageBox.warning(self, 'No Roi selected', 'Please select an ROI')
+            QtGui.QMessageBox.warning(self, "No Roi selected", "Please select an ROI")
             return
         else:
             self.displayRoi.emit(roi.columnName, *roi.region)

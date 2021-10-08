@@ -8,6 +8,10 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+from pymepixviewer.panels.acqconfig import AcquisitionConfig
+from pymepixviewer.panels.processingconfig import ProcessingConfig
+from pymepixviewer.panels.viewerconfig import ViewerConfig
+
 
 class Ui_Form(object):
     def setupUi(self, Form):
@@ -32,7 +36,9 @@ class Ui_Form(object):
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.label = QtWidgets.QLabel(Form)
-        self.label.setAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        self.label.setAlignment(
+            QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter
+        )
         self.label.setObjectName("label")
         self.horizontalLayout.addWidget(self.label)
         self.elapsed_time_h = QtWidgets.QLCDNumber(Form)
@@ -52,7 +58,9 @@ class Ui_Form(object):
         self.verticalLayout = QtWidgets.QVBoxLayout()
         self.verticalLayout.setObjectName("verticalLayout")
         self.start_acq = QtWidgets.QPushButton(Form)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.start_acq.sizePolicy().hasHeightForWidth())
@@ -63,7 +71,9 @@ class Ui_Form(object):
         self.start_acq.setObjectName("start_acq")
         self.verticalLayout.addWidget(self.start_acq)
         self.end_acq = QtWidgets.QPushButton(Form)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.end_acq.sizePolicy().hasHeightForWidth())
@@ -98,16 +108,17 @@ class Ui_Form(object):
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
         Form.setWindowTitle(_translate("Form", "Form"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.acqtab), _translate("Form", "Acquisition"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.viewtab), _translate("Form", "Viewer"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.proctab), _translate("Form", "Processing"))
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.acqtab), _translate("Form", "Acquisition")
+        )
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.viewtab), _translate("Form", "Viewer")
+        )
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.proctab), _translate("Form", "Processing")
+        )
         self.label.setText(_translate("Form", "Acq Time:"))
         self.start_acq.setText(_translate("Form", "Start Acquisition"))
         self.end_acq.setText(_translate("Form", "Stop Acquisition"))
         self.label_12.setText(_translate("Form", "Status:"))
         self.text_status.setText(_translate("Form", "Live"))
-
-
-from pymepixviewer.panels.acqconfig import AcquisitionConfig
-from pymepixviewer.panels.processingconfig import ProcessingConfig
-from pymepixviewer.panels.viewerconfig import ViewerConfig
