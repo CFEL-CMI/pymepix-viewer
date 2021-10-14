@@ -23,12 +23,14 @@
 import logging
 import platform
 import time
+import argparse
 
 import pymepix
+import pymepix.config.load_config as cfg
 from pymepix.config.sophyconfig import SophyConfig
-from pymepix.config.timepixconfig import TimepixConfig
 from pymepix.processing import MessageType
 from pymepix.processing.acquisition import CentroidPipeline
+
 # force to load PyQt5 for systems where PyQt4 is still installed
 from PyQt5 import QtCore, QtGui
 
@@ -96,12 +98,12 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
             # self.statusbar.showMessage(, 5000)
             time.sleep(5)
 
-    def __init__(self, parent=None):
+    def __init__(self, timepix_ip, parent=None):
         super(PymepixDAQ, self).__init__(parent)
         self.setupUi(self)
 
         QtCore.QCoreApplication.setOrganizationName("CFEL-CMI")
-        QtCore.QCoreApplication.setOrganizationDomain("mysoft.com")
+        QtCore.QCoreApplication.setOrganizationDomain("controlled-molecule-imaging.org")
         QtCore.QCoreApplication.setApplicationName("Pymepix Viewer")
 
         self.queue_size_warning_displayed = False
@@ -121,7 +123,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         self._last_frame = 0.0
         self._last_update = 0
         self.connectSignals()
-        self.startupTimepix()
+        self.startupTimepix(timepix_ip)
 
         # Initialize SoPhy configuration manually, because the corresponding signal is connected after initialization of the LineEdit.
         # This will load the selected SoPhy configuration file into the camera
@@ -161,10 +163,11 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         time.sleep(2.0)
         self._timepix.start()
 
-    def startupTimepix(self):
+    def startupTimepix(self, timepix_ip):
 
-        self._timepix = pymepix.PymepixConnection(("192.168.1.10", 50000), pipeline_class=CentroidPipeline)
-        # self._timepix = pymepix.PymepixConnection(("127.0.0.1", 50000), pipeline_class=CentroidPipeline)
+        self._timepix = pymepix.PymepixConnection(
+            (timepix_ip, 50000), pipeline_class=CentroidPipeline
+        )
         self._timepix.dataCallback = self.onData
 
         if len(self._timepix) == 0:
@@ -269,7 +272,9 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
             self.launchTimepixSetupPlotsPanel
         )
 
-        self.editPixelMask.setDisabled(True) # Disabled until a configuration file has been loaded
+        self.editPixelMask.setDisabled(
+            True
+        )  # Disabled until a configuration file has been loaded
         self.editPixelMask.triggered.connect(self.launchEditPixelMask)
 
         self._config_panel.viewtab.updateRateChange.connect(self.onDisplayUpdate)
@@ -352,13 +357,13 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
     def launchEditPixelMask(self):
         panel = EditPixelMaskPanel(self._timepix[0].config, self)
-        
+
         self.onPixelToA.connect(panel.onToaData)
         self.onPixelToF.connect(panel.onTofData)
         self.onCentroid.connect(panel.onCentroidData)
 
         panel.onCloseEvent.connect(self.__load_sophy_config)
-        
+
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, panel)
         panel.setFloating(True)
 
@@ -580,7 +585,18 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
 
 def main():
-    import logging
+    parser = argparse.ArgumentParser(description="Pymepix Viewer Application")
+
+    parser.add_argument(
+        "-i",
+        "--ip",
+        dest="ip",
+        type=str,
+        default=cfg.default_cfg["timepix"]["tpx_ip"],
+        help="IP address of Timepix",
+    )
+
+    args = parser.parse_args()
 
     logging.basicConfig(
         level=logging.INFO,
@@ -588,7 +604,7 @@ def main():
     )
     app = QtGui.QApplication([])
 
-    config = PymepixDAQ()
+    config = PymepixDAQ(args.ip)
     app.lastWindowClosed.connect(config.onClose)
     config.show()
 
