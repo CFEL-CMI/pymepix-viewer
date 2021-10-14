@@ -8,7 +8,9 @@ from .ui.pixelmapeditui import Ui_DockWidget
 
 
 class EditPixelMaskPanel(QtGui.QDockWidget, Ui_DockWidget):
-    def __init__(self, sophy_config, parent=None):
+    onCloseEvent = QtCore.pyqtSignal(SophyConfig)
+
+    def __init__(self, sophy_config: SophyConfig, parent=None):
         super(EditPixelMaskPanel, self).__init__(parent)
 
         # Set up the user interface from Designer.
@@ -22,7 +24,9 @@ class EditPixelMaskPanel(QtGui.QDockWidget, Ui_DockWidget):
         self.__pixel_mask = self.__sophy_config.maskPixels
         self.__pixel_mask_plt = self.setup_pixel_mask(self.image, self.__pixel_mask)
 
-        self.__is_saved = True
+    def closeEvent(self, event):
+        self.__sophy_config.saveMask()
+        self.onCloseEvent.emit(self.__sophy_config)
 
     def setup_image(self, histogram_data):
         image = pg.ImageView(view=pg.PlotItem())
@@ -56,13 +60,9 @@ class EditPixelMaskPanel(QtGui.QDockWidget, Ui_DockWidget):
         return image_item
 
     def __update_pixel_mask(self, x, y):
-        if self.__is_saved:
-            self.__is_saved = False
-            self.__pixel_mask[x, y] = 1 if self.__pixel_mask[x, y] == 0 else 0
-            self.__pixel_mask_plt.setImage(self.__pixel_mask)
-            self.__sophy_config.maskPixels = self.__pixel_mask
-            self.__sophy_config.saveMask()
-            self.__is_saved = True
+        self.__pixel_mask[x, y] = 1 if self.__pixel_mask[x, y] == 0 else 0
+        self.__pixel_mask_plt.setImage(self.__pixel_mask)
+        self.__sophy_config.maskPixels = self.__pixel_mask
 
     def __image_clicked(self, event):
         event.accept()
@@ -70,7 +70,7 @@ class EditPixelMaskPanel(QtGui.QDockWidget, Ui_DockWidget):
         self.__update_pixel_mask(int(pos.x()), int(pos.y()))
 
     def onTofData(self, data):
-        counter, x, y, tof, tot = data
+        pass
 
     def onToaData(self, data):
         x, y, toa, tot = data
@@ -85,4 +85,4 @@ class EditPixelMaskPanel(QtGui.QDockWidget, Ui_DockWidget):
         )
 
     def onCentroidData(self, centroids):
-        cluster_shot, cluster_x, cluster_y, cluster_tof, cluster_tot = centroids
+        pass

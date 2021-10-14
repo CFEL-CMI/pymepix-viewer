@@ -25,6 +25,8 @@ import platform
 import time
 
 import pymepix
+from pymepix.config.sophyconfig import SophyConfig
+from pymepix.config.timepixconfig import TimepixConfig
 from pymepix.processing import MessageType
 from pymepix.processing.acquisition import CentroidPipeline
 # force to load PyQt5 for systems where PyQt4 is still installed
@@ -123,7 +125,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
         # Initialize SoPhy configuration manually, because the corresponding signal is connected after initialization of the LineEdit.
         # This will load the selected SoPhy configuration file into the camera
-        self.__load_sophy_config(self._config_panel.acqtab.sophy_config.text())
+        self.__load_sophy_config_file(self._config_panel.acqtab.sophy_config.text())
         self._config_panel.proctab.read_settings()
 
         self.onModeChange(ViewerMode.TOA)
@@ -161,9 +163,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
     def startupTimepix(self):
 
-        self._timepix = pymepix.PymepixConnection(
-            ("192.168.1.10", 50000), pipeline_class=CentroidPipeline
-        )
+        self._timepix = pymepix.PymepixConnection(("192.168.1.10", 50000), pipeline_class=CentroidPipeline)
         # self._timepix = pymepix.PymepixConnection(("127.0.0.1", 50000), pipeline_class=CentroidPipeline)
         self._timepix.dataCallback = self.onData
 
@@ -277,7 +277,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         self._config_panel.viewtab.frameTimeChange.connect(self.onFrameTimeUpdate)
         self._config_panel.acqtab.biasVoltageChange.connect(self.onBiasVoltageUpdate)
         self._config_panel.acqtab.sophy_config.textChanged.connect(
-            self.__load_sophy_config
+            self.__load_sophy_config_file
         )
 
         self._config_panel.acqtab.fine_threshold.editingFinished.connect(
@@ -356,6 +356,8 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         self.onPixelToA.connect(panel.onToaData)
         self.onPixelToF.connect(panel.onTofData)
         self.onCentroid.connect(panel.onCentroidData)
+
+        panel.onCloseEvent.connect(self.__load_sophy_config)
         
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, panel)
         panel.setFloating(True)
@@ -515,7 +517,10 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
             self.modeChange.connect(blob_view.modeChange)
             self.addDockWidget(QtCore.Qt.RightDockWidgetArea, dock_view)
 
-    def __load_sophy_config(self, config_filename):
+    def __load_sophy_config(self, config: SophyConfig):
+        self.__load_sophy_config_file(config.filename)
+
+    def __load_sophy_config_file(self, config_filename):
         if config_filename is not None and config_filename != "":
             self._timepix.stop()
 
