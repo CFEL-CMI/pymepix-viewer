@@ -32,7 +32,7 @@ from pymepix.processing import MessageType
 from pymepix.processing.acquisition import CentroidPipeline
 
 # force to load PyQt5 for systems where PyQt4 is still installed
-from PyQt5 import QtCore, QtGui
+from PyQt5 import QtWidgets, QtCore, QtGui
 
 from pymepixviewer.core.datatypes import ViewerMode
 from pymepixviewer.dialogs.postprocessing import PostProcessing
@@ -64,7 +64,7 @@ class GenericThread(QtCore.QThread):
         return
 
 
-class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
+class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
     displayNow = QtCore.pyqtSignal()
     onRaw = QtCore.pyqtSignal(object)
     onPixelToA = QtCore.pyqtSignal(object)
@@ -563,19 +563,22 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         self._tof_panel = TimeOfFlightPanel()
         self._config_panel = DaqConfigPanel()
         self._overview_panel = BlobView()
-        self._dock_tof = QtGui.QDockWidget("Time of Flight", self)
+        self._dock_tof = QtWidgets.QDockWidget("Time of Flight", self)
         self._dock_tof.setFeatures(
-            QtGui.QDockWidget.DockWidgetMovable | QtGui.QDockWidget.DockWidgetFloatable
+            QtWidgets.QDockWidget.DockWidgetMovable
+            | QtWidgets.QDockWidget.DockWidgetFloatable
         )
         self._dock_tof.setWidget(self._tof_panel)
-        self._dock_config = QtGui.QDockWidget("Daq Configuration", self)
+        self._dock_config = QtWidgets.QDockWidget("Daq Configuration", self)
         self._dock_config.setFeatures(
-            QtGui.QDockWidget.DockWidgetMovable | QtGui.QDockWidget.DockWidgetFloatable
+            QtWidgets.QDockWidget.DockWidgetMovable
+            | QtWidgets.QDockWidget.DockWidgetFloatable
         )
         self._dock_config.setWidget(self._config_panel)
-        self._dock_overview = QtGui.QDockWidget("Overview", self)
+        self._dock_overview = QtWidgets.QDockWidget("Overview", self)
         self._dock_overview.setFeatures(
-            QtGui.QDockWidget.DockWidgetMovable | QtGui.QDockWidget.DockWidgetFloatable
+            QtWidgets.QDockWidget.DockWidgetMovable
+            | QtWidgets.QDockWidget.DockWidgetFloatable
         )
         self._dock_overview.setWidget(self._overview_panel)
 
@@ -602,7 +605,7 @@ def main():
         level=logging.INFO,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
-    app = QtGui.QApplication([])
+    app = QtWidgets.QApplication([])
 
     config = PymepixDAQ(args.ip)
     app.lastWindowClosed.connect(config.onClose)
