@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog</class>
+ <widget class="QDialog" name="Dialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>610</width>
+    <height>239</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Post Processing</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QVBoxLayout" name="verticalLayout_3">
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <item>
+        <layout class="QGridLayout" name="gridLayout">
+         <item row="2" column="1">
+          <widget class="QLabel" name="labelTimeWalkFileCentroided">
+           <property name="text">
+            <string>Time-walk File (centroided)</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLabel" name="labelTimeWalkFile">
+           <property name="text">
+            <string>Time-walk File</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="2">
+          <widget class="QLineEdit" name="lineEditTimeWalkFileCentroided"/>
+         </item>
+         <item row="0" column="3">
+          <widget class="QPushButton" name="pushButtonBrowseInputFiles">
+           <property name="text">
+            <string>Browse</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLabel" name="labelInputFiles">
+           <property name="text">
+            <string>Input File(s)</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="QLabel" name="labelOutputDirectory">
+           <property name="text">
+            <string>Output Directory</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
+          <widget class="QLineEdit" name="lineEditInputFiles">
+           <property name="toolTip">
+            <string>Semicolon separated list of filenames</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="3">
+          <widget class="QPushButton" name="pushButtonBrowseOutputDirectory">
+           <property name="text">
+            <string>Browse</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="2">
+          <widget class="QLineEdit" name="lineEditOutputDirectory"/>
+         </item>
+         <item row="5" column="3">
+          <widget class="QPushButton" name="pushButtonStartProcessing">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="font">
+            <font>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Start Processing</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2">
+          <widget class="QLineEdit" name="lineEditTimeWalkFile"/>
+         </item>
+         <item row="1" column="3">
+          <widget class="QPushButton" name="pushButtonBrowseTimeWalkFile">
+           <property name="text">
+            <string>Browse</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="3">
+          <widget class="QPushButton" name="pushButtonBrowseTimeWalkFileCentroided">
+           <property name="text">
+            <string>Browse</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1" colspan="3">
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QProgressBar" name="progressBar">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="value">
+        <number>0</number>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

@@ -1,0 +1,445 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>459</width>
+    <height>831</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_6">
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="ImageView" name="image_view">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>80</verstretch>
+        </sizepolicy>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout_5">
+       <property name="sizeConstraint">
+        <enum>QLayout::SetFixedSize</enum>
+       </property>
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout">
+         <item>
+          <widget class="QLabel" name="label_3">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>12</pointsize>
+             <underline>true</underline>
+            </font>
+           </property>
+           <property name="text">
+            <string>Blobs per shot</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="rec_blobs">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>16</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>0</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_2">
+         <item>
+          <widget class="QLabel" name="label_4">
+           <property name="font">
+            <font>
+             <pointsize>12</pointsize>
+             <underline>true</underline>
+            </font>
+           </property>
+           <property name="text">
+            <string>Integrated Blobs</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="int_blobs">
+           <property name="font">
+            <font>
+             <pointsize>16</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>0</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QGridLayout" name="gridLayout">
+         <item row="2" column="0">
+          <widget class="QSpinBox" name="trig_avg_spin">
+           <property name="maximum">
+            <number>10</number>
+           </property>
+           <property name="singleStep">
+            <number>1</number>
+           </property>
+           <property name="value">
+            <number>0</number>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QCheckBox" name="avg_roi">
+           <property name="text">
+            <string>avg</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0" colspan="2">
+          <widget class="QLabel" name="int_blobs_roi">
+           <property name="font">
+            <font>
+             <pointsize>16</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>0</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0" colspan="2">
+          <widget class="QLabel" name="label_int_blobs_roi">
+           <property name="font">
+            <font>
+             <pointsize>12</pointsize>
+             <underline>true</underline>
+            </font>
+           </property>
+           <property name="text">
+            <string>Int. Blobs ROI</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_3">
+         <item>
+          <widget class="QLabel" name="label_5">
+           <property name="font">
+            <font>
+             <pointsize>12</pointsize>
+             <underline>true</underline>
+            </font>
+           </property>
+           <property name="text">
+            <string>cos theta</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="cos_theta">
+           <property name="font">
+            <font>
+             <pointsize>16</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>0</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_4">
+         <item>
+          <widget class="QLabel" name="label_9">
+           <property name="font">
+            <font>
+             <pointsize>12</pointsize>
+             <underline>true</underline>
+            </font>
+           </property>
+           <property name="text">
+            <string>cos2 theta</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="cos2_theta">
+           <property name="font">
+            <font>
+             <pointsize>16</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>0</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>17</width>
+           <height>13</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox">
+         <property name="text">
+          <string>Histogram</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Binning</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="histo_binning">
+         <property name="minimum">
+          <number>8</number>
+         </property>
+         <property name="maximum">
+          <number>1024</number>
+         </property>
+         <property name="value">
+          <number>256</number>
+         </property>
+         <property name="displayIntegerBase">
+          <number>10</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="x0_label">
+         <property name="text">
+          <string>y0</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="x0_spin">
+         <property name="maximum">
+          <number>255</number>
+         </property>
+         <property name="value">
+          <number>127</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="y0_label">
+         <property name="text">
+          <string>x0</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="y0_spin">
+         <property name="maximum">
+          <number>255</number>
+         </property>
+         <property name="value">
+          <number>127</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="radius_label">
+         <property name="text">
+          <string>inner-radius</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="r_inner">
+         <property name="minimum">
+          <number>0</number>
+         </property>
+         <property name="maximum">
+          <number>255</number>
+         </property>
+         <property name="value">
+          <number>0</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>outer-radius</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="r_outer">
+         <property name="maximum">
+          <number>300</number>
+         </property>
+         <property name="value">
+          <number>300</number>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_6">
+     <item>
+      <widget class="QCheckBox" name="blob_trend_check">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="text">
+        <string>Show Blob Trend</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="roi_trend_check">
+       <property name="text">
+        <string>Show ROI trend</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="show_center">
+       <property name="text">
+        <string>Show Crosshair</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_6">
+     <item>
+      <widget class="PlotWidget" name="blob_trend">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>1100000</width>
+         <height>3000</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="PlotWidget" name="blob_trend_roi">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>1100000</width>
+         <height>3000</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>PlotWidget</class>
+   <extends>QGraphicsView</extends>
+   <header>pyqtgraph</header>
+  </customwidget>
+  <customwidget>
+   <class>ImageView</class>
+   <extends>QGraphicsView</extends>
+   <header>pyqtgraph</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
