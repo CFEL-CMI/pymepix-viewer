@@ -27,6 +27,8 @@ import time
 import platform
 
 import numpy as np
+import zmq
+import socket
 
 # force to load PyQt5 for systems where PyQt4 is still installed
 from PyQt5 import QtCore, QtGui
