@@ -124,7 +124,9 @@ class DaqConfigPanel(QtGui.QWidget, Ui_Form):
 
     @property
     def fileSaver(self):
-        return self._filesaver
+        pass
+        # TODO: check this, it should be obsolete
+        #return self._filesaver
 
     def connectSignals(self):
         # self.openpath.clicked.connect(self.openPath)

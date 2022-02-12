@@ -317,8 +317,10 @@ class BlobView(QtGui.QWidget, Ui_Form):
 
     def plotData(self):
         if not self._histogram_mode:
+            # prevent 0 division
+            divisor = self._matrix.max() if self._matrix.max() != 0 else 1e-16
             self.image_view.setImage(
-                self._matrix / self._matrix.max(),
+                self._matrix / divisor,
                 autoLevels=False,
                 autoRange=False,
                 autoHistogramRange=False,

@@ -337,10 +337,11 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         self._config_panel.proctab.samplesChanged.connect(self.setMinSamples)
         self._config_panel.proctab.totThresholdChanged.connect(self.setTotThreshold)
 
-        self.onRaw.connect(self._config_panel.fileSaver.onRaw)
-        self.onPixelToA.connect(self._config_panel.fileSaver.onToa)
-        self.onPixelToF.connect(self._config_panel.fileSaver.onTof)
-        self.onCentroid.connect(self._config_panel.fileSaver.onCentroid)
+        # TODO: filesave is obsolete and this can probably be delted, check
+        #self.onRaw.connect(self._config_panel.fileSaver.onRaw)
+        #self.onPixelToA.connect(self._config_panel.fileSaver.onToa)
+        #self.onPixelToF.connect(self._config_panel.fileSaver.onTof)
+        #self.onCentroid.connect(self._config_panel.fileSaver.onCentroid)
 
         self._statusUpdate = GenericThread(self.statusUdate)
         self.updateStatusSignal.connect(
