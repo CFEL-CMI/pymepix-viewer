@@ -103,16 +103,16 @@ class DaqConfigPanel(QtGui.QWidget, Ui_Form):
     def __init__(self, parent=None):
         super(DaqConfigPanel, self).__init__(parent)
 
+        self._repeating_thread = None
+        self._filesaver = FileSaver()
+        self.closeFile.connect(self._filesaver.closeFiles)
+        self._filesaver.start()
+
         # Set up the user interface from Designer.
         self.setupUi(self)
 
         self._in_acq = False
         self.connectSignals()
-
-        self._repeating_thread = None
-        self._filesaver = FileSaver()
-        self.closeFile.connect(self._filesaver.closeFiles)
-        self._filesaver.start()
 
         self._elapsed_time_thread = QtCore.QTimer()
         self._elapsed_time = QtCore.QElapsedTimer()
