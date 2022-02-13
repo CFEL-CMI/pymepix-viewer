@@ -321,18 +321,6 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         queue_size_update_timer.timeout.connect(self.updatePacketProcessorOutputQueueSize)
         queue_size_update_timer.start(500)
 
-    def updatePacketProcessorOutputQueueSize(self):
-        queue_size = -1
-        if platform.system() is not 'Darwin': # qsize does not work for MacOS, see: https://docs.python.org/3/library/multiprocessing.html#multiprocessing.Queue.qsize
-            packet_processor = self._timepix[0].acquisition.getStage(2)
-            queue_size = packet_processor.outputQueue.qsize()
-        self._config_panel.proctab.queue_size_changed.emit(queue_size)
-        if queue_size > QUEUE_SIZE_WARNING_LIMIT and not self.queue_size_warning_displayed:
-            self.show_slow_processing_warning_sig.emit(queue_size)
-            self.queue_size_warning_displayed = True
-        elif queue_size < QUEUE_SIZE_WARNING_LIMIT and self.queue_size_warning_displayed:
-            self.queue_size_warning_displayed = False
-
     def show_slow_processing_warning(self, queue_size):
         QtGui.QMessageBox.warning(
             self, "Slow processing - Centroiding lags behind.", 
