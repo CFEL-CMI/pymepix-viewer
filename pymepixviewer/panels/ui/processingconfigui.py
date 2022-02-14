@@ -6,7 +6,8 @@
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtWidgets
+
 
 class Ui_Form(object):
     def setupUi(self, Form):
@@ -23,7 +24,9 @@ class Ui_Form(object):
         self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_4.setObjectName("horizontalLayout_4")
         self.label_6 = QtWidgets.QLabel(self.groupBox_3)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label_6.sizePolicy().hasHeightForWidth())
@@ -37,7 +40,9 @@ class Ui_Form(object):
         self.max_event_window.setObjectName("max_event_window")
         self.horizontalLayout_4.addWidget(self.max_event_window)
         self.label_10 = QtWidgets.QLabel(self.groupBox_3)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label_10.sizePolicy().hasHeightForWidth())
@@ -75,10 +80,14 @@ class Ui_Form(object):
         self.label_9.setObjectName("label_9")
         self.horizontalLayout_6.addWidget(self.label_9)
         self.number_processes = QtWidgets.QLineEdit(self.groupBox_4)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.number_processes.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.number_processes.sizePolicy().hasHeightForWidth()
+        )
         self.number_processes.setSizePolicy(sizePolicy)
         self.number_processes.setObjectName("number_processes")
         self.horizontalLayout_6.addWidget(self.number_processes)
@@ -117,7 +126,9 @@ class Ui_Form(object):
         self.verticalLayout_3.addLayout(self.horizontalLayout_10)
         self.verticalLayout_4.addWidget(self.groupBox_4)
         self.verticalLayout.addLayout(self.verticalLayout_4)
-        spacerItem = QtWidgets.QSpacerItem(20, 44, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        spacerItem = QtWidgets.QSpacerItem(
+            20, 44, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
+        )
         self.verticalLayout.addItem(spacerItem)
 
         self.retranslateUi(Form)
@@ -136,13 +147,36 @@ class Ui_Form(object):
         self.label_queue_size.setText(_translate("Form", "Input Queue Size:"))
         self.lcd_queue_size.setToolTip(_translate("Form", "Not working with MacOS!"))
         self.label_7.setText(_translate("Form", "Triggers Processed:"))
-        self.triggers_processed.setToolTip(_translate("Form", "Process every nth trigger frame (1 means all are processed, 2 means every second is processed)"))
+        self.triggers_processed.setToolTip(
+            _translate(
+                "Form",
+                "Process every nth trigger frame (1 means all are processed, 2 means every second is processed)",
+            )
+        )
         self.label_9.setText(_translate("Form", "Number Processe:"))
-        self.number_processes.setToolTip(_translate("Form", "Number of processes used for centroiding (Press Enter to confirm)"))
+        self.number_processes.setToolTip(
+            _translate(
+                "Form",
+                "Number of processes used for centroiding (Press Enter to confirm)",
+            )
+        )
         self.label_11.setText(_translate("Form", "Epsilon:"))
-        self.epsilon.setToolTip(_translate("Form", "Describes the distance between events (DBSCAN parameter)"))
+        self.epsilon.setToolTip(
+            _translate(
+                "Form", "Describes the distance between events (DBSCAN parameter)"
+            )
+        )
         self.label_12.setText(_translate("Form", "Minimum Samples"))
-        self.min_samples.setToolTip(_translate("Form", "Minimum number of samples for a core cluster point (DBSCAN parameter)"))
+        self.min_samples.setToolTip(
+            _translate(
+                "Form",
+                "Minimum number of samples for a core cluster point (DBSCAN parameter)",
+            )
+        )
         self.label_8.setText(_translate("Form", "TOT threshold:"))
-        self.tot_threshold.setToolTip(_translate("Form", "Threshold on the TOT to improve the results and reduce the data volume"))
-
+        self.tot_threshold.setToolTip(
+            _translate(
+                "Form",
+                "Threshold on the TOT to improve the results and reduce the data volume",
+            )
+        )

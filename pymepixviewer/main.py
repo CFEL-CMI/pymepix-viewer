@@ -21,28 +21,32 @@
 #
 ##############################################################################
 
-import logging
 import os
-import time
+import logging
 import platform
+import time
+import argparse
 
 import numpy as np
 import zmq
 import socket
+import pymepix
+import pymepix.config.load_config as cfg
+from pymepix.config.sophyconfig import SophyConfig
+from pymepix.processing import MessageType
+from pymepix.processing.acquisition import CentroidPipeline
 
 # force to load PyQt5 for systems where PyQt4 is still installed
-from PyQt5 import QtCore, QtGui
+from PyQt5 import QtWidgets, QtCore, QtGui
 
-import pymepix
-from pymepix.processing import MessageType
 from pymepixviewer.core.datatypes import ViewerMode
 from pymepixviewer.dialogs.postprocessing import PostProcessing
 from pymepixviewer.panels.blobview import BlobView
 from pymepixviewer.panels.daqconfig import DaqConfigPanel
+from pymepixviewer.panels.editpixelmaskpanel import EditPixelMaskPanel
 from pymepixviewer.panels.timeofflight import TimeOfFlightPanel
 from pymepixviewer.panels.timepixsetupplotspanel import TimepixSetupPlotsPanel
 from pymepixviewer.ui.mainui import Ui_MainWindow
-from pyqtgraph.Qt import QtCore, QtGui
 
 
 logger = logging.getLogger(__name__)
@@ -66,7 +70,7 @@ class GenericThread(QtCore.QThread):
         return
 
 
-class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
+class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
     displayNow = QtCore.pyqtSignal()
     onRaw = QtCore.pyqtSignal(object)
     onPixelToA = QtCore.pyqtSignal(object)
@@ -160,6 +164,10 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         super(PymepixDAQ, self).__init__(parent)
         self.setupUi(self)
 
+        QtCore.QCoreApplication.setOrganizationName("CFEL-CMI")
+        QtCore.QCoreApplication.setOrganizationDomain("controlled-molecule-imaging.org")
+        QtCore.QCoreApplication.setApplicationName("Pymepix Viewer")
+
         self.queue_size_warning_displayed = False
 
         self._current_mode = ViewerMode.TOA
@@ -177,9 +185,13 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         self._last_frame = 0.0
         self._last_update = 0
         self.connectSignals()
-        self.startupTimepix()
+        self.startupTimepix(timepix_ip)
 
-        time.sleep(1.0)
+        # Initialize SoPhy configuration manually, because the corresponding signal is connected after initialization of the LineEdit.
+        # This will load the selected SoPhy configuration file into the camera
+        self.__load_sophy_config_file(self._config_panel.acqtab.sophy_config.text())
+        self._config_panel.proctab.read_settings()
+
         self.onModeChange(ViewerMode.TOA)
         self._statusUpdate.start()
 
@@ -200,46 +212,43 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         if self._current_mode is ViewerMode.TOA:
             # self._timepix[0].setupAcquisition(pymepix.processing.PixelPipeline)
             self.__get_packet_processor().handle_events = False
-            logger.info("Switch to TOA mode, {}".format(self.__get_packet_processor().handle_events))
+            logger.info(
+                "Switch to TOA mode, {}".format(
+                    self.__get_packet_processor().handle_events
+                )
+            )
         elif self._current_mode is ViewerMode.TOF:
             # self._timepix[0].setupAcquisition(pymepix.processing.PixelPipeline)
             self.__get_packet_processor().handle_events = True
-            logger.info("Switch to TOF mode, {}".format(self.__get_packet_processor().handle_events))
+            logger.info(
+                "Switch to TOF mode, {}".format(
+                    self.__get_packet_processor().handle_events
+                )
+            )
         elif self._current_mode is ViewerMode.Centroid:
             # self._timepix[0].setupAcquisition(pymepix.processing.CentroidPipeline)
-            self.__get_packet_processor().handle_events  = True
+            self.__get_packet_processor().handle_events = True
             logger.info(
-                "Switch to Centroid mode, {}".format(self.__get_packet_processor().handle_events)
+                "Switch to Centroid mode, {}".format(
+                    self.__get_packet_processor().handle_events
+                )
             )
 
         time.sleep(2.0)
         self._timepix.start()
 
-    def startupTimepix(self):
+    def startupTimepix(self, timepix_ip):
 
-        self._timepix = pymepix.PymepixConnection(("192.168.1.10", 50000))
-        # self._timepix = pymepix.PymepixConnection(("127.0.0.1", 50000))
+        self._timepix = pymepix.PymepixConnection(
+            (timepix_ip, 50000), pipeline_class=CentroidPipeline
+        )
+        self._timepix.dataCallback = self.onData
 
         if len(self._timepix) == 0:
             logger.error("NO TIMEPIX DEVICES DETECTED")
             quit()
 
         logging.getLogger("pymepix").setLevel(logging.INFO)
-
-        self._timepix[0].setupAcquisition(pymepix.processing.CentroidPipeline)
-
-        # Initialize gui with current configuration of centroiding pipeline
-        self._config_panel.proctab.epsilon.setValue(self.__get_centroid_calculator().epsilon)
-        self._config_panel.proctab.min_samples.setValue(self.__get_centroid_calculator().min_samples)
-        self._config_panel.proctab.tot_threshold.setValue(self.__get_centroid_calculator().tot_threshold)
-        self._config_panel.proctab.number_processes.setText(str(self._timepix[0].acquisition.numBlobProcesses))
-        self._config_panel.proctab.init_event_window(self.__get_packet_processor().event_window)
-
-        # self._timepix.
-        self._timepix.dataCallback = self.onData
-        self._timepix[0].pixelThreshold = np.zeros(shape=(256, 256), dtype=np.uint8)
-        self._timepix[0].pixelMask = np.zeros(shape=(256, 256), dtype=np.uint8)
-        self._timepix[0].uploadPixels()
 
         logger.info(
             "Fine: {} Coarse: {}".format(
@@ -252,7 +261,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
         self._timepix.start()
 
-    def closeTimepix(self):
+    def onClose(self):
         self._timepix.stop()
 
     def setFineThreshold(self, value):
@@ -262,8 +271,13 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         self._timepix[0].Vthreshold_coarse = value
 
     def setEventWindow(self, event_window_min, event_window_max):
-        logger.info("Setting Event window {} {}".format(event_window_min, event_window_max))
-        self.__get_packet_processor().event_window = (event_window_min, event_window_max)
+        logger.info(
+            "Setting Event window {} {}".format(event_window_min, event_window_max)
+        )
+        self.__get_packet_processor().event_window = (
+            event_window_min,
+            event_window_max,
+        )
 
     def setTriggersProcessed(self, triggers_processed):
         logger.info("Setting centroid skip {}".format(triggers_processed))
@@ -295,25 +309,35 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
     def startPacketProcessorOutputQueueSizeTimer(self):
         queue_size_update_timer = QtCore.QTimer()
-        queue_size_update_timer.timeout.connect(self.updatePacketProcessorOutputQueueSize)
+        queue_size_update_timer.timeout.connect(
+            self.updatePacketProcessorOutputQueueSize
+        )
         queue_size_update_timer.start(500)
 
     def updatePacketProcessorOutputQueueSize(self):
         queue_size = -1
-        if platform.system() is not 'Darwin': # qsize does not work for MacOS, see: https://docs.python.org/3/library/multiprocessing.html#multiprocessing.Queue.qsize
+        if (
+            platform.system() != "Darwin"
+        ):  # qsize does not work for MacOS, see: https://docs.python.org/3/library/multiprocessing.html#multiprocessing.Queue.qsize
             packet_processor = self._timepix[0].acquisition.getStage(2)
             queue_size = packet_processor.outputQueue.qsize()
         self._config_panel.proctab.queue_size_changed.emit(queue_size)
-        if queue_size > QUEUE_SIZE_WARNING_LIMIT and not self.queue_size_warning_displayed:
+        if (
+            queue_size > QUEUE_SIZE_WARNING_LIMIT
+            and not self.queue_size_warning_displayed
+        ):
             self.show_slow_processing_warning_sig.emit(queue_size)
             self.queue_size_warning_displayed = True
-        elif queue_size < QUEUE_SIZE_WARNING_LIMIT and self.queue_size_warning_displayed:
+        elif (
+            queue_size < QUEUE_SIZE_WARNING_LIMIT and self.queue_size_warning_displayed
+        ):
             self.queue_size_warning_displayed = False
 
     def show_slow_processing_warning(self, queue_size):
         QtGui.QMessageBox.warning(
-            self, "Slow processing - Centroiding lags behind.", 
-            QUEUE_SIZE_WARNING_TEXT.format(QUEUE_SIZE_WARNING_LIMIT, queue_size)
+            self,
+            "Slow processing - Centroiding lags behind.",
+            QUEUE_SIZE_WARNING_TEXT.format(QUEUE_SIZE_WARNING_LIMIT, queue_size),
         )
 
     def startPacketProcessorOutputQueueSizeTimer(self):
@@ -328,24 +352,41 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         )
 
     def connectSignals(self):
-        self.actionSophy_spx.triggered.connect(self.getfile)
         self.actionLaunchPostProcessing.triggered.connect(self.launchPostProcessing)
-        self.actionTimepixSetupPlotsPanel.triggered.connect(self.launchTimepixSetupPlotsPanel)
+        self.actionTimepixSetupPlotsPanel.triggered.connect(
+            self.launchTimepixSetupPlotsPanel
+        )
+
+        self.editPixelMask.setDisabled(
+            True
+        )  # Disabled until a configuration file has been loaded
+        self.editPixelMask.triggered.connect(self.launchEditPixelMask)
 
         self._config_panel.viewtab.updateRateChange.connect(self.onDisplayUpdate)
         self._config_panel.viewtab.eventCountChange.connect(self.onEventCountUpdate)
         self._config_panel.viewtab.frameTimeChange.connect(self.onFrameTimeUpdate)
         self._config_panel.acqtab.biasVoltageChange.connect(self.onBiasVoltageUpdate)
+        self._config_panel.acqtab.sophy_config.textChanged.connect(
+            self.__load_sophy_config_file
+        )
 
         self._config_panel.acqtab.fine_threshold.editingFinished.connect(
-            lambda: self.setFineThreshold(self._config_panel.acqtab.fine_threshold.value())
+            lambda: self.setFineThreshold(
+                self._config_panel.acqtab.fine_threshold.value()
+            )
         )
         self._config_panel.acqtab.coarse_threshold.editingFinished.connect(
-            lambda: self.setCoarseThreshold(self._config_panel.acqtab.coarse_threshold.value())
+            lambda: self.setCoarseThreshold(
+                self._config_panel.acqtab.coarse_threshold.value()
+            )
         )
 
-        self.fineThresholdUpdate.connect(self._config_panel.acqtab.fine_threshold.setValue)
-        self.coarseThresholdUpdate.connect(self._config_panel.acqtab.coarse_threshold.setValue)
+        self.fineThresholdUpdate.connect(
+            self._config_panel.acqtab.fine_threshold.setValue
+        )
+        self.coarseThresholdUpdate.connect(
+            self._config_panel.acqtab.coarse_threshold.setValue
+        )
         self._config_panel.viewtab.modeChange.connect(self.onModeChange)
         self.displayNow.connect(self._tof_panel.displayTof)
         self.onPixelToF.connect(self._tof_panel.onEvent)
@@ -367,10 +408,16 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
         self._config_panel.viewtab.resetPlots.connect(self.clearNow.emit)
         self._config_panel.proctab.eventWindowChanged.connect(self.setEventWindow)
-        
-        self._config_panel.proctab.numberProcessesChanged.connect(self.setNumberProcesses)
-        self._config_panel.proctab.triggersProcessedChanged.connect(self.setTriggersProcessed)
-        self._config_panel.proctab.triggersProcessedChanged.connect(self._overview_panel.setTriggersProcessed)
+
+        self._config_panel.proctab.numberProcessesChanged.connect(
+            self.setNumberProcesses
+        )
+        self._config_panel.proctab.triggersProcessedChanged.connect(
+            self.setTriggersProcessed
+        )
+        self._config_panel.proctab.triggersProcessedChanged.connect(
+            self._overview_panel.setTriggersProcessed
+        )
         self._config_panel.proctab.epsilonChanged.connect(self.setEpsilon)
         self._config_panel.proctab.samplesChanged.connect(self.setMinSamples)
         self._config_panel.proctab.totThresholdChanged.connect(self.setTotThreshold)
@@ -381,7 +428,9 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         self.onCentroid.connect(self._config_panel.fileSaver.onCentroid)
 
         self._statusUpdate = GenericThread(self.statusUdate)
-        self.updateStatusSignal.connect(lambda msg: self.statusbar.showMessage(msg, 5000))
+        self.updateStatusSignal.connect(
+            lambda msg: self.statusbar.showMessage(msg, 5000)
+        )
 
         self.start_acq_sig.connect(self.start_recording)
         self.stop_acq_sig.connect(self.stop_recording)
@@ -396,11 +445,25 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         dialog.exec_()
         self._timepix.start()
 
+    def launchEditPixelMask(self):
+        panel = EditPixelMaskPanel(self._timepix[0].config, self)
+
+        self.onPixelToA.connect(panel.onToaData)
+        self.onPixelToF.connect(panel.onTofData)
+        self.onCentroid.connect(panel.onCentroidData)
+
+        panel.onCloseEvent.connect(self.__load_sophy_config)
+
+        self.addDockWidget(QtCore.Qt.RightDockWidgetArea, panel)
+        panel.setFloating(True)
+
     def launchTimepixSetupPlotsPanel(self):
         self._timepix_setup_plots_panel = TimepixSetupPlotsPanel(self)
         self.onCentroid.connect(self._timepix_setup_plots_panel.on_centroid)
         self.onPixelToF.connect(self._timepix_setup_plots_panel.on_event)
-        self.addDockWidget(QtCore.Qt.RightDockWidgetArea, self._timepix_setup_plots_panel)
+        self.addDockWidget(
+            QtCore.Qt.RightDockWidgetArea, self._timepix_setup_plots_panel
+        )
         self._timepix_setup_plots_panel.setFloating(True)
 
     def onBiasVoltageUpdate(self, value):
@@ -453,11 +516,17 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         #     self.clearNow.emit()
 
         if self._current_mode is ViewerMode.TOA:
-            if self._frame_time >= 0 and (check_update - self._last_frame) > self._frame_time:
+            if (
+                self._frame_time >= 0
+                and (check_update - self._last_frame) > self._frame_time
+            ):
                 self.clearNow.emit()
                 self._last_frame = time.time()
 
-        if self._current_mode in (ViewerMode.TOF, ViewerMode.Centroid,) and data_type in (
+        if self._current_mode in (
+            ViewerMode.TOF,
+            ViewerMode.Centroid,
+        ) and data_type in (
             MessageType.EventData,
             MessageType.CentroidData,
         ):
@@ -501,20 +570,13 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
             path = "./"  # for raw2disk to recognise it as a filename
         fName = f"{self._config_panel.acqtab.file_prefix.text()}"
         self._fileName = os.path.join(path, fName)
+        path = self._config_panel.acqtab.get_path()
 
         self._timepix._spidr.resetTimers()
         self._timepix._spidr.restartTimers()
         time.sleep(1)  # give camera time to reset timers
 
-        pipeline = self._timepix._timepix_devices[0]._acquisition_pipeline._stages[0]
-        pipeline._pipeline_objects[0].record = True
-        pipeline.udp_sock.send_string(self._fileName)
-        res = pipeline.udp_sock.recv_string()
-        if res == "OPENED":
-            self._fileName = pipeline.udp_sock.recv_string()
-            logger.debug(f"Recording for {self._fileName} started")
-        else:
-            logger.warning(f"did not open {res}")
+        self._timepix._timepix_devices[0].start_recording(path)
 
         # setup GUI
         self._config_panel.start_acq.setStyleSheet("QPushButton {color: red;}")
@@ -525,14 +587,7 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         self._config_panel._elapsed_time.restart()
 
     def stop_recording(self):
-        pipeline = self._timepix._timepix_devices[0]._acquisition_pipeline._stages[0]
-        pipeline._pipeline_objects[0].record = False
-        pipeline._pipeline_objects[0].close_file = True
-        res = pipeline.udp_sock.recv_string()
-        if res == "CLOSED":
-            logger.info(f"file {self._fileName} closed")
-        else:
-            logger.warning(f"problem, {res}")
+        self._timepix._timepix_devices[0].stop_recording()
 
         # update GUI
         self._config_panel.start_acq.setStyleSheet("QPushButton {color: black;}")
@@ -540,17 +595,6 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         self._config_panel.end_acq.setEnabled(False)
         self._config_panel.start_acq.setText("Start Recording")
         self._config_panel._in_acq = False
-
-    # def start_recording(self,pathname,prefixname,do_raw,do_blob,exposure,startindex):
-    #     self._timepix.filePath=pathname
-    #     self._timepix.filePrefix = prefixname
-    #     self._timepix.eventWindowTime = exposure
-
-    #     logger.debug('Do raw',do_raw,'Do_blob',do_blob)
-    #     self._timepix.beginFileWrite(write_raw=do_raw,write_blob=do_blob,start_index=startindex)
-
-    # def stop_recording(self):
-    #     self._timepix.stopFileWrite()
 
     def addViewWidget(self, name, start, end):
         if name in self._view_widgets:
@@ -573,33 +617,32 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
             self.modeChange.connect(blob_view.modeChange)
             self.addDockWidget(QtCore.Qt.RightDockWidgetArea, dock_view)
 
-    def getfile(self):
-        fname = QtGui.QFileDialog.getOpenFileName(self, "Open file", "/home", "SoPhy File (*.spx)")
-        logger.debug(fname)
+    def __load_sophy_config(self, config: SophyConfig):
+        self.__load_sophy_config_file(config.filename)
 
-        if fname[0] == "":
-            return
+    def __load_sophy_config_file(self, config_filename):
+        if config_filename is not None and config_filename != "":
+            self._timepix.stop()
 
-        self._timepix.stop()
+            try:
+                self._timepix[0].setConfigClass(pymepix.config.SophyConfig)
+                self._timepix[0].loadConfig(config_filename)
+                self.editPixelMask.setDisabled(False)
+            except FileNotFoundError:
+                QtGui.QMessageBox.warning(
+                    None,
+                    "Sophy config file not found",
+                    f"File with name {config_filename} not found",
+                    QtGui.QMessageBox.Ok,
+                    QtGui.QMessageBox.Ok,
+                )
 
-        try:
-            self._timepix[0].setConfigClass(pymepix.config.SophyConfig)
-            self._timepix[0].loadConfig(fname[0])
-        except FileNotFoundError:
-            QtGui.QMessageBox.warning(
-                None,
-                "File not found",
-                "File with name {} not found".format(fname[0]),
-                QtGui.QMessageBox.Ok,
-                QtGui.QMessageBox.Ok,
-            )
+            self.coarseThresholdUpdate.emit(self._timepix[0].Vthreshold_coarse)
+            self.fineThresholdUpdate.emit(self._timepix[0].Vthreshold_fine)
 
-        self.coarseThresholdUpdate.emit(self._timepix[0].Vthreshold_coarse)
-        self.fineThresholdUpdate.emit(self._timepix[0].Vthreshold_fine)
+            self._timepix.start()
 
-        self._timepix.start()
-
-        self.clearNow.emit()
+            self.clearNow.emit()
 
     def onRoiChange(self, name, start, end):
         logger.debug("ROICHANGE", name, start, end)
@@ -615,19 +658,22 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
         self._tof_panel = TimeOfFlightPanel()
         self._config_panel = DaqConfigPanel()
         self._overview_panel = BlobView()
-        self._dock_tof = QtGui.QDockWidget("Time of Flight", self)
+        self._dock_tof = QtWidgets.QDockWidget("Time of Flight", self)
         self._dock_tof.setFeatures(
-            QtGui.QDockWidget.DockWidgetMovable | QtGui.QDockWidget.DockWidgetFloatable
+            QtWidgets.QDockWidget.DockWidgetMovable
+            | QtWidgets.QDockWidget.DockWidgetFloatable
         )
         self._dock_tof.setWidget(self._tof_panel)
-        self._dock_config = QtGui.QDockWidget("Daq Configuration", self)
+        self._dock_config = QtWidgets.QDockWidget("Daq Configuration", self)
         self._dock_config.setFeatures(
-            QtGui.QDockWidget.DockWidgetMovable | QtGui.QDockWidget.DockWidgetFloatable
+            QtWidgets.QDockWidget.DockWidgetMovable
+            | QtWidgets.QDockWidget.DockWidgetFloatable
         )
         self._dock_config.setWidget(self._config_panel)
-        self._dock_overview = QtGui.QDockWidget("Overview", self)
+        self._dock_overview = QtWidgets.QDockWidget("Overview", self)
         self._dock_overview.setFeatures(
-            QtGui.QDockWidget.DockWidgetMovable | QtGui.QDockWidget.DockWidgetFloatable
+            QtWidgets.QDockWidget.DockWidgetMovable
+            | QtWidgets.QDockWidget.DockWidgetFloatable
         )
         self._dock_overview.setWidget(self._overview_panel)
 
@@ -637,15 +683,27 @@ class PymepixDAQ(QtGui.QMainWindow, Ui_MainWindow):
 
 
 def main():
-    import logging
+    parser = argparse.ArgumentParser(description="Pymepix Viewer Application")
+
+    parser.add_argument(
+        "-i",
+        "--ip",
+        dest="ip",
+        type=str,
+        default=cfg.default_cfg["timepix"]["tpx_ip"],
+        help="IP address of Timepix",
+    )
+
+    args = parser.parse_args()
 
     logging.basicConfig(
-        level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
-    app = QtGui.QApplication([])
+    app = QtWidgets.QApplication([])
 
-    config = PymepixDAQ()
-    app.lastWindowClosed.connect(config.closeTimepix)
+    config = PymepixDAQ(args.ip)
+    app.lastWindowClosed.connect(config.onClose)
     config.show()
 
     app.exec_()

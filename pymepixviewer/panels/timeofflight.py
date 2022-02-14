@@ -57,6 +57,9 @@ class TimeOfFlightPanel(QtGui.QWidget, Ui_Form):
 
         self.connectSignals()
 
+        for roi_item in self._roi_model.load_settings():
+            self.tof_view.addItem(roi_item.RoiPlotItem)
+
     def connectSignals(self):
         self.add_roi.clicked.connect(self.onAddRoi)
         self.remove_roi.clicked.connect(self.onRemoveRoi)
@@ -103,7 +106,7 @@ class TimeOfFlightPanel(QtGui.QWidget, Ui_Form):
     def _updateTof(self, tof):
 
         y, x = np.histogram(
-            tof, np.linspace(self._tof_start, self._tof_end, self._tof_bin, dtype=np.float)
+            tof, np.linspace(self._tof_start, self._tof_end, self._tof_bin, dtype=np.float),
         )
         if self._histo_x is None:
             self._histo_x = x
@@ -126,7 +129,13 @@ class TimeOfFlightPanel(QtGui.QWidget, Ui_Form):
         if self._histo_x is None:
             return
         else:
-            self._tof_data.setData(x=self._histo_x, y=self._histo_y, stepMode='center', fillLevel=0, brush=(0, 0, 255, 150))
+            self._tof_data.setData(
+                x=self._histo_x,
+                y=self._histo_y,
+                stepMode="center",
+                fillLevel=0,
+                brush=(0, 0, 255, 150),
+            )
 
     def onRoiUpdate(self, name, start, end):
         self.roiUpdate.emit(name, start, end)
@@ -139,7 +148,9 @@ class TimeOfFlightPanel(QtGui.QWidget, Ui_Form):
             if create_roi.exec_() == QtGui.QDialog.Accepted:
                 name, start, end = create_roi.roiParams()
                 if name == "":
-                    QtGui.QMessageBox.warning(self, "Invalid name", "Please enter a name")
+                    QtGui.QMessageBox.warning(
+                        self, "Invalid name", "Please enter a name"
+                    )
                     continue
                 if self._roi_model.roiNameExists(name):
                     QtGui.QMessageBox.warning(
@@ -149,21 +160,27 @@ class TimeOfFlightPanel(QtGui.QWidget, Ui_Form):
                 else:
                     try:
                         start = float(start)
-                    except:
+                    except Exception:
                         QtGui.QMessageBox.warning(
-                            self, "Invalid start region", "Please enter a valid start region"
+                            self,
+                            "Invalid start region",
+                            "Please enter a valid start region",
                         )
                         continue
 
                     try:
                         end = float(end)
-                    except:
+                    except Exception:
                         QtGui.QMessageBox.warning(
-                            self, "Invalid end region", "Please enter a valid end region"
+                            self,
+                            "Invalid end region",
+                            "Please enter a valid end region",
                         )
                         continue
                     print("Adding roi")
-                    roi_item = self._roi_model.addRegionofInterest(name, start * 1e-6, end * 1e-6)
+                    roi_item = self._roi_model.addRegionofInterest(
+                        name, start * 1e-6, end * 1e-6
+                    )
 
                     self.tof_view.addItem(roi_item.RoiPlotItem)
 

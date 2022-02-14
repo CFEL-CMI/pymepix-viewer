@@ -6,7 +6,8 @@
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtWidgets
+
 
 class Ui_Form(object):
     def setupUi(self, Form):
@@ -20,6 +21,19 @@ class Ui_Form(object):
         self.groupBox_3.setObjectName("groupBox_3")
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.groupBox_3)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.label_sophy_config = QtWidgets.QLabel(self.groupBox_3)
+        self.label_sophy_config.setObjectName("label_sophy_config")
+        self.horizontalLayout.addWidget(self.label_sophy_config)
+        self.sophy_config = QtWidgets.QLineEdit(self.groupBox_3)
+        self.sophy_config.setEnabled(False)
+        self.sophy_config.setObjectName("sophy_config")
+        self.horizontalLayout.addWidget(self.sophy_config)
+        self.open_sophy_config = QtWidgets.QPushButton(self.groupBox_3)
+        self.open_sophy_config.setObjectName("open_sophy_config")
+        self.horizontalLayout.addWidget(self.open_sophy_config)
+        self.verticalLayout_2.addLayout(self.horizontalLayout)
         self.horizontalLayout_16 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_16.setObjectName("horizontalLayout_16")
         self.label_17 = QtWidgets.QLabel(self.groupBox_3)
@@ -105,6 +119,8 @@ class Ui_Form(object):
         _translate = QtCore.QCoreApplication.translate
         Form.setWindowTitle(_translate("Form", "Form"))
         self.groupBox_3.setTitle(_translate("Form", "Acquisition"))
+        self.label_sophy_config.setText(_translate("Form", "SoPhy Config"))
+        self.open_sophy_config.setText(_translate("Form", "Open"))
         self.label_17.setText(_translate("Form", "Bias Voltage"))
         self.bias_voltage.setSuffix(_translate("Form", " V"))
         self.label_19.setText(_translate("Form", "Fine Threshold  [0, 511]"))
@@ -115,7 +131,6 @@ class Ui_Form(object):
         )
         self.openpath.setText(_translate("Form", "Open"))
         self.label_7.setText(_translate("Form", "Prefix:"))
-        self.file_prefix.setToolTip(_translate("Form", "prefix must not contain \"_\""))
+        self.file_prefix.setToolTip(_translate("Form", 'prefix must not contain "_"'))
         self.file_prefix.setText(_translate("Form", "test"))
         self.label_14.setText(_translate("Form", "Index"))
-

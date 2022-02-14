@@ -8,6 +8,7 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from pyqtgraph import ImageView, PlotWidget
 
 
 class Ui_Form(object):
@@ -19,7 +20,9 @@ class Ui_Form(object):
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.image_view = ImageView(Form)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(80)
         sizePolicy.setHeightForWidth(self.image_view.sizePolicy().hasHeightForWidth())
@@ -32,7 +35,9 @@ class Ui_Form(object):
         self.verticalLayout = QtWidgets.QVBoxLayout()
         self.verticalLayout.setObjectName("verticalLayout")
         self.label_3 = QtWidgets.QLabel(Form)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label_3.sizePolicy().hasHeightForWidth())
@@ -45,7 +50,9 @@ class Ui_Form(object):
         self.label_3.setObjectName("label_3")
         self.verticalLayout.addWidget(self.label_3)
         self.rec_blobs = QtWidgets.QLabel(Form)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.rec_blobs.sizePolicy().hasHeightForWidth())
@@ -138,7 +145,9 @@ class Ui_Form(object):
         self.cos2_theta.setObjectName("cos2_theta")
         self.verticalLayout_4.addWidget(self.cos2_theta)
         self.verticalLayout_5.addLayout(self.verticalLayout_4)
-        spacerItem = QtWidgets.QSpacerItem(17, 13, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        spacerItem = QtWidgets.QSpacerItem(
+            17, 13, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
+        )
         self.verticalLayout_5.addItem(spacerItem)
         self.checkBox = QtWidgets.QCheckBox(Form)
         self.checkBox.setObjectName("checkBox")
@@ -206,7 +215,9 @@ class Ui_Form(object):
         self.horizontalLayout_61 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_61.setObjectName("horizontalLayout_61")
         self.blob_trend = PlotWidget(Form)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.blob_trend.sizePolicy().hasHeightForWidth())
@@ -215,10 +226,14 @@ class Ui_Form(object):
         self.blob_trend.setObjectName("blob_trend")
         self.horizontalLayout_61.addWidget(self.blob_trend)
         self.blob_trend_roi = PlotWidget(Form)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.blob_trend_roi.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.blob_trend_roi.sizePolicy().hasHeightForWidth()
+        )
         self.blob_trend_roi.setSizePolicy(sizePolicy)
         self.blob_trend_roi.setMaximumSize(QtCore.QSize(1100000, 3000))
         self.blob_trend_roi.setObjectName("blob_trend_roi")
@@ -251,4 +266,3 @@ class Ui_Form(object):
         self.blob_trend_check.setText(_translate("Form", "Show Blob Trend"))
         self.roi_trend_check.setText(_translate("Form", "Show ROI trend"))
         self.show_center.setText(_translate("Form", "Show Crosshair"))
-from pyqtgraph import ImageView, PlotWidget

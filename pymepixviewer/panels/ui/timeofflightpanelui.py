@@ -7,6 +7,7 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtWidgets
+from pyqtgraph import PlotWidget
 
 
 class Ui_Form(object):
@@ -20,7 +21,9 @@ class Ui_Form(object):
         self.horizontalLayout_4 = QtWidgets.QHBoxLayout(self.groupBox_3)
         self.horizontalLayout_4.setObjectName("horizontalLayout_4")
         self.tof_view = PlotWidget(self.groupBox_3)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.tof_view.sizePolicy().hasHeightForWidth())
@@ -37,7 +40,9 @@ class Ui_Form(object):
         self.verticalLayout = QtWidgets.QVBoxLayout(self.groupBox)
         self.verticalLayout.setObjectName("verticalLayout")
         self.roi_list = QtWidgets.QTreeView(self.groupBox)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.roi_list.sizePolicy().hasHeightForWidth())
@@ -68,7 +73,9 @@ class Ui_Form(object):
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
         self.label = QtWidgets.QLabel(self.groupBox_2)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
@@ -76,11 +83,15 @@ class Ui_Form(object):
         self.label.setObjectName("label")
         self.horizontalLayout_2.addWidget(self.label)
         self.event_start = QtWidgets.QLineEdit(self.groupBox_2)
-        self.event_start.setAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        self.event_start.setAlignment(
+            QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter
+        )
         self.event_start.setObjectName("event_start")
         self.horizontalLayout_2.addWidget(self.event_start)
         self.label_2 = QtWidgets.QLabel(self.groupBox_2)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label_2.sizePolicy().hasHeightForWidth())
@@ -91,7 +102,9 @@ class Ui_Form(object):
         self.event_end.setObjectName("event_end")
         self.horizontalLayout_2.addWidget(self.event_end)
         self.label_4 = QtWidgets.QLabel(self.groupBox_2)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label_4.sizePolicy().hasHeightForWidth())
@@ -102,7 +115,9 @@ class Ui_Form(object):
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
         self.label_3 = QtWidgets.QLabel(self.groupBox_2)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label_3.sizePolicy().hasHeightForWidth())
@@ -116,7 +131,9 @@ class Ui_Form(object):
         self.blob_tof = QtWidgets.QCheckBox(self.groupBox_2)
         self.blob_tof.setObjectName("blob_tof")
         self.verticalLayout_3.addWidget(self.blob_tof)
-        spacerItem = QtWidgets.QSpacerItem(20, 10, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
+        spacerItem = QtWidgets.QSpacerItem(
+            20, 10, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed
+        )
         self.verticalLayout_3.addItem(spacerItem)
         self.verticalLayout_4.addWidget(self.groupBox_2)
         self.update_config = QtWidgets.QPushButton(Form)
@@ -143,6 +160,3 @@ class Ui_Form(object):
         self.label_3.setText(_translate("Form", "Binning"))
         self.blob_tof.setText(_translate("Form", "Use Centroid TOF"))
         self.update_config.setText(_translate("Form", "Update"))
-
-
-from pyqtgraph import PlotWidget

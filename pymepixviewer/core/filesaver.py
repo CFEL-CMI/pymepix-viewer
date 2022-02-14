@@ -23,14 +23,14 @@
 import logging
 
 import numpy as np
-from pymepix.util.storage import open_output_file, store_raw, store_toa, store_tof, store_centroid
+from pymepix.util.storage import (open_output_file, store_centroid, store_raw,
+                                  store_toa, store_tof)
 from pyqtgraph.Qt import QtCore
 
 logger = logging.getLogger(__name__)
 
 
 class FileSaver(QtCore.QThread):
-
     def __init__(self):
         QtCore.QObject.__init__(self)
 
@@ -54,26 +54,26 @@ class FileSaver(QtCore.QThread):
     def openRaw(self, filename):
         if self._raw_file is not None:
             self._raw_file.close()
-        logger.info('Opening raw file :{}'.format(filename))
-        self._raw_file = open_output_file(filename, 'raw', index=self._index)
+        logger.info("Opening raw file :{}".format(filename))
+        self._raw_file = open_output_file(filename, "raw", index=self._index)
 
     def openToa(self, filename):
         if self._toa_file is not None:
             self._toa_file.close()
-        logger.info('Opening toa file :{}'.format(filename))
-        self._toa_file = open_output_file(filename, 'toa', index=self._index)
+        logger.info("Opening toa file :{}".format(filename))
+        self._toa_file = open_output_file(filename, "toa", index=self._index)
 
     def openTof(self, filename):
         if self._tof_file is not None:
             self._tof_file.close()
-        logger.info('Opening tof file :{}'.format(filename))
-        self._tof_file = open_output_file(filename, 'tof', index=self._index)
+        logger.info("Opening tof file :{}".format(filename))
+        self._tof_file = open_output_file(filename, "tof", index=self._index)
 
     def openBlob(self, filename):
         if self._blob_file is not None:
             self._blob_file.close()
-        logger.info('Opening blob file :{}'.format(filename))
-        self._blob_file = open_output_file(filename, 'blob', index=self._index)
+        logger.info("Opening blob file :{}".format(filename))
+        self._blob_file = open_output_file(filename, "blob", index=self._index)
         self._blob_x = []
         self._blob_shot = []
         self._blob_y = []
@@ -121,20 +121,20 @@ class FileSaver(QtCore.QThread):
 
     def closeFiles(self):
         if self._raw_file is not None:
-            logger.info('Closing raw file')
+            logger.info("Closing raw file")
             self._raw_file.close()
             self._raw_file = None
         if self._blob_file is not None:
-            logger.info('Closing blob file')
+            logger.info("Closing blob file")
             if len(self._blob_shot) > 0:
                 store_centroid(self._blob_file, self.convertBlobs())
             self._blob_file.close()
             self._blob_file = None
         if self._tof_file is not None:
-            logger.info('Closing tof file')
+            logger.info("Closing tof file")
             self._tof_file.close()
             self._tof_file = None
         if self._toa_file is not None:
-            logger.info('Closing toa file')
+            logger.info("Closing toa file")
             self._toa_file.close()
             self._toa_file = None

@@ -22,7 +22,9 @@ class Ui_Form(object):
         self.horizontalLayout_17 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_17.setObjectName("horizontalLayout_17")
         self.label_18 = QtWidgets.QLabel(self.groupBox)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label_18.sizePolicy().hasHeightForWidth())
@@ -30,7 +32,9 @@ class Ui_Form(object):
         self.label_18.setObjectName("label_18")
         self.horizontalLayout_17.addWidget(self.label_18)
         self.mode_box = QtWidgets.QComboBox(self.groupBox)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.mode_box.sizePolicy().hasHeightForWidth())
@@ -76,7 +80,9 @@ class Ui_Form(object):
         self.frame_time.setObjectName("frame_time")
         self.frametimelayout.addWidget(self.frame_time)
         self.time_multi = QtWidgets.QComboBox(self.framelayout)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.time_multi.sizePolicy().hasHeightForWidth())
@@ -104,7 +110,9 @@ class Ui_Form(object):
         self.reset_plots.setObjectName("reset_plots")
         self.verticalLayout.addWidget(self.reset_plots)
         self.verticalLayout_2.addWidget(self.groupBox)
-        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        spacerItem = QtWidgets.QSpacerItem(
+            20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
+        )
         self.verticalLayout_2.addItem(spacerItem)
 
         self.retranslateUi(Form)

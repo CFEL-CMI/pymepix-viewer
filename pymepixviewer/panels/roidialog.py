@@ -26,7 +26,6 @@ from .ui.roidialogui import Ui_Dialog
 
 
 class RoiDialog(QtGui.QDialog, Ui_Dialog):
-
     def __init__(self, parent=None):
         super(RoiDialog, self).__init__(parent)
 
@@ -40,7 +39,6 @@ class RoiDialog(QtGui.QDialog, Ui_Dialog):
 
 
 def main():
-    app = QtGui.QApplication([])
     tof = RoiDialog()
     if tof.exec_() == QtGui.QDialog.Accepted:
         print(tof.roiParams())
