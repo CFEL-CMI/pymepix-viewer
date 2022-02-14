@@ -111,7 +111,7 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         """Function to provide a simple remote interface for the GUI using ZMQ"""
         self.rest_sock = self.ctx.socket(zmq.REP)
         self.rest_sock.connect("tcp://localhost:9033")
-        logger.info(f"API server bind on {socket.gethostbyname(socket.gethostname())}:9033")
+        logger.info(f"API server bind on tcp://localhost:9033")
 
         run_server = True
         while run_server:
@@ -160,7 +160,7 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
                 response = {"result": "UNKNOWN_COMMAND"}
                 self.rest_sock.send_json(response)
 
-    def __init__(self, parent=None):
+    def __init__(self, timepix_ip, parent=None):    
         super(PymepixDAQ, self).__init__(parent)
         self.setupUi(self)
 
