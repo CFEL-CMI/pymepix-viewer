@@ -240,8 +240,12 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def startupTimepix(self, timepix_ip):
 
+        # get TPX port for camera, if not specified in config, use default / 0
+        pc_port = cfg.default_cfg.get('timepix').get('pc_port', 0)
         self._timepix = pymepix.PymepixConnection(
-            (timepix_ip, 50000), pipeline_class=CentroidPipeline
+            spidr_address=(timepix_ip, 50000),
+            src_ip_port=(cfg.default_cfg['timepix']['pc_ip'], pc_port),
+            pipeline_class=CentroidPipeline
         )
         self._timepix.dataCallback = self.onData
 
@@ -686,6 +690,19 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
 def main():
     parser = argparse.ArgumentParser(description="Pymepix Viewer Application")
 
+    # first try to get parameters from config file
+    parser.add_argument(
+        "-c",
+        "--config",
+        dest="cfg",
+        type=str,
+        default="default.yaml",
+        help="Config file",
+    )
+    args = parser.parse_args()
+    cfg.load_config(args.cfg)
+
+    # load remaining args and set default parameters from config
     parser.add_argument(
         "-i",
         "--ip",
