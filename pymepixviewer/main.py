@@ -110,8 +110,8 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
     def api_server(self):
         """Function to provide a simple remote interface for the GUI using ZMQ"""
         self.rest_sock = self.ctx.socket(zmq.REP)
-        self.rest_sock.connect("tcp://localhost:9033")
-        logger.info(f"API server bind on tcp://localhost:9033")
+        self.rest_sock.connect(f"tcp://localhost:{self._api_port}")
+        logger.info(f"API server bind on tcp://localhost:{self._api_port}")
 
         run_server = True
         while run_server:
@@ -160,7 +160,7 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
                 response = {"result": "UNKNOWN_COMMAND"}
                 self.rest_sock.send_json(response)
 
-    def __init__(self, timepix_ip, parent=None):    
+    def __init__(self, timepix_ip, api_port, parent=None):
         super(PymepixDAQ, self).__init__(parent)
         self.setupUi(self)
 
@@ -196,11 +196,12 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         self._statusUpdate.start()
 
         self.ctx = zmq.Context.instance()
+        self._api_port = api_port
         self._api_server.start()
 
     def closeEvent(self, event):
         sock = self.ctx.socket(zmq.PUSH)
-        sock.connect("tcp://127.0.0.1:9033")
+        sock.connect(f"tcp://127.0.0.1:{self._api_port}")
         sock.send_string("STOP API SERVER")
         time.sleep(0.5)
         sock.close()
@@ -693,8 +694,16 @@ def main():
         default=cfg.default_cfg["timepix"]["tpx_ip"],
         help="IP address of Timepix",
     )
-
+    parser.add_argument(
+        "-p",
+        "--port",
+        dest="port",
+        type=int,
+        default=cfg.default_cfg.get('tango_api').get('port') if cfg.default_cfg.get('tango_api') else 9333,
+        help="Port of Tango-Pymepix server",
+    )
     args = parser.parse_args()
+    cfg.load_config(args.cfg)
 
     logging.basicConfig(
         level=logging.INFO,
@@ -702,7 +711,7 @@ def main():
     )
     app = QtWidgets.QApplication([])
 
-    config = PymepixDAQ(args.ip)
+    config = PymepixDAQ(args.ip, args.port)
     app.lastWindowClosed.connect(config.onClose)
     config.show()
 
