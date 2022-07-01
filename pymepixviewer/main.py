@@ -241,10 +241,10 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
     def startupTimepix(self, timepix_ip):
 
         # get TPX port for camera, if not specified in config, use default / 0
-        pc_port = cfg.default_cfg.get('timepix').get('pc_port', 0)
+        udp_port = cfg.default_cfg.get('timepix').get('udp_port', 0)
         self._timepix = pymepix.PymepixConnection(
             spidr_address=(timepix_ip, 50000),
-            src_ip_port=(cfg.default_cfg['timepix']['pc_ip'], pc_port),
+            src_ip_port=(cfg.default_cfg['timepix']['pc_ip'], udp_port),
             pipeline_class=CentroidPipeline
         )
         self._timepix.dataCallback = self.onData
