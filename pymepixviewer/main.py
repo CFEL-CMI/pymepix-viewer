@@ -474,8 +474,22 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
             # self.displayNow.emit()
             self._last_update = time.time()
 
+    def save_cam_settings(self, path):
+        spath = path.replace(".raw", ".cam")
+        settings = QtCore.QSettings(spath, QtCore.QSettings.IniFormat)
+
+        print(settings.fileName())
+
+        settings.beginGroup("acqconfig/camera_settings")
+        settings.setValue('bias_voltage', float(self._config_panel.acqtab.bias_voltage.value()))
+        settings.setValue('coarse_threshold', float(self._config_panel.acqtab.coarse_threshold.value()))
+        settings.setValue('fine_threshold', float(self._config_panel.acqtab.fine_threshold.value()))
+        settings.endGroup()
+
+
     def start_recording(self):
         path = self._config_panel.acqtab.get_path()
+        self.save_cam_settings(path)
 
         self._timepix._spidr.resetTimers()
         self._timepix._spidr.restartTimers()
