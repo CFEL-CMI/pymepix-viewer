@@ -109,6 +109,7 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         self.queue_size_warning_displayed = False
 
         self._current_mode = ViewerMode.TOA
+
         self.setupWindow()
 
         self._view_widgets = {}
@@ -135,7 +136,15 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def switchToMode(self):
         self._timepix.stop()
-        if self._current_mode is ViewerMode.TOA:
+        if True: #self._current_mode is ViewerMode.ViewerMode.Trig:
+            # self._timepix[0].setupAcquisition(pymepix.processing.PixelPipeline)
+            self.__get_packet_processor().handle_events = True
+            logger.info(
+                "Switch to TOA mode, {}".format(
+                    self.__get_packet_processor().handle_events
+                )
+            )
+        elif self._current_mode is ViewerMode.TOA:
             # self._timepix[0].setupAcquisition(pymepix.processing.PixelPipeline)
             self.__get_packet_processor().handle_events = False
             logger.info(
@@ -415,11 +424,19 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def onData(self, data_type, event):
 
+        print(data_type)
+        for it in event:
+            #print(type(it))
+            #print(it.shape)
+            print(it[0:15])
+        print()
+
         # if self._event_max != -1 and self._current_event_count > self._event_max:
         #     self.clearNow.emit()
         #     self._current_event_count = 0
 
         # event_shots = event[4]
+
         check_update = time.time()
 
         # if data_type in (MessageType.PixelData,):
@@ -474,8 +491,22 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
             # self.displayNow.emit()
             self._last_update = time.time()
 
+    def save_cam_settings(self, path):
+        spath = path.replace(".raw", ".cam")
+        settings = QtCore.QSettings(spath, QtCore.QSettings.IniFormat)
+
+        print(settings.fileName())
+
+        settings.beginGroup("acqconfig/camera_settings")
+        settings.setValue('bias_voltage', float(self._config_panel.acqtab.bias_voltage.value()))
+        settings.setValue('coarse_threshold', float(self._config_panel.acqtab.coarse_threshold.value()))
+        settings.setValue('fine_threshold', float(self._config_panel.acqtab.fine_threshold.value()))
+        settings.endGroup()
+
+
     def start_recording(self):
         path = self._config_panel.acqtab.get_path()
+        self.save_cam_settings(path)
 
         self._timepix._spidr.resetTimers()
         self._timepix._spidr.restartTimers()

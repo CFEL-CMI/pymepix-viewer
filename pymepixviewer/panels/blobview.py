@@ -299,6 +299,8 @@ class BlobView(QtGui.QWidget, Ui_Form):
             self.updateBlobData(cluster_shot, cluster_x, cluster_y, cluster_tof)
 
     def onEvent(self, event):
+        print('IN ONEVENT')
+        print('self._current_mode: ', self._current_mode)
         if (
             self._current_mode
             in (
@@ -309,6 +311,9 @@ class BlobView(QtGui.QWidget, Ui_Form):
         ):
             counter, x, y, tof, tot = event
             self.updateMatrix(x, y, tof, tot)
+        elif self._current_mode == ViewerMode.Trig:
+            print('GOT EVENT DATA')
+            pass
 
     def onToA(self, event):
         if self._current_mode in (ViewerMode.TOA,):
