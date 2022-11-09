@@ -136,11 +136,11 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def switchToMode(self):
         self._timepix.stop()
-        if True: #self._current_mode is ViewerMode.ViewerMode.Trig:
+        if self._current_mode is ViewerMode.Trig:
             # self._timepix[0].setupAcquisition(pymepix.processing.PixelPipeline)
             self.__get_packet_processor().handle_events = True
             logger.info(
-                "Switch to TOA mode, {}".format(
+                "Switch to Trig mode, {}".format(
                     self.__get_packet_processor().handle_events
                 )
             )
@@ -404,7 +404,8 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
     def onModeChange(self, value):
         logger.info("Viewer mode changed to {}".format(value))
         self._current_mode = value
-        if self._current_mode is ViewerMode.TOA:
+        if self._current_mode in (ViewerMode.TOA,\
+                                  ViewerMode.Trig):
             # Hide TOF panel
             self._dock_tof.hide()
             for k, view in self._view_widgets.items():
@@ -424,12 +425,12 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def onData(self, data_type, event):
 
-        print(data_type)
-        for it in event:
+        #print(data_type)
+        #for it in event:
             #print(type(it))
             #print(it.shape)
-            print(it[0:15])
-        print()
+        #    print(it[0:15])
+        #print()
 
         # if self._event_max != -1 and self._current_event_count > self._event_max:
         #     self.clearNow.emit()

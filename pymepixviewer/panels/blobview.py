@@ -196,6 +196,9 @@ class BlobView(QtGui.QWidget, Ui_Form):
 
         self._matrix[x[tof_filter], y[tof_filter]] += 1.0
 
+    def clearMatrix(self):
+        self._matrix[:,:] = 0
+
     def onRegionChange(self, start, end):
         self._start_tof = start
         self._end_tof = end
@@ -299,8 +302,6 @@ class BlobView(QtGui.QWidget, Ui_Form):
             self.updateBlobData(cluster_shot, cluster_x, cluster_y, cluster_tof)
 
     def onEvent(self, event):
-        print('IN ONEVENT')
-        print('self._current_mode: ', self._current_mode)
         if (
             self._current_mode
             in (
@@ -312,13 +313,23 @@ class BlobView(QtGui.QWidget, Ui_Form):
             counter, x, y, tof, tot = event
             self.updateMatrix(x, y, tof, tot)
         elif self._current_mode == ViewerMode.Trig:
-            print('GOT EVENT DATA')
-            pass
+            x, y, toa, tot = self.get_max_voxels_triggerdata(event)
+            self.clearMatrix()
+            self.updateMatrix(x, y, toa, tot)
 
     def onToA(self, event):
         if self._current_mode in (ViewerMode.TOA,):
             x, y, toa, tot = event
             self.updateMatrix(x, y, toa, tot)
+
+    def get_max_voxels_triggerdata(self, event):
+        shots, x, y, tof, tot = event
+        _, unique_trig_nr_indices, unique_trig_nr_counts = np.unique(
+            shots, return_index=True, return_counts=True
+        )
+        max_trig_indxs = tuple([shots == shots[np.argmax(unique_trig_nr_counts)]])
+        return x[max_trig_indxs], y[max_trig_indxs], tof[max_trig_indxs], tot[max_trig_indxs],
+
 
     def plotData(self):
         if not self._histogram_mode:
