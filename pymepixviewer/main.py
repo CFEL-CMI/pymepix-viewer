@@ -33,6 +33,8 @@ from pymepix.processing.acquisition import CentroidPipeline
 
 # force to load PyQt5 for systems where PyQt4 is still installed
 from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt5.QtCore import QRegExp
+from PyQt5.QtGui import QRegExpValidator
 
 from pymepixviewer.core.datatypes import ViewerMode
 from pymepixviewer.dialogs.postprocessing import PostProcessing
@@ -78,6 +80,10 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
     coarseThresholdUpdate = QtCore.pyqtSignal(float)
 
     show_slow_processing_warning_sig = QtCore.pyqtSignal(int)
+
+    _acquisition_time = 0
+
+    _acquisition_timer = QtCore.QTimer()
 
     def statusUdate(self):
         logger.info("Starting status update thread")
@@ -133,6 +139,7 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self.onModeChange(ViewerMode.TOA)
         self._statusUpdate.start()
+
 
     def switchToMode(self):
         self._timepix.stop()
@@ -328,7 +335,6 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         self.modeChange.connect(self._overview_panel.modeChange)
 
         self._config_panel.start_acq.clicked.connect(self.start_recording)
-        self._config_panel.end_acq.clicked.connect(self.stop_recording)
 
         self._config_panel.viewtab.resetPlots.connect(self.clearNow.emit)
         self._config_panel.proctab.eventWindowChanged.connect(self.setEventWindow)
@@ -357,6 +363,14 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         )
 
         self.show_slow_processing_warning_sig.connect(self.show_slow_processing_warning)
+
+        reg_ex = QRegExp("[0-9]+")
+        input_validator = QRegExpValidator(reg_ex, self._config_panel.acquisitiontime)
+        self._config_panel.acquisitiontime.setValidator(input_validator)
+        self._config_panel.acquisitiontime.setText('0')
+        self._config_panel.acquisitiontime.editingFinished.connect(self.update_acquisition_time)
+
+        self._acquisition_timer.timeout.connect(self.stop_recording)
 
     def launchPostProcessing(self):
         self._timepix.stop()
@@ -504,8 +518,13 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         settings.setValue('fine_threshold', float(self._config_panel.acqtab.fine_threshold.value()))
         settings.endGroup()
 
+    def update_acquisition_time(self):
+        self.acquisition_time = int(self._config_panel.acquisitiontime.text())
 
     def start_recording(self):
+
+        print("In start Recording")
+
         path = self._config_panel.acqtab.get_path()
         self.save_cam_settings(path)
 
@@ -517,21 +536,37 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # setup GUI
         self._config_panel.start_acq.setStyleSheet("QPushButton {color: red;}")
-        self._config_panel.start_acq.setEnabled(False)
-        self._config_panel.end_acq.setEnabled(True)
-        self._config_panel.start_acq.setText("Recording")
+        #self._config_panel.start_acq.setEnabled(False)
+        #self._config_panel.end_acq.setEnabled(True)
+        self._config_panel.start_acq.setText("Stop recording")
         self._config_panel._in_acq = True
         self._config_panel._elapsed_time.restart()
+        self._config_panel.start_acq.clicked.disconnect()
+        self._config_panel.start_acq.clicked.connect(self.stop_recording)
+
+        if self.acquisition_time > 0:
+            self._acquisition_timer.setInterval(self.acquisition_time*1000)  # 1000ms = 1s
+            self._acquisition_timer.start()
+
+
 
     def stop_recording(self):
+
+        print("In stop Recording")
+
         self._timepix._timepix_devices[0].stop_recording()
 
         # update GUI
         self._config_panel.start_acq.setStyleSheet("QPushButton {color: black;}")
-        self._config_panel.start_acq.setEnabled(True)
-        self._config_panel.end_acq.setEnabled(False)
+        #self._config_panel.start_acq.setEnabled(True)
+        #self._config_panel.end_acq.setEnabled(False)
         self._config_panel.start_acq.setText("Start Recording")
         self._config_panel._in_acq = False
+        self._config_panel.start_acq.clicked.disconnect()
+        self._config_panel.start_acq.clicked.connect(self.start_recording)
+
+        self._acquisition_timer.stop()
+
 
     def addViewWidget(self, name, start, end):
         if name in self._view_widgets:
