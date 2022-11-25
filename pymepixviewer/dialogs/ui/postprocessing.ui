@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>610</width>
-    <height>239</height>
+    <width>1275</width>
+    <height>485</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,6 +20,9 @@
       <layout class="QHBoxLayout" name="horizontalLayout_3">
        <item>
         <layout class="QGridLayout" name="gridLayout">
+         <property name="verticalSpacing">
+          <number>7</number>
+         </property>
          <item row="2" column="1">
           <widget class="QLabel" name="labelTimeWalkFileCentroided">
            <property name="text">
@@ -27,55 +30,37 @@
            </property>
           </widget>
          </item>
-         <item row="1" column="1">
-          <widget class="QLabel" name="labelTimeWalkFile">
-           <property name="text">
-            <string>Time-walk File</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="2">
-          <widget class="QLineEdit" name="lineEditTimeWalkFileCentroided"/>
-         </item>
-         <item row="0" column="3">
-          <widget class="QPushButton" name="pushButtonBrowseInputFiles">
-           <property name="text">
-            <string>Browse</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QLabel" name="labelInputFiles">
-           <property name="text">
-            <string>Input File(s)</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="1">
+         <item row="7" column="1">
           <widget class="QLabel" name="labelOutputDirectory">
            <property name="text">
             <string>Output Directory</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="2">
-          <widget class="QLineEdit" name="lineEditInputFiles">
-           <property name="toolTip">
-            <string>Semicolon separated list of filenames</string>
+         <item row="0" column="3">
+          <widget class="QPushButton" name="pushButtonBrowseInputFiles">
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
            </property>
-          </widget>
-         </item>
-         <item row="4" column="3">
-          <widget class="QPushButton" name="pushButtonBrowseOutputDirectory">
            <property name="text">
             <string>Browse</string>
            </property>
           </widget>
          </item>
-         <item row="4" column="2">
+         <item row="1" column="3">
+          <widget class="QPushButton" name="pushButtonBrowseTimeWalkFile">
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
+           <property name="text">
+            <string>Browse</string>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="2">
           <widget class="QLineEdit" name="lineEditOutputDirectory"/>
          </item>
-         <item row="5" column="3">
+         <item row="8" column="3">
           <widget class="QPushButton" name="pushButtonStartProcessing">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
@@ -89,40 +74,269 @@
              <bold>true</bold>
             </font>
            </property>
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
            <property name="text">
             <string>Start Processing</string>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="3">
+          <widget class="QPushButton" name="pushButtonBrowseOutputDirectory">
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
+           <property name="text">
+            <string>Browse</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="0">
+          <layout class="QVBoxLayout" name="verticalLayout_2"/>
+         </item>
+         <item row="2" column="3">
+          <widget class="QPushButton" name="pushButtonBrowseTimeWalkFileCentroided">
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
+           <property name="text">
+            <string>Browse</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="2">
+          <widget class="QLineEdit" name="lineEditTimeWalkFileCentroided"/>
+         </item>
+         <item row="0" column="2">
+          <widget class="QLineEdit" name="lineEditInputFiles">
+           <property name="toolTip">
+            <string>Semicolon separated list of filenames</string>
            </property>
           </widget>
          </item>
          <item row="1" column="2">
           <widget class="QLineEdit" name="lineEditTimeWalkFile"/>
          </item>
-         <item row="1" column="3">
-          <widget class="QPushButton" name="pushButtonBrowseTimeWalkFile">
+         <item row="0" column="1">
+          <widget class="QLabel" name="labelInputFiles">
            <property name="text">
-            <string>Browse</string>
+            <string>Input File(s)</string>
            </property>
           </widget>
          </item>
-         <item row="2" column="3">
-          <widget class="QPushButton" name="pushButtonBrowseTimeWalkFileCentroided">
+         <item row="4" column="1" colspan="3">
+          <layout class="QHBoxLayout" name="horizontalLayout">
+           <property name="sizeConstraint">
+            <enum>QLayout::SetDefaultConstraint</enum>
+           </property>
+           <item>
+            <widget class="QLabel" name="label">
+             <property name="text">
+              <string>Clustering type:</string>
+             </property>
+            </widget>
+           </item>
+           <item alignment="Qt::AlignLeft">
+            <widget class="QRadioButton" name="dbscan_rbutton">
+             <property name="text">
+              <string>DBscan</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QRadioButton" name="cstream_rbutton">
+             <property name="text">
+              <string>Cluster stream</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLabel" name="labelTimeWalkFile">
            <property name="text">
-            <string>Browse</string>
+            <string>Time-walk File</string>
            </property>
           </widget>
          </item>
-         <item row="3" column="1" colspan="3">
-          <spacer name="horizontalSpacer">
+         <item row="6" column="1" colspan="3">
+          <layout class="QVBoxLayout" name="verticalLayout_4">
+           <item>
+            <spacer name="verticalSpacer">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_14">
+             <property name="text">
+              <string>         </string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item row="5" column="1" colspan="3">
+          <layout class="QVBoxLayout" name="verticalLayout_7">
+           <item>
+            <layout class="QGridLayout" name="gridLayout_2">
+             <item row="5" column="1">
+              <widget class="QLabel" name="label_7">
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Minimal number of pixels in clusters.&lt;/p&gt;&lt;p&gt;Recommended value: 3&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="text">
+                <string>min_samples</string>
+               </property>
+              </widget>
+             </item>
+             <item row="5" column="6">
+              <widget class="QLineEdit" name="lineEdit_cs_max_dist_tof"/>
+             </item>
+             <item row="2" column="6">
+              <widget class="QLineEdit" name="lineEdit_cs_sensor_size">
+               <property name="focusPolicy">
+                <enum>Qt::ClickFocus</enum>
+               </property>
+              </widget>
+             </item>
+             <item row="6" column="1">
+              <widget class="QLabel" name="label_9">
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Chunk size in pixels, used for DBscan clustering.&lt;/p&gt;&lt;p&gt;Recommended value: 6_500&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="text">
+                <string>chunk_size_limit</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="2">
+              <widget class="QLineEdit" name="lineEdit_tot_threshold"/>
+             </item>
+             <item row="2" column="1">
+              <widget class="QLabel" name="label_3">
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;ToT threshold, all pixels with ToT below will be discarded.&lt;/p&gt;&lt;p&gt;Recommended value: 25&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="text">
+                <string>tot_threshold</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="4">
+              <widget class="QLabel" name="label_10">
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Minimal number of voxels in clusters, the blobs having smaller size are discarded.&lt;/p&gt;&lt;p&gt;Recommended value: 3&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="text">
+                <string>cs_min_cluster_size</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="4">
+              <widget class="QLabel" name="label_5">
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Size of camera sensor.&lt;/p&gt;&lt;p&gt;Default value: 256&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="text">
+                <string>cs_sensor_size</string>
+               </property>
+              </widget>
+             </item>
+             <item row="5" column="2">
+              <widget class="QLineEdit" name="lineEdit_min_samples"/>
+             </item>
+             <item row="0" column="4" colspan="3">
+              <widget class="QLabel" name="label_2">
+               <property name="text">
+                <string>Cluster stream clustering settings</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="2">
+              <widget class="QLineEdit" name="lineEdit_epsilon"/>
+             </item>
+             <item row="6" column="2">
+              <widget class="QLineEdit" name="lineEdit_chunk_size_limit"/>
+             </item>
+             <item row="4" column="1">
+              <widget class="QLabel" name="label_6">
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The parameter corresponding to maximal distance between possible neighbours in Cluster.&lt;/p&gt;&lt;p&gt;Recommended value: 2.0&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="text">
+                <string>epsilon</string>
+               </property>
+              </widget>
+             </item>
+             <item row="5" column="4">
+              <widget class="QLabel" name="label_12">
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximal ToF distance between pixels used in cluster streaming algorithm. &lt;/p&gt;&lt;p&gt;Recommended value: 5e-08&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="text">
+                <string>cs_max_dist_tof</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="6">
+              <widget class="QLineEdit" name="lineEdit_cs_min_cluster_size"/>
+             </item>
+             <item row="6" column="6">
+              <widget class="QLineEdit" name="lineEdit_cs_tot_offset"/>
+             </item>
+             <item row="6" column="4">
+              <widget class="QLabel" name="label_13">
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Tolerance factor for ToT (intensity) of pixels in cluster streaming algorithm. Zero value means strong condition that earliest in ToF pixels should be brigher, 0.5 means that it could be 50% lower in intensity later in ToF neighbour. Recommended value : 0.5&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="text">
+                <string>cs_tot_offset</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1" colspan="2">
+              <widget class="QLabel" name="label_4">
+               <property name="text">
+                <string>DBscan clustering settings</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="3">
+              <widget class="QLabel" name="label_8">
+               <property name="text">
+                <string>          </string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </item>
+         <item row="3" column="0">
+          <widget class="Line" name="line">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QLabel" name="label_11">
+           <property name="text">
+            <string>      </string>
            </property>
-          </spacer>
+          </widget>
          </item>
         </layout>
        </item>
