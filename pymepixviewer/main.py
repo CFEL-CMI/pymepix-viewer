@@ -139,6 +139,7 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self.onModeChange(ViewerMode.TOA)
         self._statusUpdate.start()
+        self.acquisition_time = 0
 
 
     def switchToMode(self):
