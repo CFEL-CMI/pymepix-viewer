@@ -440,13 +440,6 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def onData(self, data_type, event):
 
-        #print(data_type)
-        #for it in event:
-            #print(type(it))
-            #print(it.shape)
-        #    print(it[0:15])
-        #print()
-
         # if self._event_max != -1 and self._current_event_count > self._event_max:
         #     self.clearNow.emit()
         #     self._current_event_count = 0
@@ -511,8 +504,6 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         spath = path.replace(".raw", ".cam")
         settings = QtCore.QSettings(spath, QtCore.QSettings.IniFormat)
 
-        print(settings.fileName())
-
         settings.beginGroup("acqconfig/camera_settings")
         settings.setValue('bias_voltage', float(self._config_panel.acqtab.bias_voltage.value()))
         settings.setValue('coarse_threshold', float(self._config_panel.acqtab.coarse_threshold.value()))
@@ -523,8 +514,6 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         self.acquisition_time = int(self._config_panel.acquisitiontime.text())
 
     def start_recording(self):
-
-        print("In start Recording")
 
         path = self._config_panel.acqtab.get_path()
         self.save_cam_settings(path)
@@ -552,9 +541,6 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
 
 
     def stop_recording(self):
-
-        print("In stop Recording")
-
         self._timepix._timepix_devices[0].stop_recording()
 
         # update GUI
