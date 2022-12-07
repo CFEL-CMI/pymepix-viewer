@@ -142,7 +142,6 @@ class DaqConfigPanel(QtGui.QWidget, Ui_Form):
             "/hallo",
             QtGui.QFileDialog.ShowDirsOnly | QtGui.QFileDialog.DontResolveSymlinks,
         )
-
         self.path_name.setText(directory)
 
     def displayRateChange(self, value):
@@ -150,7 +149,6 @@ class DaqConfigPanel(QtGui.QWidget, Ui_Form):
         self.updateRateChange.emit(seconds)
 
     def eventCountChanged(self):
-
         self.eventCountChange.emit(int(self.event_count.text()))
 
     def _collectAcquisitionSettings(self):
@@ -214,7 +212,7 @@ class DaqConfigPanel(QtGui.QWidget, Ui_Form):
             self._repeating_thread.cancel()
             self._repeating_thread = None
 
-        logger.info("Staring acquisition thread")
+        logger.info("Starting acquisition thread")
         self._repeating_thread = RepeatFunction(
             repeats,
             self.run_acquisition,

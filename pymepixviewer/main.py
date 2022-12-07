@@ -227,6 +227,26 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         logger.info("Setting Tot threshold {}".format(tot_threshold))
         self.__get_centroid_calculator().tot_threshold = tot_threshold
 
+    def setCstreamToToffset(self, cs_tot_offset):
+        logger.info("Setting Cluster stream ToT offset {}".format(cs_tot_offset))
+        self.__get_centroid_calculator().cs_tot_offset = cs_tot_offset
+
+    def setCstreamMinSamples(self, cs_min_samples):
+        logger.info("Setting Cluster stream minimal samples {}".format(cs_min_samples))
+        self.__get_centroid_calculator().cs_min_cluster_size = cs_min_samples
+
+    def setCstreamMaxToF(self, cs_max_dist_tof):
+        logger.info("Setting Cluster stream maximal ToF distance {}".format(cs_max_dist_tof))
+        self.__get_centroid_calculator().cs_max_dist_tof = cs_max_dist_tof
+
+    def setClusteringType(self, is_dbscan_clustering):
+        if is_dbscan_clustering:
+            logger.info("Setting Clustering type to {}".format('dbscan'))
+        else:
+            logger.info("Setting Clustering type to {}".format('cluster streaming'))
+        self.__get_centroid_calculator().dbscan_clustering = is_dbscan_clustering
+
+
     def __get_centroid_calculator(self):
         return self._timepix[0].acquisition.centroid_calculator
 
@@ -336,6 +356,12 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         self._config_panel.proctab.epsilonChanged.connect(self.setEpsilon)
         self._config_panel.proctab.samplesChanged.connect(self.setMinSamples)
         self._config_panel.proctab.totThresholdChanged.connect(self.setTotThreshold)
+
+        self._config_panel.proctab.cs_minSamples_changed.connect(self.setCstreamMinSamples)
+        self._config_panel.proctab.cs_maxToFdist_changed.connect(self.setCstreamMaxToF)
+        self._config_panel.proctab.cs_ToToffset_changed.connect(self.setCstreamToToffset)
+
+        self._config_panel.proctab.clustering_changed_signal.connect(self.setClusteringType)
 
         self.onRaw.connect(self._config_panel.fileSaver.onRaw)
         self.onPixelToA.connect(self._config_panel.fileSaver.onToa)
