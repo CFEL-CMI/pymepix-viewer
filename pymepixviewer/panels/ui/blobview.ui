@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>459</width>
+    <width>516</width>
     <height>831</height>
    </rect>
   </property>
@@ -352,6 +352,42 @@
          </property>
         </widget>
        </item>
+       <item>
+        <widget class="QLabel" name="maxRangeLabel">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximal intensity. Zero algoritjm scales to maximal value dynamically.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>max range</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QDoubleSpinBox" name="maxRangeSpinBox">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="maximum">
+          <double>10000000000000000508222848402996879704791089448509839788449208028871961714412352270078388372553960191290960287445781834331294577148468377157632.000000000000000</double>
+         </property>
+         <property name="value">
+          <double>0.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="show_centroids">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>show centroids</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </item>
     </layout>
@@ -431,8 +467,8 @@
  <customwidgets>
   <customwidget>
    <class>PlotWidget</class>
-   <extends>QGraphicsView</extends>
-   <header>pyqtgraph</header>
+   <extends>QMainWindow</extends>
+   <header>silx.gui.plot.PlotWidget</header>
   </customwidget>
   <customwidget>
    <class>ImageView</class>

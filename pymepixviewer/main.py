@@ -466,7 +466,6 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
             MessageType.EventData,
             MessageType.CentroidData,
         ):
-
             event_shots = event[0]
 
             if self._event_max != -1 and self._current_event_count > self._event_max:
