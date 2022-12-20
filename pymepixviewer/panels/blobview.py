@@ -349,9 +349,9 @@ class BlobView(QtGui.QWidget, Ui_Form):
         return x[max_trig_indxs], y[max_trig_indxs], tof[max_trig_indxs], tot[max_trig_indxs],
 
     def validate_matrix_dimensions(self, dim, x):
-        if x<0:
+        if x < 0:
             return 0
-        if x>dim:
+        if x > dim:
             return dim
         return x
     def draw_centroid_crosses(self):
@@ -364,9 +364,9 @@ class BlobView(QtGui.QWidget, Ui_Form):
         for i in range(centroids_shape[1]):
             x = int(self.trigger_centroid_data[1][i])
             y = int(self.trigger_centroid_data[2][i])
-            x_low = self.validate_matrix_dimensions(mshape[0], x - cross_half_length)
+            x_low  = self.validate_matrix_dimensions(mshape[0], x - cross_half_length)
             x_high = self.validate_matrix_dimensions(mshape[0], x + cross_half_length)
-            y_low = self.validate_matrix_dimensions(mshape[1], y - cross_half_length)
+            y_low  = self.validate_matrix_dimensions(mshape[1], y - cross_half_length)
             y_high = self.validate_matrix_dimensions(mshape[1], y + cross_half_length)
 
             self._matrix[x, y_low:y_high] = value2set
@@ -382,9 +382,9 @@ class BlobView(QtGui.QWidget, Ui_Form):
                 divisor = self._matrix.max() if self._matrix.max() != 0 else 1e-16
             self.image_view.setImage(
                 self._matrix / divisor,
-                autoLevels=False,
-                autoRange=False,
-                autoHistogramRange=False,
+                autoLevels = False,
+                autoRange = False,
+                autoHistogramRange = False,
             )
         else:
             if len(self._histogram_x) > 0:
@@ -434,7 +434,7 @@ class BlobView(QtGui.QWidget, Ui_Form):
                     mode="same",
                 )
 
-            self._blob_trend_roi_graph.setData(x=x[x_idx], y=y)
+            self._blob_trend_roi_graph.setData(x = x[x_idx], y = y)
         else:
             self._blob_trend_roi_graph.setData(
                 x=np.array(self._blob_trend_roi_xAxe),
