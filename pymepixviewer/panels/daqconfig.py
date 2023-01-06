@@ -120,7 +120,6 @@ class DaqConfigPanel(QtGui.QWidget, Ui_Form):
         self._elapsed_time = QtCore.QElapsedTimer()
         self._elapsed_time_thread.timeout.connect(self.updateTimer)
         self._elapsed_time_thread.start(1000)
-        self.end_acq.setEnabled(False)
 
     @property
     def fileSaver(self):
@@ -208,39 +207,43 @@ class DaqConfigPanel(QtGui.QWidget, Ui_Form):
             repeats,
         ) = self._collectAcquisitionSettings()
 
-        if self._repeating_thread is not None:
-            self._repeating_thread.cancel()
-            self._repeating_thread = None
+        if self._in_acq == False:
 
-        logger.info("Starting acquisition thread")
-        self._repeating_thread = RepeatFunction(
-            repeats,
-            self.run_acquisition,
-            (
-                acq_time,
-                filename,
-                index,
-                raw,
-                toa,
-                tof,
-                blob,
-            ),
-        )
-        self._repeating_thread.start()
-        self._elapsed_time.restart()
+            self.start_acq.setText('Stop acquisiion')
+            if self._repeating_thread is not None:
+                self._repeating_thread.cancel()
+                self._repeating_thread = None
+
+            logger.info("Staring acquisition thread")
+            self._repeating_thread = RepeatFunction(
+                repeats,
+                self.run_acquisition,
+                (
+                    acq_time,
+                    filename,
+                    index,
+                    raw,
+                    toa,
+                    tof,
+                    blob,
+                ),
+            )
+            self._repeating_thread.start()
+            self._elapsed_time.restart()
+
+        else:
+            self.start_acq.setText('Start acquisiion')
+            self.endAcquisition()
+            if self._repeating_thread is not None:
+                self._repeating_thread.cancel()
+                self._repeating_thread = None
+
 
     def endAcquisition(self):
         self.text_status.setText("Live")
         self._in_acq = False
         self.closeFile.emit()
         self._elapsed_time.restart()
-
-    def endAcqClicked(self):
-        self.endAcquisition()
-        if self._repeating_thread is not None:
-            self._repeating_thread.cancel()
-            self._repeating_thread = None
-
 
 def main():
     app = QtGui.QApplication([])

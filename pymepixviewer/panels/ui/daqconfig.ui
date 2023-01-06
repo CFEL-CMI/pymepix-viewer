@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>482</width>
+    <width>541</width>
     <height>510</height>
    </rect>
   </property>
@@ -43,7 +43,7 @@
        <item>
         <widget class="QLabel" name="label">
          <property name="text">
-          <string>Acq Time:</string>
+          <string>Elapsed</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -69,6 +69,11 @@
        </item>
        <item>
         <widget class="QLCDNumber" name="elapsed_time_s">
+         <property name="font">
+          <font>
+           <pointsize>16</pointsize>
+          </font>
+         </property>
          <property name="segmentStyle">
           <enum>QLCDNumber::Flat</enum>
          </property>
@@ -96,25 +101,24 @@
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QPushButton" name="end_acq">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="font">
-          <font>
-           <pointsize>16</pointsize>
-          </font>
-         </property>
-         <property name="text">
-          <string>Stop Acquisition</string>
-         </property>
-        </widget>
-       </item>
       </layout>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_4">
+     <property name="topMargin">
+      <number>10</number>
+     </property>
+     <item>
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>Acquisition time (sec.):</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="acquisitiontime"/>
      </item>
     </layout>
    </item>

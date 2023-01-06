@@ -105,10 +105,21 @@ class BlobView(QtGui.QWidget, Ui_Form):
         self.crosshair = Crosshair()
         self.roi_outer = None
         self._binning_fac = 1
+        self.trigger_centroid_data = None
+        self.trigger2plot = None
+        self.last_event = None
 
     def modeChange(self, mode):
         self._current_mode = mode
         self.clearData()
+        if self._current_mode == ViewerMode.Trig:
+            self.show_centroids.setEnabled(True)
+            self.maxRangeLabel.setEnabled(True)
+            self.maxRangeSpinBox.setEnabled(True)
+        else:
+            self.show_centroids.setEnabled(False)
+            self.maxRangeLabel.setEnabled(False)
+            self.maxRangeSpinBox.setEnabled(False)
 
     def getFilter(self, tof):
 
@@ -193,8 +204,10 @@ class BlobView(QtGui.QWidget, Ui_Form):
 
     def updateMatrix(self, x, y, tof, tot):
         tof_filter = self.getFilter(tof)
+        self._matrix[x[tof_filter], y[tof_filter]] += tot[tof_filter]
 
-        self._matrix[x[tof_filter], y[tof_filter]] += 1.0
+    def clearMatrix(self):
+        self._matrix[:,:] = 0
 
     def onRegionChange(self, start, end):
         self._start_tof = start
@@ -297,6 +310,12 @@ class BlobView(QtGui.QWidget, Ui_Form):
                 cluster_size,
             ) = event
             self.updateBlobData(cluster_shot, cluster_x, cluster_y, cluster_tof)
+        elif self._current_mode in (ViewerMode.Trig,) and self.show_centroids.isChecked():
+            trigg_filter = event[0] == self.trigger2plot
+            self.trigger_centroid_data = (event[0, trigg_filter], event[1, trigg_filter],\
+                                          event[2, trigg_filter], event[3, trigg_filter])
+
+            self.draw_centroid_crosses()
 
     def onEvent(self, event):
         if (
@@ -309,21 +328,63 @@ class BlobView(QtGui.QWidget, Ui_Form):
         ):
             counter, x, y, tof, tot = event
             self.updateMatrix(x, y, tof, tot)
+        elif self._current_mode == ViewerMode.Trig:
+            x, y, toa, tot = self.get_max_voxels_triggerdata(event)
+            self.clearMatrix()
+            self.updateMatrix(x, y, toa, tot)
+
 
     def onToA(self, event):
         if self._current_mode in (ViewerMode.TOA,):
             x, y, toa, tot = event
             self.updateMatrix(x, y, toa, tot)
 
+    def get_max_voxels_triggerdata(self, event):
+        shots, x, y, tof, tot = event
+        unique_triggers, unique_trig_nr_indices, unique_trig_nr_counts = np.unique(
+            shots, return_index=True, return_counts=True
+        )
+        self.trigger2plot = unique_triggers[np.argmax(unique_trig_nr_counts)]
+        max_trig_indxs = shots == self.trigger2plot
+        return x[max_trig_indxs], y[max_trig_indxs], tof[max_trig_indxs], tot[max_trig_indxs],
+
+    def validate_matrix_dimensions(self, dim, x):
+        if x < 0:
+            return 0
+        if x > dim:
+            return dim
+        return x
+    def draw_centroid_crosses(self):
+
+        cross_half_length = 5
+        centroids_shape = np.shape(self.trigger_centroid_data)
+        mshape = np.shape(self._matrix)
+        value2set = max(np.max(self._matrix), self.maxRangeSpinBox.value())
+
+        for i in range(centroids_shape[1]):
+            x = int(self.trigger_centroid_data[1][i])
+            y = int(self.trigger_centroid_data[2][i])
+            x_low  = self.validate_matrix_dimensions(mshape[0], x - cross_half_length)
+            x_high = self.validate_matrix_dimensions(mshape[0], x + cross_half_length)
+            y_low  = self.validate_matrix_dimensions(mshape[1], y - cross_half_length)
+            y_high = self.validate_matrix_dimensions(mshape[1], y + cross_half_length)
+
+            self._matrix[x, y_low:y_high] = value2set
+            self._matrix[x_low:x_high, y] = value2set
+
     def plotData(self):
+        self.image_view.clear()
         if not self._histogram_mode:
             # prevent 0 division
-            divisor = self._matrix.max() if self._matrix.max() != 0 else 1e-16
+            if self._current_mode == ViewerMode.Trig and self.maxRangeSpinBox.value() > 0.0:
+                divisor = self.maxRangeSpinBox.value()
+            else:
+                divisor = self._matrix.max() if self._matrix.max() != 0 else 1e-16
             self.image_view.setImage(
                 self._matrix / divisor,
-                autoLevels=False,
-                autoRange=False,
-                autoHistogramRange=False,
+                autoLevels = False,
+                autoRange = False,
+                autoHistogramRange = False,
             )
         else:
             if len(self._histogram_x) > 0:
@@ -373,7 +434,7 @@ class BlobView(QtGui.QWidget, Ui_Form):
                     mode="same",
                 )
 
-            self._blob_trend_roi_graph.setData(x=x[x_idx], y=y)
+            self._blob_trend_roi_graph.setData(x = x[x_idx], y = y)
         else:
             self._blob_trend_roi_graph.setData(
                 x=np.array(self._blob_trend_roi_xAxe),
