@@ -141,7 +141,6 @@ class DaqConfigPanel(QtGui.QWidget, Ui_Form):
             "/hallo",
             QtGui.QFileDialog.ShowDirsOnly | QtGui.QFileDialog.DontResolveSymlinks,
         )
-
         self.path_name.setText(directory)
 
     def displayRateChange(self, value):
@@ -149,7 +148,6 @@ class DaqConfigPanel(QtGui.QWidget, Ui_Form):
         self.updateRateChange.emit(seconds)
 
     def eventCountChanged(self):
-
         self.eventCountChange.emit(int(self.event_count.text()))
 
     def _collectAcquisitionSettings(self):
