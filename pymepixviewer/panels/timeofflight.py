@@ -24,14 +24,14 @@ import traceback
 
 import numpy as np
 import pyqtgraph as pg
-from pyqtgraph.Qt import QtCore, QtGui
+from pyqtgraph.Qt import QtCore, QtGui, QtWidgets
 
 from .regionsofinterest import RoiModel
 from .roidialog import RoiDialog
 from .ui.timeofflightpanelui import Ui_Form
 
 
-class TimeOfFlightPanel(QtGui.QWidget, Ui_Form):
+class TimeOfFlightPanel(QtWidgets.QWidget, Ui_Form):
     roiUpdate = QtCore.pyqtSignal(str, float, float)
     roiRemoved = QtCore.pyqtSignal(str)
     displayRoi = QtCore.pyqtSignal(str, float, float)
@@ -107,7 +107,7 @@ class TimeOfFlightPanel(QtGui.QWidget, Ui_Form):
 
         y, x = np.histogram(
             tof,
-            np.linspace(self._tof_start, self._tof_end, self._tof_bin, dtype=np.float),
+            np.linspace(self._tof_start, self._tof_end, self._tof_bin, dtype=np.float64),
         )
         if self._histo_x is None:
             self._histo_x = x
@@ -135,7 +135,7 @@ class TimeOfFlightPanel(QtGui.QWidget, Ui_Form):
         while True:
             create_roi = RoiDialog(self)
 
-            if create_roi.exec_() == QtGui.QDialog.Accepted:
+            if create_roi.exec_() == QtWidgets.QDialog.Accepted:
                 name, start, end = create_roi.roiParams()
                 if name == "":
                     QtGui.QMessageBox.warning(

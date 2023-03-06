@@ -21,7 +21,7 @@
 ##############################################################################
 from functools import partial
 
-from pyqtgraph.Qt import QtCore, QtGui
+from pyqtgraph.Qt import QtCore, QtGui, QtWidgets
 
 from .ui.processingconfigui import Ui_Form
 
@@ -29,7 +29,7 @@ from .ui.processingconfigui import Ui_Form
 EVENT_WINDOW_FACTOR = 1e6
 
 
-class ProcessingConfig(QtGui.QWidget, Ui_Form):
+class ProcessingConfig(QtWidgets.QWidget, Ui_Form):
     eventWindowChanged = QtCore.pyqtSignal(float, float)
     totThresholdChanged = QtCore.pyqtSignal(int)
     triggersProcessedChanged = QtCore.pyqtSignal(int)

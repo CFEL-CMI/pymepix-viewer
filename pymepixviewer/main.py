@@ -76,8 +76,8 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
     modeChange = QtCore.pyqtSignal(object)
     updateStatusSignal = QtCore.pyqtSignal(object)
 
-    fineThresholdUpdate = QtCore.pyqtSignal(float)
-    coarseThresholdUpdate = QtCore.pyqtSignal(float)
+    fineThresholdUpdate = QtCore.pyqtSignal(int)
+    coarseThresholdUpdate = QtCore.pyqtSignal(int)
 
     show_slow_processing_warning_sig = QtCore.pyqtSignal(int)
 
@@ -218,8 +218,8 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
             "Setting Event window {} {}".format(event_window_min, event_window_max)
         )
         self.__get_packet_processor().event_window = (
-            event_window_min,
-            event_window_max,
+            int(event_window_min),
+            int(event_window_max),
         )
 
     def setTriggersProcessed(self, triggers_processed):
@@ -297,7 +297,7 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
             self.queue_size_warning_displayed = False
 
     def show_slow_processing_warning(self, queue_size):
-        QtGui.QMessageBox.warning(
+        QtWidgets.QMessageBox.warning(
             self,
             "Slow processing - Centroiding lags behind.",
             QUEUE_SIZE_WARNING_TEXT.format(QUEUE_SIZE_WARNING_LIMIT, queue_size),
@@ -582,12 +582,12 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def addViewWidget(self, name, start, end):
         if name in self._view_widgets:
-            QtGui.QMessageBox.warning(
+            QtWidgets.QMessageBox.warning(
                 self, "Roi name", "Roi display of name '{}' already exists".format(name)
             )
             return
         else:
-            dock_view = QtGui.QDockWidget("Display {}".format(name), self)
+            dock_view = QtWidgets.QDockWidget("Display {}".format(name), self)
             blob_view = BlobView(
                 start=start, end=end, parent=self, current_mode=self._current_mode
             )
@@ -613,12 +613,12 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
                 self._timepix[0].loadConfig(config_filename)
                 self.editPixelMask.setDisabled(False)
             except FileNotFoundError:
-                QtGui.QMessageBox.warning(
+                QtWidgets.QMessageBox.warning(
                     None,
                     "Sophy config file not found",
                     f"File with name {config_filename} not found",
-                    QtGui.QMessageBox.Ok,
-                    QtGui.QMessageBox.Ok,
+                    QtWidgets.QMessageBox.Ok,
+                    QtWidgets.QMessageBox.Ok,
                 )
 
             self.coarseThresholdUpdate.emit(self._timepix[0].Vthreshold_coarse)

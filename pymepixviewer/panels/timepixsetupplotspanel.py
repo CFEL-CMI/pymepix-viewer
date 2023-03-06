@@ -2,7 +2,7 @@ from collections import deque
 
 import numpy as np
 import pyqtgraph as pg
-from pyqtgraph.Qt import QtGui
+from pyqtgraph.Qt import QtGui, QtWidgets
 
 from .timepix_setup_histogram import TimepixSetupHistogram
 from .ui.timepixsetupplotspanelui import Ui_DockWidget
@@ -17,10 +17,10 @@ INITIAL_RANGE_TOT_MINIMUM = 0
 INITIAL_RANGE_TOT_MAXIMUM = 1000
 
 # The bins for the histogram of the clustersize are constant. Therefor they are calculated only once.
-CLUSTER_SIZE_BINS = np.linspace(0, 400, 100, dtype=np.float)
+CLUSTER_SIZE_BINS = np.linspace(0, 400, 100, dtype=np.float64)
 
 
-class TimepixSetupPlotsPanel(QtGui.QDockWidget, Ui_DockWidget):
+class TimepixSetupPlotsPanel(QtWidgets.QDockWidget, Ui_DockWidget):
     """User interface to display some graphs and plots that are useful for setting up
     the timepix camera for experiments.
 

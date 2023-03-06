@@ -25,7 +25,7 @@ import threading
 import time
 from threading import Thread
 
-from pyqtgraph.Qt import QtCore, QtGui
+from pyqtgraph.Qt import QtCore, QtGui, QtWidgets
 
 from ..core.filesaver import FileSaver
 from .ui.daqconfigui import Ui_Form
@@ -62,7 +62,7 @@ class RepeatFunction(Thread):
         self.finished.set()
 
 
-class DaqConfigPanel(QtGui.QWidget, Ui_Form):
+class DaqConfigPanel(QtWidgets.QWidget, Ui_Form):
     resetPlots = QtCore.pyqtSignal()
     closeFile = QtCore.pyqtSignal()
 

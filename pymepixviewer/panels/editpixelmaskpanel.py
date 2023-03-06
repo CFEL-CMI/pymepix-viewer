@@ -1,13 +1,13 @@
 import numpy as np
 from pymepix.config.sophyconfig import SophyConfig
 import pyqtgraph as pg
-from pyqtgraph.Qt import QtCore, QtGui
+from pyqtgraph.Qt import QtCore, QtGui, QtWidgets
 from pyqtgraph.graphicsItems.ImageItem import ImageItem
 
 from .ui.pixelmapeditui import Ui_DockWidget
 
 
-class EditPixelMaskPanel(QtGui.QDockWidget, Ui_DockWidget):
+class EditPixelMaskPanel(QtWidgets.QDockWidget, Ui_DockWidget):
     onCloseEvent = QtCore.pyqtSignal(SophyConfig)
 
     def __init__(self, sophy_config: SophyConfig, parent=None):
