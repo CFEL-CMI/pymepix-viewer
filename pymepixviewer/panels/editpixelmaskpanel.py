@@ -74,7 +74,7 @@ class EditPixelMaskPanel(QtGui.QDockWidget, Ui_DockWidget):
 
     def onToaData(self, data):
         x, y, toa, tot = data
-        histogram_data, _, _ = np.histogram2d(x, y, bins=range(256))
+        histogram_data, _, _ = np.histogram2d(x, 255 - y, bins=range(256))
         self.__histogram_data += histogram_data
 
         self.image.setImage(
