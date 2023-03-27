@@ -1,6 +1,7 @@
 from collections import deque
 
 import numpy as np
+from scipy.stats import binned_statistic_2d
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtGui, QtWidgets
 
@@ -72,6 +73,10 @@ class TimepixSetupPlotsPanel(QtWidgets.QDockWidget, Ui_DockWidget):
         self.plt_event_data_2d_histogram_tof_tot = self.__setup_2d_hist_ui(
             "plt_event_data_2d_histogram_tof_tot", (2, 0), "ToT", "ToF"
         )
+        self.plt_event_data_2d_histogram_x_y_tot = self.__setup_2d_hist_ui(
+            "plt_event_data_2d_histogram_tof_tot", (3, 0), "x (pixel)", "y (pixel)"
+        )
+        self.plt_event_data_2d_histogram_x_y_tot.setPredefinedGradient('bipolar')
 
         # Centroided Data Plots Preparation
         self._centroided_data_mean_tot_histogram = TimepixSetupHistogram(
@@ -120,6 +125,7 @@ class TimepixSetupPlotsPanel(QtWidgets.QDockWidget, Ui_DockWidget):
     def __init_buffers(self, number_packets=None):
         self._event_data_tot_histogram.init_buffer(number_packets)
         self.__events_2d_hist_buffer = deque(maxlen=number_packets)
+        self.__events_2d_binnedstat_buffer = deque(maxlen=number_packets)
 
         self._centroided_data_mean_tot_histogram.init_buffer(number_packets)
         self._centroided_data_max_tot_histogram.init_buffer(number_packets)
@@ -134,6 +140,8 @@ class TimepixSetupPlotsPanel(QtWidgets.QDockWidget, Ui_DockWidget):
     def __reset_tof_buffers(self):
         if self.__events_2d_hist_buffer is not None:
             self.__events_2d_hist_buffer.clear()
+        if self.__events_2d_binnedstat_buffer is not None:
+            self.__events_2d_binnedstat_buffer.clear()
         if self.__centroids_2d_hist_mean_buffer is not None:
             self.__centroids_2d_hist_mean_buffer.clear()
         if self.__centroids_2d_hist_max_buffer is not None:
@@ -143,6 +151,8 @@ class TimepixSetupPlotsPanel(QtWidgets.QDockWidget, Ui_DockWidget):
         self._event_data_tot_histogram.clear_buffer()
         if self.__events_2d_hist_buffer is not None:
             self.__events_2d_hist_buffer.clear()
+        if self.__events_2d_binnedstat_buffer is not None:
+            self.__events_2d_binnedstat_buffer.clear()
 
         self._centroided_data_mean_tot_histogram.clear_buffer()
         self._centroided_data_max_tot_histogram.clear_buffer()
@@ -193,7 +203,7 @@ class TimepixSetupPlotsPanel(QtWidgets.QDockWidget, Ui_DockWidget):
     def __update_bins_tof(self, tof_min, tof_max):
         self.__tof_bins = np.linspace(tof_min, tof_max, 50)
 
-    def __update_events(self, tof, tot):
+    def __update_events(self, tof, tot, x, y):
         self._event_data_tot_histogram.refresh(tot, np.array(self.__tot_bins))
         self.__plot_2d_histogram(
             tot,
@@ -202,6 +212,11 @@ class TimepixSetupPlotsPanel(QtWidgets.QDockWidget, Ui_DockWidget):
             self.__events_2d_hist_buffer,
             self.plt_event_data_2d_histogram_tof_tot,
         )
+        self.__plot_2d_binned_stat(
+            x, y, tot,
+            (range(256), range(256)),
+            self.__events_2d_binnedstat_buffer,
+            self.plt_event_data_2d_histogram_x_y_tot)
 
     def __update_centroids(self, tof, tot_mean, tot_max, cluster_size):
         # ToT (mean) histogram
@@ -256,8 +271,28 @@ class TimepixSetupPlotsPanel(QtWidgets.QDockWidget, Ui_DockWidget):
             autoHistogramRange=False,
         )
 
+    def __plot_2d_binned_stat(self, data_x, data_y, data_z, bins, buffer, plt):
+        image, x_bins, y_bins, _ = binned_statistic_2d(
+            data_x, data_y, data_z, bins=(range(256), range(256)))
+        buffer.append(np.nan_to_num(image))
+
+        img = np.mean(buffer, axis=0)
+
+        x0, x1 = (x_bins[0], x_bins[-1])
+        y0, y1 = (y_bins[0], y_bins[-1])
+        xscale = (x1 - x0) / img.shape[0]
+        yscale = (y1 - y0) / img.shape[1]
+        plt.setImage(
+            img,
+            scale=[xscale, yscale],
+            pos=[x0, y0],
+            autoRange=False,
+            autoLevels=False,
+            autoHistogramRange=False,
+        )
+
     def on_event(self, events):
-        self.__update_events(events[3], events[4])
+        self.__update_events(events[3], events[4], events[1], events[2])
 
     def on_centroid(self, centroids):
         self.__update_centroids(centroids[3], centroids[4], centroids[5], centroids[6])
