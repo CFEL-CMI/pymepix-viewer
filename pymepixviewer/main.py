@@ -20,11 +20,13 @@
 #
 ##############################################################################
 
+import os
 import logging
 import platform
 import time
 import argparse
 
+import zmq
 import pymepix
 import pymepix.config.load_config as cfg
 from pymepix.config.sophyconfig import SophyConfig
@@ -79,6 +81,9 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
     fineThresholdUpdate = QtCore.pyqtSignal(float)
     coarseThresholdUpdate = QtCore.pyqtSignal(float)
 
+    start_acq_sig = QtCore.pyqtSignal()
+    stop_acq_sig = QtCore.pyqtSignal()
+
     show_slow_processing_warning_sig = QtCore.pyqtSignal(int)
 
     _acquisition_time = 0
@@ -104,7 +109,63 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
             # self.statusbar.showMessage(, 5000)
             time.sleep(5)
 
-    def __init__(self, timepix_ip, parent=None):
+    def api_server(self):
+        """Function to provide a simple remote interface for the GUI using ZMQ"""
+        self.rest_sock = self.ctx.socket(zmq.REP)
+        self.rest_sock.connect(f"tcp://localhost:{self._api_port}")
+        logger.info(f"API server bind on tcp://localhost:{self._api_port}")
+
+        run_server = True
+        while run_server:
+            request = self.rest_sock.recv_json()
+            command = request["command"]
+            logger.debug(f"API server: {command} command")
+
+            if command == "PATH":
+                if request["parameters"]["path"] != None:
+                    logger.debug(
+                        f"API server: Changing path to {request['parameters']['path']}"
+                    )
+                    self._config_panel.acqtab.path_name.setText(request["parameters"]["path"])
+                path = self._config_panel.acqtab.path_name.text()
+                response = {"result": path}
+                self.rest_sock.send_json(response)
+            elif command == "PREFIX":
+                if request["parameters"]["prefix"] != None:
+                    logger.debug(
+                        f"API server: Changing prefix to {request['parameters']['prefix']}"
+                    )
+                    self._config_panel.acqtab.file_prefix.setText(
+                        request["parameters"]["prefix"]
+                    )
+                prefix = self._config_panel.acqtab.file_prefix.text()
+                response = {"result": prefix}
+                self.rest_sock.send_json(response)
+            elif command == "START_ACQUISITION":
+                self.start_acq_sig.emit()
+                response = {"result": "STARTED_ACQUISITION"}
+                self.rest_sock.send_json(response)
+            elif command == "STOP_ACQUISITION":
+                self.stop_acq_sig.emit()
+                response = {"result": "STOPPED_ACQUISITION"}
+                self.rest_sock.send_json(response)
+            elif command == "GET_ROI_SUM":
+                histogram_sums = []
+                for i in range(self._tof_panel._roi_model.rootItem.childCount()):
+                    roi = self._tof_panel._roi_model.rootItem.child(i)
+                    histogram_sums.append(int(roi.roi_sum))
+                response = {"result": histogram_sums}
+                self.rest_sock.send_json(response)
+            elif command == "GET_FILE_INDEX":
+                response = {"result": self._config_panel.acqtab.startIndex.value()}
+                self.rest_sock.send_json(response)
+            else:
+                self.updateStatusSignal.emit(f"API server received unknown command {command}")
+                logger.warning(f'API server received unknown command "{command}"')
+                response = {"result": "UNKNOWN_COMMAND"}
+                self.rest_sock.send_json(response)
+
+    def __init__(self, timepix_ip, api_port, parent=None):
         super(PymepixDAQ, self).__init__(parent)
         self.setupUi(self)
 
@@ -141,6 +202,18 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         self._statusUpdate.start()
         self.acquisition_time = 0
 
+        self.ctx = zmq.Context.instance()
+        self._api_port = api_port
+        self._api_server.start()
+
+    def closeEvent(self, event):
+        sock = self.ctx.socket(zmq.PUSH)
+        sock.connect(f"tcp://127.0.0.1:{self._api_port}")
+        sock.send_string("STOP API SERVER")
+        time.sleep(0.5)
+        sock.close()
+
+        super(QtGui.QMainWindow, self).closeEvent(event)
 
     def switchToMode(self):
         self._timepix.stop()
@@ -182,8 +255,12 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def startupTimepix(self, timepix_ip):
 
+        # get TPX port for camera, if not specified in config, use default
+        udp_port = cfg.default_cfg.get('timepix').get('udp_port', 8192)
         self._timepix = pymepix.PymepixConnection(
-            (timepix_ip, 50000), pipeline_class=CentroidPipeline
+            spidr_address=(timepix_ip, 50000),
+            src_ip_port=(cfg.default_cfg['timepix']['pc_ip'], udp_port),
+            pipeline_class=CentroidPipeline
         )
         self._timepix.dataCallback = self.onData
 
@@ -303,6 +380,17 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
             QUEUE_SIZE_WARNING_TEXT.format(QUEUE_SIZE_WARNING_LIMIT, queue_size),
         )
 
+    def startPacketProcessorOutputQueueSizeTimer(self):
+        queue_size_update_timer = QtCore.QTimer()
+        queue_size_update_timer.timeout.connect(self.updatePacketProcessorOutputQueueSize)
+        queue_size_update_timer.start(500)
+
+    def show_slow_processing_warning(self, queue_size):
+        QtGui.QMessageBox.warning(
+            self, "Slow processing - Centroiding lags behind.", 
+            QUEUE_SIZE_WARNING_TEXT.format(QUEUE_SIZE_WARNING_LIMIT, queue_size)
+        )
+
     def connectSignals(self):
         self.actionLaunchPostProcessing.triggered.connect(self.launchPostProcessing)
         self.actionTimepixSetupPlotsPanel.triggered.connect(
@@ -389,7 +477,12 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
             lambda msg: self.statusbar.showMessage(msg, 5000)
         )
 
+        self.start_acq_sig.connect(self.start_recording)
+        self.stop_acq_sig.connect(self.stop_recording)
+
         self.show_slow_processing_warning_sig.connect(self.show_slow_processing_warning)
+
+        self._api_server = GenericThread(self.api_server)
 
         reg_ex = QRegExp("[0-9]+")
         input_validator = QRegExpValidator(reg_ex, self._config_panel.acquisitiontime)
@@ -529,6 +622,8 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         spath = path.replace(".raw", ".cam")
         settings = QtCore.QSettings(spath, QtCore.QSettings.IniFormat)
 
+        print(settings.fileName())
+
         settings.beginGroup("acqconfig/camera_settings")
         settings.setValue('bias_voltage', float(self._config_panel.acqtab.bias_voltage.value()))
         settings.setValue('coarse_threshold', float(self._config_panel.acqtab.coarse_threshold.value()))
@@ -539,6 +634,12 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         self.acquisition_time = int(self._config_panel.acquisitiontime.text())
 
     def start_recording(self):
+        self.clearNow.emit()
+        path = self._config_panel.acqtab.path_name.text()
+        if len(path) == 0:
+            path = "./"  # for raw2disk to recognise it as a filename
+        fName = f"{self._config_panel.acqtab.file_prefix.text()}"
+        self._fileName = os.path.join(path, fName)
 
         path = self._config_panel.acqtab.get_path()
         self.save_cam_settings(path)
@@ -566,6 +667,9 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
 
 
     def stop_recording(self):
+
+        print("In stop Recording")
+
         self._timepix._timepix_devices[0].stop_recording()
 
         # update GUI
@@ -639,6 +743,7 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
             )
 
     def setupWindow(self):
+        self.setWindowTitle(f'PymepixViewer: {cfg.default_cfg.get("name", "")}')
         self._tof_panel = TimeOfFlightPanel()
         self._config_panel = DaqConfigPanel()
         self._overview_panel = BlobView()
@@ -669,6 +774,19 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
 def main():
     parser = argparse.ArgumentParser(description="Pymepix Viewer Application")
 
+    # first try to get parameters from config file
+    parser.add_argument(
+        "-c",
+        "--config",
+        dest="cfg",
+        type=str,
+        default="default.yaml",
+        help="Config file",
+    )
+    args = parser.parse_args()
+    cfg.load_config(args.cfg)
+
+    # load remaining args and set default parameters from config
     parser.add_argument(
         "-i",
         "--ip",
@@ -677,8 +795,19 @@ def main():
         default=cfg.default_cfg["timepix"]["tpx_ip"],
         help="IP address of Timepix",
     )
-
+    parser.add_argument(
+        "-p",
+        "--port",
+        dest="port",
+        type=int,
+        default=cfg.default_cfg['tango_api']['port'],
+        help="Port of Tango-Pymepix server",
+    )
     args = parser.parse_args()
+
+    print(args)
+
+    cfg.load_config(args.cfg)
 
     logging.basicConfig(
         level=logging.INFO,
@@ -686,7 +815,7 @@ def main():
     )
     app = QtWidgets.QApplication([])
 
-    config = PymepixDAQ(args.ip)
+    config = PymepixDAQ(args.ip, args.port)
     app.lastWindowClosed.connect(config.onClose)
     config.show()
 
