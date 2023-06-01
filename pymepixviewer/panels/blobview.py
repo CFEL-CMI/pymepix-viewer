@@ -45,8 +45,17 @@ class Crosshair(QtGui.QGraphicsItem):
 
 
 class BlobView(QtGui.QWidget, Ui_Form):
-    def __init__(self, parent=None, start=None, end=None, current_mode=ViewerMode.TOA):
+    def __init__(self, parent=None, start=None, end=None, current_mode=ViewerMode.TOA, camera_generation=3):
         super(BlobView, self).__init__(parent)
+
+        self.camera_generation = camera_generation
+
+        if self.camera_generation == 3:
+            self.matrix_dim = (256, 256)
+        elif camera_generation == 4:
+            self.matrix_dim = (448, 512)
+        else:
+            raise ValueError('Unknown camera generation')
 
         # Set up the user interface from Designer.
         self.setupUi(self)
@@ -59,7 +68,7 @@ class BlobView(QtGui.QWidget, Ui_Form):
 
         self._current_mode = current_mode
 
-        self._matrix = np.ndarray(shape=(256, 256), dtype=np.float)
+        self._matrix = np.ndarray(shape=self.matrix_dim, dtype=np.float)
         self._matrix[...] = 0.0
 
         self._blob_trend_trigger = deque(maxlen=100)  # blob trend x-axis
@@ -85,15 +94,18 @@ class BlobView(QtGui.QWidget, Ui_Form):
         self._histogram_mode = False
         self._histogram_x = []
         self._histogram_y = []
-        self._histogram_bins = 256
-        self._x = np.array(256 * [np.arange(0, 256)])
-        self._y = np.array(256 * [np.arange(0, 256)]).T
+        self._histogram_bins = self.matrix_dim[1]
+        self._x = np.array(self.matrix_dim[1] * [np.arange(0, self.matrix_dim[1])])
+        self._y = np.array(self.matrix_dim[1] * [np.arange(0, self.matrix_dim[1])]).T
         self.checkBox.stateChanged.connect(self.onHistogramCheck)
         self.blob_trend_check.stateChanged.connect(self.onTrendCheck)
         self.roi_trend_check.stateChanged.connect(self.onROITrendCheck)
+        self.histo_binning.setValue(self.matrix_dim[1])
         self.histo_binning.valueChanged[int].connect(self.onHistBinChange)
         self.show_center.stateChanged.connect(self.on_show_cross_change)
+        self.x0_spin.setValue(int(self.matrix_dim[1]/2)-1)
         self.x0_spin.valueChanged.connect(self.on_move_cross)
+        self.y0_spin.setValue(int(self.matrix_dim[1]/2)-1)
         self.y0_spin.valueChanged.connect(self.on_move_cross)
         self.trig_avg_spin.valueChanged.connect(self.on_roi_avg_change)
         self.avg_roi.stateChanged.connect(self.on_avg_roi_change)
@@ -163,7 +175,7 @@ class BlobView(QtGui.QWidget, Ui_Form):
         self._x = np.array(value * [np.arange(0, value)])
         self._y = np.array(value * [np.arange(0, value)]).T
         self._binning_fac = (
-            1 / (256 / self._histogram_bins) if self._histogram_mode else 1
+            1 / (self.matrix_dim[1] / self._histogram_bins) if self._histogram_mode else 1
         )
         if self._histogram_mode:
             self.clearData()
@@ -222,7 +234,7 @@ class BlobView(QtGui.QWidget, Ui_Form):
             np.concatenate(self._histogram_x),
             np.concatenate(self._histogram_y),
             bins=self._histogram_bins,
-            range=[[0, 256], [0, 256]],
+            range=[[0, self.matrix_dim[1]], [0, self.matrix_dim[1]]],
         )
         self._histogram_x = []
         self._histogram_y = []
@@ -263,7 +275,7 @@ class BlobView(QtGui.QWidget, Ui_Form):
 
         r, _, _ = self.get_radial_coordinate()
         mask = np.logical_and(r <= self.r_outer.value(), r >= self.r_inner.value())
-        h = np.histogram2d(x, y, bins=self._histogram_bins, range=[[0, 256], [0, 256]])
+        h = np.histogram2d(x, y, bins=self._histogram_bins, range=[[0, self.matrix_dim[1]], [0, self.matrix_dim[1]]])
 
         # update number for ROI area
         avg_blobs_roi = h[0][mask].sum() / total_triggers
@@ -442,7 +454,7 @@ class BlobView(QtGui.QWidget, Ui_Form):
             )
 
     def get_radial_coordinate(self):
-        binning_fac = 1 / (256 / self._histogram_bins)
+        binning_fac = 1 / (self.matrix_dim[1] / self._histogram_bins)
         # add small value to prevent division by 0 when calculation r
         x0 = self.x0_spin.value() * binning_fac + 0.1
         y0 = self.y0_spin.value() * binning_fac + 0.1
