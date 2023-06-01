@@ -93,13 +93,13 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
             local = self._timepix._controller.localTemperature
             remote = self._timepix._controller.remoteTemperature
             chipSpeed = self._timepix._controller.chipboardFanSpeed
-            spidrSpeed = self._timepix._controller.spidrFanSpeed
+            boardSpeed = self._timepix._controller.boardFanSpeed
             longtime = self._timepix._timepix_devices[0]._longtime.value * 25e-9
 
             self.updatePacketProcessorOutputQueueSize()
 
             self.updateStatusSignal.emit(
-                f"T_(FPGA)={fpga}, T_(loc)={local}, T_(remote)={remote}, Fan(chip)={chipSpeed}, Fan(SPIDR)={spidrSpeed}, Longtime={longtime:.2f}"
+                f"T_(FPGA)={fpga}, T_(loc)={local}, T_(remote)={remote}, Fan(chip)={chipSpeed}, Fan(SPIDR)={boardSpeed}, Longtime={longtime:.2f}"
             )
             # self.statusbar.showMessage(, 5000)
             time.sleep(5)
@@ -107,6 +107,8 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self, timepix_ip, cam_gen, parent=None):
         super(PymepixDAQ, self).__init__(parent)
         self.setupUi(self)
+
+        self.camera_generation = cam_gen
 
         QtCore.QCoreApplication.setOrganizationName("CFEL-CMI")
         QtCore.QCoreApplication.setOrganizationDomain("controlled-molecule-imaging.org")
@@ -587,8 +589,8 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         else:
             dock_view = QtWidgets.QDockWidget("Display {}".format(name), self)
             blob_view = BlobView(
-                start=start, end=end, parent=self, current_mode=self._current_mode
-            )
+                start=start, end=end, parent=self, current_mode=self._current_mode,
+                camera_generation=self.camera_generation,)
             dock_view.setWidget(blob_view)
             self._view_widgets[name] = dock_view
             self.displayNow.connect(blob_view.plotData)
@@ -639,7 +641,7 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
     def setupWindow(self):
         self._tof_panel = TimeOfFlightPanel()
         self._config_panel = DaqConfigPanel()
-        self._overview_panel = BlobView()
+        self._overview_panel = BlobView(camera_generation=self.camera_generation)
         self._dock_tof = QtWidgets.QDockWidget("Time of Flight", self)
         self._dock_tof.setFeatures(
             QtWidgets.QDockWidget.DockWidgetMovable
