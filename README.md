@@ -20,14 +20,15 @@ package managers such as [Anaconda](https://www.anaconda.com) (`conda install py
 ## Installing
 
 In the pymepixviewer project folder run the installation script through
+```bash
+python3 -m pip install .
 ```
-pip install .
+if you try to install in a Conda or virtual environment, you need to do
+```bash
+python3 -m pip install --user .
 ```
-or
-```
-python setup.py install
-```
-Standard `setuptools` options such as `develop` or `--user` are available; see, e.g., the
+
+Standard `setuptools` options such as `-e` for development are available; see, e.g., the
 [PymePix documentation](https://pymepix.readthedocs.io) for some details.
 
 
