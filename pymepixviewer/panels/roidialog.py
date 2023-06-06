@@ -20,12 +20,12 @@
 #
 ##############################################################################
 
-from pyqtgraph.Qt import QtGui
+from pyqtgraph.Qt import QtGui, QtWidgets
 
 from .ui.roidialogui import Ui_Dialog
 
 
-class RoiDialog(QtGui.QDialog, Ui_Dialog):
+class RoiDialog(QtWidgets.QDialog, Ui_Dialog):
     def __init__(self, parent=None):
         super(RoiDialog, self).__init__(parent)
 

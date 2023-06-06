@@ -22,7 +22,7 @@
 
 import logging
 
-from pyqtgraph.Qt import QtCore, QtGui
+from pyqtgraph.Qt import QtCore, QtGui, QtWidgets
 
 from ..core.datatypes import ViewerMode
 from .ui.viewerconfigui import Ui_Form
@@ -30,7 +30,7 @@ from .ui.viewerconfigui import Ui_Form
 logger = logging.getLogger(__name__)
 
 
-class ViewerConfig(QtGui.QWidget, Ui_Form):
+class ViewerConfig(QtWidgets.QWidget, Ui_Form):
     resetPlots = QtCore.pyqtSignal()
     updateRateChange = QtCore.pyqtSignal(float)
     eventCountChange = QtCore.pyqtSignal(int)

@@ -24,15 +24,15 @@ from collections import deque
 
 import numpy as np
 import pyqtgraph as pg
-from pyqtgraph.Qt import QtCore, QtGui
+from pyqtgraph.Qt import QtCore, QtGui, QtWidgets
 
 from ..core.datatypes import ViewerMode
 from .ui.blobviewui import Ui_Form
 
 
-class Crosshair(QtGui.QGraphicsItem):
+class Crosshair(QtWidgets.QGraphicsItem):
     def __init__(self):
-        QtGui.QGraphicsItem.__init__(self)
+        QtWidgets.QGraphicsItem.__init__(self)
         self.setFlag(self.ItemIgnoresTransformations)
 
     def paint(self, p, *args):
@@ -44,7 +44,7 @@ class Crosshair(QtGui.QGraphicsItem):
         return QtCore.QRectF(-10, -10, 20, 20)
 
 
-class BlobView(QtGui.QWidget, Ui_Form):
+class BlobView(QtWidgets.QWidget, Ui_Form):
     def __init__(self, parent=None, start=None, end=None, current_mode=ViewerMode.TOA):
         super(BlobView, self).__init__(parent)
 
@@ -59,7 +59,7 @@ class BlobView(QtGui.QWidget, Ui_Form):
 
         self._current_mode = current_mode
 
-        self._matrix = np.ndarray(shape=(256, 256), dtype=np.float)
+        self._matrix = np.ndarray(shape=(256, 256), dtype=np.float64)
         self._matrix[...] = 0.0
 
         self._blob_trend_trigger = deque(maxlen=100)  # blob trend x-axis

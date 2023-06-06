@@ -24,14 +24,14 @@ import traceback
 
 import numpy as np
 import pyqtgraph as pg
-from pyqtgraph.Qt import QtCore, QtGui
+from pyqtgraph.Qt import QtCore, QtGui, QtWidgets
 
 from .regionsofinterest import RoiModel
 from .roidialog import RoiDialog
 from .ui.timeofflightpanelui import Ui_Form
 
 
-class TimeOfFlightPanel(QtGui.QWidget, Ui_Form):
+class TimeOfFlightPanel(QtWidgets.QWidget, Ui_Form):
     roiUpdate = QtCore.pyqtSignal(str, float, float)
     roiRemoved = QtCore.pyqtSignal(str)
     displayRoi = QtCore.pyqtSignal(str, float, float)
@@ -107,7 +107,7 @@ class TimeOfFlightPanel(QtGui.QWidget, Ui_Form):
 
         y, x = np.histogram(
             tof,
-            np.linspace(self._tof_start, self._tof_end, self._tof_bin, dtype=np.float),
+            np.linspace(self._tof_start, self._tof_end, self._tof_bin, dtype=np.float64),
         )
         if self._histo_x is None:
             self._histo_x = x
@@ -135,15 +135,15 @@ class TimeOfFlightPanel(QtGui.QWidget, Ui_Form):
         while True:
             create_roi = RoiDialog(self)
 
-            if create_roi.exec_() == QtGui.QDialog.Accepted:
+            if create_roi.exec_() == QtWidgets.QDialog.Accepted:
                 name, start, end = create_roi.roiParams()
                 if name == "":
-                    QtGui.QMessageBox.warning(
+                    QtWidgets.QMessageBox.warning(
                         self, "Invalid name", "Please enter a name"
                     )
                     continue
                 if self._roi_model.roiNameExists(name):
-                    QtGui.QMessageBox.warning(
+                    QtWidgets.QMessageBox.warning(
                         self, "Roi name", "Roi name '{}' already exists".format(name)
                     )
                     continue
@@ -151,7 +151,7 @@ class TimeOfFlightPanel(QtGui.QWidget, Ui_Form):
                     try:
                         start = float(start)
                     except Exception:
-                        QtGui.QMessageBox.warning(
+                        QtWidgets.QMessageBox.warning(
                             self,
                             "Invalid start region",
                             "Please enter a valid start region",
@@ -161,7 +161,7 @@ class TimeOfFlightPanel(QtGui.QWidget, Ui_Form):
                     try:
                         end = float(end)
                     except Exception:
-                        QtGui.QMessageBox.warning(
+                        QtWidgets.QMessageBox.warning(
                             self,
                             "Invalid end region",
                             "Please enter a valid end region",
@@ -184,14 +184,14 @@ class TimeOfFlightPanel(QtGui.QWidget, Ui_Form):
         modelIndex = self.roi_list.currentIndex()
         roi = modelIndex.internalPointer()
 
-        ret = QtGui.QMessageBox.warning(
+        ret = QtWidgets.QMessageBox.warning(
             self,
             "Remove ROI",
             "Are you sure you want to remove\n the ROI  '{}' ??".format(roi.columnName),
-            QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel,
-            QtGui.QMessageBox.Cancel,
+            QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel,
+            QtWidgets.QMessageBox.Cancel,
         )
-        if ret == QtGui.QMessageBox.Ok:
+        if ret == QtWidgets.QMessageBox.Ok:
             self._roi_model.removeRegionofInterest(roi.columnName)
             self.tof_view.removeItem(roi.RoiPlotItem)
             self.roiRemoved.emit(roi.columnName)
@@ -202,7 +202,7 @@ class TimeOfFlightPanel(QtGui.QWidget, Ui_Form):
         modelIndex = self.roi_list.currentIndex()
         roi = modelIndex.internalPointer()
         if roi is None:
-            QtGui.QMessageBox.warning(self, "No Roi selected", "Please select an ROI")
+            QtWidgets.QMessageBox.warning(self, "No Roi selected", "Please select an ROI")
             return
         else:
             self.displayRoi.emit(roi.columnName, *roi.region)

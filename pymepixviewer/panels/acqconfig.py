@@ -27,7 +27,7 @@ import time
 from functools import partial
 
 import numpy as np
-from pyqtgraph.Qt import QtCore, QtGui
+from pyqtgraph.Qt import QtCore, QtGui, QtWidgets
 
 from ..core.datatypes import ViewerMode
 from .ui.acqconfigui import Ui_Form
@@ -35,7 +35,7 @@ from .ui.acqconfigui import Ui_Form
 logger = logging.getLogger(__name__)
 
 
-class AcquisitionConfig(QtGui.QWidget, Ui_Form):
+class AcquisitionConfig(QtWidgets.QWidget, Ui_Form):
 
     biasVoltageChange = QtCore.pyqtSignal(int)
 
@@ -91,17 +91,17 @@ class AcquisitionConfig(QtGui.QWidget, Ui_Form):
         return path
 
     def openPath(self):
-        directory = QtGui.QFileDialog.getExistingDirectory(
+        directory = QtWidgets.QFileDialog.getExistingDirectory(
             self,
             "Open Directory",
             self.path_name.text(),
-            QtGui.QFileDialog.ShowDirsOnly | QtGui.QFileDialog.DontResolveSymlinks,
+            QtWidgets.QFileDialog.ShowDirsOnly | QtWidgets.QFileDialog.DontResolveSymlinks,
         )
 
         self.path_name.setText(directory)
 
     def on_open_sophy_config(self):
-        config_file = QtGui.QFileDialog.getOpenFileName(
+        config_file = QtWidgets.QFileDialog.getOpenFileName(
             self, "Select SoPhy configuration file", "/home", "SoPhy File (*.spx)"
         )[0]
         self.sophy_config.setText(config_file)

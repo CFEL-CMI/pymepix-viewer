@@ -25,7 +25,7 @@ from threading import Thread
 
 import numpy as np
 import pymepix as pymepix
-from pyqtgraph.Qt import QtGui
+from pyqtgraph.Qt import QtGui, QtWidgets
 
 from .ui.postprocessingui import Ui_Dialog
 
@@ -36,7 +36,7 @@ FILE_SEPARATOR = ";"
 OUTPUT_FILE_EXTENSION = "hdf5"
 
 
-class PostProcessing(QtGui.QDialog, Ui_Dialog):
+class PostProcessing(QtWidgets.QDialog, Ui_Dialog):
     """
     User interface to access the post-processing functionality of pymepix. The UI allows the user to enter all the required
     parameters and to start the processing. The processing transforms raw data into processed HDF5 files, which provide also
@@ -155,7 +155,7 @@ class PostProcessing(QtGui.QDialog, Ui_Dialog):
             event.ignore()
 
     def onBrowseInputFiles(self):
-        file_names, _ = QtGui.QFileDialog.getOpenFileNames(
+        file_names, _ = QtWidgets.QFileDialog.getOpenFileNames(
             self,
             "Choose input file(s)",
             None,
@@ -165,7 +165,7 @@ class PostProcessing(QtGui.QDialog, Ui_Dialog):
         self.lineEditInputFiles.setText(FILE_SEPARATOR.join(file_names))
 
     def onBrowseTimeWalkFile(self):
-        file_name, _ = QtGui.QFileDialog.getOpenFileName(
+        file_name, _ = QtWidgets.QFileDialog.getOpenFileName(
             self,
             "Choose time walk file",
             None,
@@ -175,7 +175,7 @@ class PostProcessing(QtGui.QDialog, Ui_Dialog):
         self.lineEditTimeWalkFile.setText(file_name)
 
     def onBrowseTimeWalkFileCentroided(self):
-        file_name, _ = QtGui.QFileDialog.getOpenFileName(
+        file_name, _ = QtWidgets.QFileDialog.getOpenFileName(
             self,
             "Choose centroided time walk file",
             None,
@@ -185,7 +185,7 @@ class PostProcessing(QtGui.QDialog, Ui_Dialog):
         self.lineEditTimeWalkFileCentroided.setText(file_name)
 
     def onBrowseOutputDirectory(self):
-        output_directory = QtGui.QFileDialog.getExistingDirectory(
+        output_directory = QtWidgets.QFileDialog.getExistingDirectory(
             self, "Choose output directory"
         )
         self.lineEditOutputDirectory.setText(output_directory)
