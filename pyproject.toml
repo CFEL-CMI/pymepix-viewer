@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pymepixviewer"
+version = "1.1.dev0"
+readme = "Readme.md"
+license = {file = "LICENSE.md"}
+requires-python = ">=3.7"
+#long_description="Readme.md"
+classifiers=[
+   "Development Status :: 5 - Production/Stable",
+   "Environment :: Console",
+   "Environment :: No Input/Output (Daemon)",
+   "Environment :: Win32 (MS Windows)",
+   "Intended Audience :: Developers",
+   "Intended Audience :: Science/Research",
+   "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+   "Operating System :: MacOS :: MacOS X",
+   "Operating System :: Microsoft :: Windows",
+   "Operating System :: POSIX :: Linux",
+   "Operating System :: POSIX",
+   "Operating System :: Unix",
+   "Operating System :: OS Independent",
+   "Programming Language :: Python",
+   "Programming Language :: Python :: 3.7",
+   "Programming Language :: Python :: 3.8",
+   "Programming Language :: Python :: 3.9",
+   "Programming Language :: Python :: 3.10",
+   "Programming Language :: Python :: 3.11",
+   "Programming Language :: Python :: 3 :: Only",
+   "Topic :: Scientific/Engineering",
+   "Topic :: Software Development :: Libraries",
+   "Topic :: System :: Hardware :: Hardware Drivers",
+]
+dependencies = [
+    #'importlib-metadata; python_version<"3.8"',
+    "numpy >= 1.2",
+    "pyqtgraph >= 0.12.4"
+]
+
+[project.urls]
+download_url="https://github.com/CFEL-CMI/pymepix-viewer"
+
+[metadata]
+author_email="cmidaq@cfel.de"
+maintainer="CFEL-CMI group"
+maintainer_email="cmidaq@cfel.de"
+description="Timepix DAQ GUI based on PymePix"
+
+[project.scripts]
+pymepixviewer = "pymepixviewer.main:main"
+
+
+[tool.setuptools.packages.find]
+exclude = ["tests", "doc"]
+
