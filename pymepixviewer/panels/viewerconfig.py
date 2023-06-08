@@ -72,12 +72,17 @@ class ViewerConfig(QtGui.QWidget, Ui_Form):
         elif value == 2:
             self.modeChange.emit(ViewerMode.Centroid)
             self._current_mode = ViewerMode.Centroid
+        elif value == 3:
+            self.modeChange.emit(ViewerMode.Trig)
+            self._current_mode = ViewerMode.Trig
 
         self.handleMode()
 
     def handleMode(self):
 
-        if self._current_mode is ViewerMode.TOA:
+        if self._current_mode in (
+            ViewerMode.TOA,
+            ViewerMode.Trig):
             self.eventwidget.hide()
             self.framelayout.show()
         elif self._current_mode in (

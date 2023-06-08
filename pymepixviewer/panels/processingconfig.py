@@ -37,6 +37,12 @@ class ProcessingConfig(QtGui.QWidget, Ui_Form):
     samplesChanged = QtCore.pyqtSignal(int)
     epsilonChanged = QtCore.pyqtSignal(float)
     queue_size_changed = QtCore.pyqtSignal(int)
+    cs_minSamples_changed = QtCore.pyqtSignal(int)
+    cs_maxToFdist_changed = QtCore.pyqtSignal(float)
+    cs_ToToffset_changed = QtCore.pyqtSignal(float)
+    clustering_changed_signal = QtCore.pyqtSignal(bool)
+
+    dbscan_centroiding = True
 
     def __init__(self, parent=None):
         super(ProcessingConfig, self).__init__(parent)
@@ -69,10 +75,25 @@ class ProcessingConfig(QtGui.QWidget, Ui_Form):
         self.__save_setting("number_processes", number_of_processes)
         self.numberProcessesChanged.emit(number_of_processes)
 
+    def centroiding_changed(self):
+        if self.dbscan_centroiding:
+            self.dbscan_group.setChecked(False)
+            self.cstream_group.setChecked(True)
+            self.dbscan_centroiding = False
+            self.clustering_changed_signal.emit(False)
+        else:
+            self.dbscan_group.setChecked(True)
+            self.cstream_group.setChecked(False)
+            self.dbscan_centroiding = True
+            self.clustering_changed_signal.emit(True)
+
     def setupSignals(self):
         # Configuration entries for packet processor
         self.min_event_window.returnPressed.connect(self.tofEventWindow)
         self.max_event_window.returnPressed.connect(self.tofEventWindow)
+
+        self.dbscan_group.clicked.connect(self.centroiding_changed)
+        self.cstream_group.clicked.connect(self.centroiding_changed)
 
         # Configuration entries for centroiding
         self.triggers_processed.valueChanged[int].connect(
@@ -93,11 +114,28 @@ class ProcessingConfig(QtGui.QWidget, Ui_Form):
         self.tot_threshold.valueChanged[int].connect(
             partial(self.__save_setting, "tot_threshold")
         )
+
+        self.cstream_tot_offset.valueChanged[float].connect(self.cs_ToToffset_changed.emit)
+        self.cstream_tot_offset.valueChanged[float].connect(
+            partial(self.__save_setting, "cstream_tot_offset")
+        )
+
+        self.cstream_max_tof_dist.valueChanged[float].connect(self.cs_maxToFdist_changed.emit)
+        self.cstream_max_tof_dist.valueChanged[float].connect(
+            partial(self.__save_setting, "cstream_max_tof_dist")
+        )
+
+        self.cstream_min_samples.valueChanged[int].connect(self.cs_minSamples_changed.emit)
+        self.cstream_min_samples.valueChanged[int].connect(
+            partial(self.__save_setting, "cstream_min_samples")
+        )
+
         self.number_processes.returnPressed.connect(
             self.__number_processes_enter_pressed
         )
 
         self.queue_size_changed.connect(self.lcd_queue_size.display)
+
 
     def read_settings(self):
         """Read settings using QSettings. This method has to be called after all signals are connected to gurantee
@@ -113,6 +151,13 @@ class ProcessingConfig(QtGui.QWidget, Ui_Form):
         self.epsilon.setValue(epsilon)
         tot_threshold = settings.value("tot_threshold", 0, type=int)
         self.tot_threshold.setValue(tot_threshold)
+
+        cstream_min_samples = settings.value("cstream_min_samples", 3, type=int)
+        self.cstream_min_samples.setValue(cstream_min_samples)
+        cstream_max_tof_dist = settings.value("cstream_max_tof_dist", 5e-8, type=float)
+        self.cstream_max_tof_dist.setValue(cstream_max_tof_dist)
+        cstream_tot_offset = settings.value("cstream_tot_offset", 0.5, type=float)
+        self.cstream_tot_offset.setValue(cstream_tot_offset)
 
         number_processes = settings.value("number_processes", 4, type=str)
         self.number_processes.setText(number_processes)

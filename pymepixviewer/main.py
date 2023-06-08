@@ -27,6 +27,7 @@ import platform
 import time
 import argparse
 
+
 import numpy as np
 import zmq
 import socket
@@ -38,6 +39,8 @@ from pymepix.processing.acquisition import CentroidPipeline
 
 # force to load PyQt5 for systems where PyQt4 is still installed
 from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt5.QtCore import QRegExp
+from PyQt5.QtGui import QRegExpValidator
 
 from pymepixviewer.core.datatypes import ViewerMode
 from pymepixviewer.dialogs.postprocessing import PostProcessing
@@ -87,6 +90,10 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
     stop_acq_sig = QtCore.pyqtSignal()
 
     show_slow_processing_warning_sig = QtCore.pyqtSignal(int)
+
+    _acquisition_time = 0
+
+    _acquisition_timer = QtCore.QTimer()
 
     def statusUdate(self):
         logger.info("Starting status update thread")
@@ -154,9 +161,12 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
                     histogram_sums.append(int(roi.roi_sum))
                 response = {"result": histogram_sums}
                 self.rest_sock.send_json(response)
+            elif command == "GET_FILE_INDEX":
+                response = {"result": self._config_panel.acqtab.startIndex.value()}
+                self.rest_sock.send_json(response)
             else:
-                self.updateStatusSignal.emit(f"API server recieved unknown command {command}")
-                logger.warning(f'API server recieved unknown command "{command}"')
+                self.updateStatusSignal.emit(f"API server received unknown command {command}")
+                logger.warning(f'API server received unknown command "{command}"')
                 response = {"result": "UNKNOWN_COMMAND"}
                 self.rest_sock.send_json(response)
 
@@ -171,6 +181,7 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         self.queue_size_warning_displayed = False
 
         self._current_mode = ViewerMode.TOA
+
         self.setupWindow()
 
         self._view_widgets = {}
@@ -194,6 +205,20 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self.onModeChange(ViewerMode.TOA)
         self._statusUpdate.start()
+        self.acquisition_time = 0
+
+        self.ctx = zmq.Context.instance()
+        self._api_port = api_port
+        self._api_server.start()
+
+    def closeEvent(self, event):
+        sock = self.ctx.socket(zmq.PUSH)
+        sock.connect(f"tcp://127.0.0.1:{self._api_port}")
+        sock.send_string("STOP API SERVER")
+        time.sleep(0.5)
+        sock.close()
+
+        super(QtGui.QMainWindow, self).closeEvent(event)
 
         self.ctx = zmq.Context.instance()
         self._api_port = api_port
@@ -210,7 +235,15 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def switchToMode(self):
         self._timepix.stop()
-        if self._current_mode is ViewerMode.TOA:
+        if self._current_mode is ViewerMode.Trig:
+            # self._timepix[0].setupAcquisition(pymepix.processing.PixelPipeline)
+            self.__get_packet_processor().handle_events = True
+            logger.info(
+                "Switch to Trig mode, {}".format(
+                    self.__get_packet_processor().handle_events
+                )
+            )
+        elif self._current_mode is ViewerMode.TOA:
             # self._timepix[0].setupAcquisition(pymepix.processing.PixelPipeline)
             self.__get_packet_processor().handle_events = False
             logger.info(
@@ -305,6 +338,26 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
     def setTotThreshold(self, tot_threshold):
         logger.info("Setting Tot threshold {}".format(tot_threshold))
         self.__get_centroid_calculator().tot_threshold = tot_threshold
+
+    def setCstreamToToffset(self, cs_tot_offset):
+        logger.info("Setting Cluster stream ToT offset {}".format(cs_tot_offset))
+        self.__get_centroid_calculator().cs_tot_offset = cs_tot_offset
+
+    def setCstreamMinSamples(self, cs_min_samples):
+        logger.info("Setting Cluster stream minimal samples {}".format(cs_min_samples))
+        self.__get_centroid_calculator().cs_min_cluster_size = cs_min_samples
+
+    def setCstreamMaxToF(self, cs_max_dist_tof):
+        logger.info("Setting Cluster stream maximal ToF distance {}".format(cs_max_dist_tof))
+        self.__get_centroid_calculator().cs_max_dist_tof = cs_max_dist_tof
+
+    def setClusteringType(self, is_dbscan_clustering):
+        if is_dbscan_clustering:
+            logger.info("Setting Clustering type to {}".format('dbscan'))
+        else:
+            logger.info("Setting Clustering type to {}".format('cluster streaming'))
+        self.__get_centroid_calculator().dbscan_clustering = is_dbscan_clustering
+
 
     def __get_centroid_calculator(self):
         return self._timepix[0].acquisition.centroid_calculator
@@ -409,7 +462,6 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         self.modeChange.connect(self._overview_panel.modeChange)
 
         self._config_panel.start_acq.clicked.connect(self.start_recording)
-        self._config_panel.end_acq.clicked.connect(self.stop_recording)
 
         self._config_panel.viewtab.resetPlots.connect(self.clearNow.emit)
         self._config_panel.proctab.eventWindowChanged.connect(self.setEventWindow)
@@ -427,6 +479,12 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         self._config_panel.proctab.samplesChanged.connect(self.setMinSamples)
         self._config_panel.proctab.totThresholdChanged.connect(self.setTotThreshold)
 
+        self._config_panel.proctab.cs_minSamples_changed.connect(self.setCstreamMinSamples)
+        self._config_panel.proctab.cs_maxToFdist_changed.connect(self.setCstreamMaxToF)
+        self._config_panel.proctab.cs_ToToffset_changed.connect(self.setCstreamToToffset)
+
+        self._config_panel.proctab.clustering_changed_signal.connect(self.setClusteringType)
+
         self.onRaw.connect(self._config_panel.fileSaver.onRaw)
         self.onPixelToA.connect(self._config_panel.fileSaver.onToa)
         self.onPixelToF.connect(self._config_panel.fileSaver.onTof)
@@ -443,6 +501,14 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         self.show_slow_processing_warning_sig.connect(self.show_slow_processing_warning)
 
         self._api_server = GenericThread(self.api_server)
+
+        reg_ex = QRegExp("[0-9]+")
+        input_validator = QRegExpValidator(reg_ex, self._config_panel.acquisitiontime)
+        self._config_panel.acquisitiontime.setValidator(input_validator)
+        self._config_panel.acquisitiontime.setText('0')
+        self._config_panel.acquisitiontime.editingFinished.connect(self.update_acquisition_time)
+
+        self._acquisition_timer.timeout.connect(self.stop_recording)
 
     def launchPostProcessing(self):
         self._timepix.stop()
@@ -490,7 +556,8 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
     def onModeChange(self, value):
         logger.info("Viewer mode changed to {}".format(value))
         self._current_mode = value
-        if self._current_mode is ViewerMode.TOA:
+        if self._current_mode in (ViewerMode.TOA,\
+                                  ViewerMode.Trig):
             # Hide TOF panel
             self._dock_tof.hide()
             for k, view in self._view_widgets.items():
@@ -515,6 +582,7 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         #     self._current_event_count = 0
 
         # event_shots = event[4]
+
         check_update = time.time()
 
         # if data_type in (MessageType.PixelData,):
@@ -568,6 +636,21 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
             # self.displayNow.emit()
             self._last_update = time.time()
 
+    def save_cam_settings(self, path):
+        spath = path.replace(".raw", ".cam")
+        settings = QtCore.QSettings(spath, QtCore.QSettings.IniFormat)
+
+        print(settings.fileName())
+
+        settings.beginGroup("acqconfig/camera_settings")
+        settings.setValue('bias_voltage', float(self._config_panel.acqtab.bias_voltage.value()))
+        settings.setValue('coarse_threshold', float(self._config_panel.acqtab.coarse_threshold.value()))
+        settings.setValue('fine_threshold', float(self._config_panel.acqtab.fine_threshold.value()))
+        settings.endGroup()
+
+    def update_acquisition_time(self):
+        self.acquisition_time = int(self._config_panel.acquisitiontime.text())
+
     def start_recording(self):
         self.clearNow.emit()
         path = self._config_panel.acqtab.path_name.text()
@@ -576,6 +659,7 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         fName = f"{self._config_panel.acqtab.file_prefix.text()}"
         self._fileName = os.path.join(path, fName)
         path = self._config_panel.acqtab.get_path()
+        self.save_cam_settings(path)
 
         self._timepix._spidr.resetTimers()
         self._timepix._spidr.restartTimers()
@@ -585,21 +669,37 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # setup GUI
         self._config_panel.start_acq.setStyleSheet("QPushButton {color: red;}")
-        self._config_panel.start_acq.setEnabled(False)
-        self._config_panel.end_acq.setEnabled(True)
-        self._config_panel.start_acq.setText("Recording")
+        #self._config_panel.start_acq.setEnabled(False)
+        #self._config_panel.end_acq.setEnabled(True)
+        self._config_panel.start_acq.setText("Stop recording")
         self._config_panel._in_acq = True
         self._config_panel._elapsed_time.restart()
+        self._config_panel.start_acq.clicked.disconnect()
+        self._config_panel.start_acq.clicked.connect(self.stop_recording)
+
+        if self.acquisition_time > 0:
+            self._acquisition_timer.setInterval(self.acquisition_time*1000)  # 1000ms = 1s
+            self._acquisition_timer.start()
+
+
 
     def stop_recording(self):
+
+        print("In stop Recording")
+
         self._timepix._timepix_devices[0].stop_recording()
 
         # update GUI
         self._config_panel.start_acq.setStyleSheet("QPushButton {color: black;}")
-        self._config_panel.start_acq.setEnabled(True)
-        self._config_panel.end_acq.setEnabled(False)
+        #self._config_panel.start_acq.setEnabled(True)
+        #self._config_panel.end_acq.setEnabled(False)
         self._config_panel.start_acq.setText("Start Recording")
         self._config_panel._in_acq = False
+        self._config_panel.start_acq.clicked.disconnect()
+        self._config_panel.start_acq.clicked.connect(self.start_recording)
+
+        self._acquisition_timer.stop()
+
 
     def addViewWidget(self, name, start, end):
         if name in self._view_widgets:
@@ -721,6 +821,10 @@ def main():
         help="Port of Tango-Pymepix server",
     )
     args = parser.parse_args()
+    cfg.load_config(args.cfg)
+
+    print(args)
+
     cfg.load_config(args.cfg)
 
     logging.basicConfig(
