@@ -543,11 +543,7 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         path = self._config_panel.acqtab.get_path()
         self.save_cam_settings(path)
 
-        self._timepix._spidr.resetTimers()
-        self._timepix._spidr.restartTimers()
-        time.sleep(1)  # give camera time to reset timers
-
-        self._timepix._timepix_devices[0].start_recording(path)
+        self._timepix.start_recording(path)
 
         # setup GUI
         self._config_panel.start_acq.setStyleSheet("QPushButton {color: red;}")
@@ -566,7 +562,8 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
 
 
     def stop_recording(self):
-        self._timepix._timepix_devices[0].stop_recording()
+
+        self._timepix.stop_recording()
 
         # update GUI
         self._config_panel.start_acq.setStyleSheet("QPushButton {color: black;}")
