@@ -256,7 +256,6 @@ class BlobView(QtGui.QWidget, Ui_Form):
         # update number for whole detector
         uniq_shot, counts = np.unique(shots, return_counts=True)
         self._int_blob_count += np.sum(counts)
-
         avg_blobs = np.sum(counts) / total_triggers
         self.rec_blobs.setText(f"{avg_blobs:.3f}")
         self.int_blobs.setText(str(self._int_blob_count))

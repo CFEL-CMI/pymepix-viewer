@@ -1,3 +1,5 @@
+# Branch description
+This branch is a test to implement a simple REST API to be able to control the GUI from another client, in particular from a Tango server.
 # PymePix Viewer
 
 PymePix-viewer is a basic graphical user interface for data acquisition using the [PymePix
@@ -30,7 +32,14 @@ python setup.py install
 Standard `setuptools` options such as `develop` or `--user` are available; see, e.g., the
 [PymePix documentation](https://pymepix.readthedocs.io) for some details.
 
-
+If running Conda, the following should work:
+```
+conda create --name pymepix python=3.9
+conda activate pymepix
+conda install pyqtgraph scikit-learn pyserial pyqt pyzmq h5py
+cd pymepix-viewer
+python setup.py install
+```
 ## Running
 
 To run the GUI start it from a terminal as

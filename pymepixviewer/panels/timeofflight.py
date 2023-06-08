@@ -106,14 +106,24 @@ class TimeOfFlightPanel(QtGui.QWidget, Ui_Form):
     def _updateTof(self, tof):
 
         y, x = np.histogram(
-            tof,
-            np.linspace(self._tof_start, self._tof_end, self._tof_bin, dtype=np.float),
+            tof, np.linspace(self._tof_start, self._tof_end, self._tof_bin, dtype=np.float),
         )
         if self._histo_x is None:
             self._histo_x = x
             self._histo_y = y
         else:
             self._histo_y += y
+
+        self.update_roi()
+
+    def update_roi(self):
+        """ calculate intergral of ROIs """
+        for i in range(self._roi_model.rootItem.childCount()):
+            roi = self._roi_model.rootItem.child(i)
+            x1, x2 = roi.region
+            roi_x = self._histo_x[(self._histo_x >= x1) & (self._histo_x <= x2)]
+            roi_y = self._histo_y[(self._histo_x[:-1] >= x1) & (self._histo_x[:-1] < x2)]
+            roi.histogram = (roi_x, roi_y)
 
     def displayTof(self):
         if self._histo_x is None:

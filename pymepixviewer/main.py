@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 ##############################################################################
 ##
 # This file is part of pymepixviewer
@@ -26,7 +27,10 @@ import platform
 import time
 import argparse
 
+
+import numpy as np
 import zmq
+import socket
 import pymepix
 import pymepix.config.load_config as cfg
 from pymepix.config.sophyconfig import SophyConfig
@@ -46,6 +50,7 @@ from pymepixviewer.panels.editpixelmaskpanel import EditPixelMaskPanel
 from pymepixviewer.panels.timeofflight import TimeOfFlightPanel
 from pymepixviewer.panels.timepixsetupplotspanel import TimepixSetupPlotsPanel
 from pymepixviewer.ui.mainui import Ui_MainWindow
+
 
 logger = logging.getLogger(__name__)
 
@@ -201,6 +206,19 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         self.onModeChange(ViewerMode.TOA)
         self._statusUpdate.start()
         self.acquisition_time = 0
+
+        self.ctx = zmq.Context.instance()
+        self._api_port = api_port
+        self._api_server.start()
+
+    def closeEvent(self, event):
+        sock = self.ctx.socket(zmq.PUSH)
+        sock.connect(f"tcp://127.0.0.1:{self._api_port}")
+        sock.send_string("STOP API SERVER")
+        time.sleep(0.5)
+        sock.close()
+
+        super(QtGui.QMainWindow, self).closeEvent(event)
 
         self.ctx = zmq.Context.instance()
         self._api_port = api_port
@@ -640,7 +658,6 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
             path = "./"  # for raw2disk to recognise it as a filename
         fName = f"{self._config_panel.acqtab.file_prefix.text()}"
         self._fileName = os.path.join(path, fName)
-
         path = self._config_panel.acqtab.get_path()
         self.save_cam_settings(path)
 
@@ -800,10 +817,11 @@ def main():
         "--port",
         dest="port",
         type=int,
-        default=cfg.default_cfg['tango_api']['port'],
+        default=cfg.default_cfg.get('tango_api').get('port') if cfg.default_cfg.get('tango_api') else 9333,
         help="Port of Tango-Pymepix server",
     )
     args = parser.parse_args()
+    cfg.load_config(args.cfg)
 
     print(args)
 

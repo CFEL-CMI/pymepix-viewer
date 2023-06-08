@@ -126,6 +126,9 @@ class Ui_Form(object):
         self.label_19.setText(_translate("Form", "Fine Threshold  [0, 511]"))
         self.label_20.setText(_translate("Form", "Coarse Threshold [0, 15]"))
         self.label_6.setText(_translate("Form", "Path"))
+        self.path_name.setText(
+            _translate("Form", "/gpfs/cfel/cmi/labs/eCOMO/fsAttoJune21/raw/timepix/")
+        )
         self.openpath.setText(_translate("Form", "Open"))
         self.label_7.setText(_translate("Form", "Prefix:"))
         self.file_prefix.setToolTip(_translate("Form", 'prefix must not contain "_"'))

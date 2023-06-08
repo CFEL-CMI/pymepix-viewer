@@ -20,6 +20,7 @@
 #
 ##############################################################################
 
+import numpy as np
 import pyqtgraph as pg
 from PyQt5.QtCore import QSettings
 from pyqtgraph.Qt import QtCore, QtGui
@@ -103,6 +104,8 @@ class RoiItem(BaseItem):
         self._name = name
         self._start_region = start_region
         self._end_region = end_region
+        self._hist_x = np.array([])
+        self._hist_y = np.array([])
 
         self._roi_item = pg.LinearRegionItem(
             values=[self._start_region, self._end_region], brush=color
@@ -149,6 +152,25 @@ class RoiItem(BaseItem):
     @property
     def region(self):
         return self._start_region, self._end_region
+
+    @property
+    def histogram(self):
+        """hold the histogram for the individual ROI
+        use this for e.g. calculating the integral
+        """
+        return self._hist_x, self._hist_y
+
+    @histogram.setter
+    def histogram(self, data):
+        self._hist_x = data[0]
+        self._hist_y = data[1]
+
+    @property
+    def roi_sum(self):
+        if self._hist_y is not None:
+            return self._hist_y.sum()
+        else:
+            return None
 
 
 class RoiModel(QtCore.QAbstractItemModel):
