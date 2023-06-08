@@ -27,7 +27,7 @@ import time
 from functools import partial
 
 import numpy as np
-from pyqtgraph.Qt import QtCore, QtGui, QtWidgets
+from pyqtgraph.Qt import QtCore, QtWidgets
 
 from ..core.datatypes import ViewerMode
 from .ui.acqconfigui import Ui_Form
@@ -66,11 +66,7 @@ class AcquisitionConfig(QtWidgets.QWidget, Ui_Form):
     @staticmethod
     def __determine_current_file_index(path):
         files = np.sort(glob.glob(f"{path}*.raw"))
-        if len(files) > 0:
-            index = int(files[-1].split("_")[-2]) + 1
-        else:
-            index = 0
-        return index
+        return int(files[-1].split("_")[-2]) + 1 if len(files) > 0 else 0
 
     def __determine_current_path(self):
         directory = self.path_name.text()
