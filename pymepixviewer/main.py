@@ -89,24 +89,26 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         logger.info("Starting status update thread")
 
         while True:
-            fpga = self._timepix._spidr.fpgaTemperature
-            local = self._timepix._spidr.localTemperature
-            remote = self._timepix._spidr.remoteTemperature
-            chipSpeed = self._timepix._spidr.chipboardFanSpeed
-            spidrSpeed = self._timepix._spidr.spidrFanSpeed
+            fpga = self._timepix._controller.fpgaTemperature
+            local = self._timepix._controller.localTemperature
+            remote = self._timepix._controller.remoteTemperature
+            chipSpeed = self._timepix._controller.chipboardFanSpeed
+            boardSpeed = self._timepix._controller.boardFanSpeed
             longtime = self._timepix._timepix_devices[0]._longtime.value * 25e-9
 
             self.updatePacketProcessorOutputQueueSize()
 
             self.updateStatusSignal.emit(
-                f"T_(FPGA)={fpga}, T_(loc)={local}, T_(remote)={remote}, Fan(chip)={chipSpeed}, Fan(SPIDR)={spidrSpeed}, Longtime={longtime:.2f}"
+                f"T_(FPGA)={fpga}, T_(loc)={local}, T_(remote)={remote}, Fan(chip)={chipSpeed}, Fan(SPIDR)={boardSpeed}, Longtime={longtime:.2f}"
             )
             # self.statusbar.showMessage(, 5000)
             time.sleep(5)
 
-    def __init__(self, timepix_ip, parent=None):
+    def __init__(self, timepix_ip, cam_gen, parent=None):
         super(PymepixDAQ, self).__init__(parent)
         self.setupUi(self)
+
+        self.camera_generation = cam_gen
 
         QtCore.QCoreApplication.setOrganizationName("CFEL-CMI")
         QtCore.QCoreApplication.setOrganizationDomain("controlled-molecule-imaging.org")
@@ -130,7 +132,7 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         self._last_frame = 0.0
         self._last_update = 0
         self.connectSignals()
-        self.startupTimepix(timepix_ip)
+        self.startupTimepix(timepix_ip, cam_gen)
 
         # Initialize SoPhy configuration manually, because the corresponding signal is connected after initialization of the LineEdit.
         # This will load the selected SoPhy configuration file into the camera
@@ -180,10 +182,11 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         time.sleep(2.0)
         self._timepix.start()
 
-    def startupTimepix(self, timepix_ip):
+    def startupTimepix(self, timepix_ip, camera_generation):
 
         self._timepix = pymepix.PymepixConnection(
-            (timepix_ip, 50000), pipeline_class=CentroidPipeline
+            (timepix_ip, 50000), pipeline_class=CentroidPipeline,\
+            camera_generation=camera_generation,
         )
         self._timepix.dataCallback = self.onData
 
@@ -586,8 +589,8 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         else:
             dock_view = QtWidgets.QDockWidget("Display {}".format(name), self)
             blob_view = BlobView(
-                start=start, end=end, parent=self, current_mode=self._current_mode
-            )
+                start=start, end=end, parent=self, current_mode=self._current_mode,
+                camera_generation=self.camera_generation,)
             dock_view.setWidget(blob_view)
             self._view_widgets[name] = dock_view
             self.displayNow.connect(blob_view.plotData)
@@ -638,7 +641,7 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
     def setupWindow(self):
         self._tof_panel = TimeOfFlightPanel()
         self._config_panel = DaqConfigPanel()
-        self._overview_panel = BlobView()
+        self._overview_panel = BlobView(camera_generation=self.camera_generation)
         self._dock_tof = QtWidgets.QDockWidget("Time of Flight", self)
         self._dock_tof.setFeatures(
             QtWidgets.QDockWidget.DockWidgetMovable
@@ -675,6 +678,15 @@ def main():
         help="IP address of Timepix",
     )
 
+    parser.add_argument(
+        "-g",
+        "--cam_gen",
+        dest="cam_gen",
+        type=str,
+        default=cfg.default_cfg["timepix"]["camera_generation"],
+        help="Camera generation",
+    )
+
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -683,7 +695,7 @@ def main():
     )
     app = QtWidgets.QApplication([])
 
-    config = PymepixDAQ(args.ip)
+    config = PymepixDAQ(args.ip, int(args.cam_gen))
     app.lastWindowClosed.connect(config.onClose)
     config.show()
 
