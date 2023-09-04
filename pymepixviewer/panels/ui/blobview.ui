@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>516</width>
-    <height>831</height>
+    <height>921</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -259,6 +259,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="checkBox_2">
+         <property name="text">
+          <string>Pixel histogram</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QLabel" name="label">
          <property name="text">
           <string>Binning</string>
@@ -469,6 +476,7 @@
    <class>PlotWidget</class>
    <extends>QMainWindow</extends>
    <header>silx.gui.plot.PlotWidget</header>
+   <container>1</container>
   </customwidget>
   <customwidget>
    <class>ImageView</class>

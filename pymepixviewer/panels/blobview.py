@@ -99,7 +99,7 @@ class BlobView(QtGui.QWidget, Ui_Form):
         self._x = np.array(self.matrix_dim[1] * [np.arange(0, self.matrix_dim[1])])
         self._y = np.array(self.matrix_dim[1] * [np.arange(0, self.matrix_dim[1])]).T
         self.checkBox.stateChanged.connect(self.onHistogramCheck)
-        self.checkBox_pixelhisto.stateChanged.connect(self.onPixelHistogramCheck)
+        self.checkBox_2.stateChanged.connect(self.onPixelHistogramCheck)
         self.blob_trend_check.stateChanged.connect(self.onTrendCheck)
         self.roi_trend_check.stateChanged.connect(self.onROITrendCheck)
         self.histo_binning.setValue(self.matrix_dim[1])
