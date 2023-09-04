@@ -92,12 +92,14 @@ class BlobView(QtGui.QWidget, Ui_Form):
         self.image_view.setPredefinedGradient("thermal")
 
         self._histogram_mode = False
+        self._pixel_histogram_mode = False
         self._histogram_x = []
         self._histogram_y = []
         self._histogram_bins = self.matrix_dim[1]
         self._x = np.array(self.matrix_dim[1] * [np.arange(0, self.matrix_dim[1])])
         self._y = np.array(self.matrix_dim[1] * [np.arange(0, self.matrix_dim[1])]).T
         self.checkBox.stateChanged.connect(self.onHistogramCheck)
+        self.checkBox_pixelhisto.stateChanged.connect(self.onPixelHistogramCheck)
         self.blob_trend_check.stateChanged.connect(self.onTrendCheck)
         self.roi_trend_check.stateChanged.connect(self.onROITrendCheck)
         self.histo_binning.setValue(self.matrix_dim[1])
@@ -185,6 +187,10 @@ class BlobView(QtGui.QWidget, Ui_Form):
         self._histogram_mode = status == 2
         self.clearData()
 
+    def onPixelHistogramCheck(self, status):
+        self._pixel_histogram_mode = status == 2
+        self.clearData()
+
     def onTrendCheck(self, status):
         if status == 2:
             self.blob_trend.show()
@@ -216,7 +222,10 @@ class BlobView(QtGui.QWidget, Ui_Form):
 
     def updateMatrix(self, x, y, tof, tot):
         tof_filter = self.getFilter(tof)
-        self._matrix[x[tof_filter], y[tof_filter]] += tot[tof_filter]
+        if self._pixel_histogram_mode:
+            self._matrix[x[tof_filter], y[tof_filter]] += 1
+        else:
+            self._matrix[x[tof_filter], y[tof_filter]] += tot[tof_filter]
 
     def clearMatrix(self):
         self._matrix[:,:] = 0
