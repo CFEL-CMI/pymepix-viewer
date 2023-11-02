@@ -27,7 +27,7 @@ from threading import Thread
 
 from pyqtgraph.Qt import QtCore, QtGui, QtWidgets
 
-from ..core.filesaver import FileSaver
+#from ..core.filesaver import FileSaver
 from .ui.daqconfigui import Ui_Form
 
 logger = logging.getLogger(__name__)
@@ -80,50 +80,24 @@ class DaqConfigPanel(QtWidgets.QWidget, Ui_Form):
     #             time.sleep(time_val)
     #     print('ENDING')
     #     self.endAcquisition()
-    def run_acquisition(self, acq_time, filename, index, raw, toa, tof, blob):
-        try:
-            self._in_acq = True
-            self._filesaver.openFiles(filename, index, raw, toa, tof, blob)
-            self.text_status.setText("Acquiring.....")
-            logger.info("Starting Acquisition")
-            start = time.time()
-            time_val = acq_time
-            if time_val != -1:
-                start = time.time()
-                while time.time() - start < time_val and self._in_acq:
-                    time.sleep(0.5)
-
-            tot_time = time.time() - start
-            logger.info(
-                "ENDING, time taken {}s or {} minutes".format(tot_time, tot_time / 60.0)
-            )
-            self.endAcquisition()
-        except Exception as e:
-            logger.error(str(e))
-            return
 
     def __init__(self, parent=None):
         super(DaqConfigPanel, self).__init__(parent)
 
         self._repeating_thread = None
-        self._filesaver = FileSaver()
-        self.closeFile.connect(self._filesaver.closeFiles)
-        self._filesaver.start()
+
+#        self._filesaver = FileSaver()
+#        self.closeFile.connect(self._filesaver.closeFiles)
+#        self._filesaver.start()
 
         # Set up the user interface from Designer.
         self.setupUi(self)
 
-        self._in_acq = False
         self.connectSignals()
 
-        self._elapsed_time_thread = QtCore.QTimer()
-        self._elapsed_time = QtCore.QElapsedTimer()
-        self._elapsed_time_thread.timeout.connect(self.updateTimer)
-        self._elapsed_time_thread.start(1000)
-
-    @property
-    def fileSaver(self):
-        return self._filesaver
+#    @property
+#    def fileSaver(self):
+#        return self._filesaver
 
     def connectSignals(self):
         # self.openpath.clicked.connect(self.openPath)
@@ -150,7 +124,30 @@ class DaqConfigPanel(QtWidgets.QWidget, Ui_Form):
     def eventCountChanged(self):
         self.eventCountChange.emit(int(self.event_count.text()))
 
-    def _collectAcquisitionSettings(self):
+"""    def run_acquisition(self, acq_time, filename, index, raw, toa, tof, blob):
+
+        try:
+            self._in_acq = True
+            self._filesaver.openFiles(filename, index, raw, toa, tof, blob)
+            self.text_status.setText("Acquiring.....")
+            logger.info("Starting Acquisition")
+            start = time.time()
+            time_val = acq_time
+            if time_val != -1:
+                start = time.time()
+                while time.time() - start < time_val and self._in_acq:
+                    time.sleep(0.5)
+
+            tot_time = time.time() - start
+            logger.info(
+                "ENDING, time taken {}s or {} minutes".format(tot_time, tot_time / 60.0)
+            )
+            self.endAcquisition()
+        except Exception as e:
+            logger.error(str(e))
+            return"""
+
+"""    def _collectAcquisitionSettings(self):
         acq = self.acqtab
 
         filename = os.path.join(acq.path_name.text(), acq.file_prefix.text())
@@ -184,16 +181,6 @@ class DaqConfigPanel(QtWidgets.QWidget, Ui_Form):
             acq_time,
             repeats,
         )
-
-    def updateTimer(self):
-        if self._in_acq:
-            seconds = self._elapsed_time.elapsed() / 1000
-            m, s = divmod(seconds, 60)
-            h, m = divmod(m, 60)
-
-            self.elapsed_time_s.display(int(round(s)))
-            self.elapsed_time_m.display(int(round(m)))
-            self.elapsed_time_h.display(h)
 
     def startAcqClicked(self):
         (
@@ -244,6 +231,8 @@ class DaqConfigPanel(QtWidgets.QWidget, Ui_Form):
         self._in_acq = False
         self.closeFile.emit()
         self._elapsed_time.restart()
+"""
+
 
 def main():
     app = QtGui.QApplication([])
