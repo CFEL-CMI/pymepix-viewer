@@ -25,6 +25,8 @@ import platform
 import time
 import argparse
 
+import zmq
+
 import pymepix
 import pymepix.config.load_config as cfg
 from pymepix.config.sophyconfig import SophyConfig
@@ -32,7 +34,7 @@ from pymepix.processing import MessageType
 from pymepix.processing.acquisition import CentroidPipeline
 
 # force to load PyQt5 for systems where PyQt4 is still installed
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import QRegExp
 from PyQt5.QtGui import QRegExpValidator
 
@@ -104,7 +106,66 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
             # self.statusbar.showMessage(, 5000)
             time.sleep(5)
 
-    def __init__(self, timepix_ip, cam_gen, parent=None):
+    def api_server(self):
+        """Function to provide a simple remote interface for the GUI using ZMQ"""
+        self.rest_sock = self.ctx.socket(zmq.REP)
+        self.rest_sock.connect(f"tcp://localhost:{self._api_port}")
+        logger.info(f"API server bind on tcp://localhost:{self._api_port}")
+
+        run_server = True
+        try:
+            while run_server:
+                request = self.rest_sock.recv_json()
+                command = request["command"]
+                logger.debug(f"API server: {command} command")
+
+                if command == "PATH":
+                    if request["parameters"]["path"] != None:
+                        logger.debug(
+                            f"API server: Changing path to {request['parameters']['path']}"
+                        )
+                        self._config_panel.acqtab.path_name.setText(request["parameters"]["path"])
+                    path = self._config_panel.acqtab.path_name.text()
+                    response = {"result": path}
+                    self.rest_sock.send_json(response)
+                elif command == "PREFIX":
+                    if request["parameters"]["prefix"] != None:
+                        logger.debug(
+                            f"API server: Changing prefix to {request['parameters']['prefix']}"
+                        )
+                        self._config_panel.acqtab.file_prefix.setText(
+                            request["parameters"]["prefix"]
+                        )
+                    prefix = self._config_panel.acqtab.file_prefix.text()
+                    response = {"result": prefix}
+                    self.rest_sock.send_json(response)
+                elif command == "START_ACQUISITION":
+                    self.start_recording()
+                    response = {"result": "STARTED_ACQUISITION"}
+                    self.rest_sock.send_json(response)
+                elif command == "STOP_ACQUISITION":
+                    self.stop_recording()
+                    response = {"result": "STOPPED_ACQUISITION"}
+                    self.rest_sock.send_json(response)
+                elif command == "GET_ROI_SUM":
+                    histogram_sums = []
+                    for i in range(self._tof_panel._roi_model.rootItem.childCount()):
+                        roi = self._tof_panel._roi_model.rootItem.child(i)
+                        histogram_sums.append(int(roi.roi_sum))
+                    response = {"result": histogram_sums}
+                    self.rest_sock.send_json(response)
+                elif command == "GET_FILE_INDEX":
+                    response = {"result": self._config_panel.acqtab.startIndex.value()}
+                    self.rest_sock.send_json(response)
+                else:
+                    self.updateStatusSignal.emit(f"API server received unknown command {command}")
+                    logger.warning(f'API server received unknown command "{command}"')
+                    response = {"result": "UNKNOWN_COMMAND"}
+                    self.rest_sock.send_json(response)
+        except Exception as e:
+            print('EXCEPTION IN TANGO API SERVER: ', e)
+
+    def __init__(self, timepix_ip, api_port, cam_gen, parent=None):
         super(PymepixDAQ, self).__init__(parent)
         self.setupUi(self)
 
@@ -142,6 +203,25 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         self.onModeChange(ViewerMode.TOA)
         self._statusUpdate.start()
         self.acquisition_time = 0
+
+        # Tango API stuff
+
+        self._api_server = GenericThread(self.api_server)
+
+        self.ctx = zmq.Context.instance()
+        self._api_port = api_port
+        self._api_server.start()
+
+    def closeEvent(self, event):
+        sock = self.ctx.socket(zmq.PUSH)
+        sock.connect(f"tcp://127.0.0.1:{self._api_port}")
+        sock.send_string("STOP API SERVER")
+        time.sleep(0.5)
+        sock.close()
+
+        super(QtGui.QMainWindow, self).closeEvent(event)
+
+
 
 
     def switchToMode(self):
@@ -543,6 +623,8 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def start_recording(self):
 
+        self.clearNow.emit()
+
         path = self._config_panel.acqtab.get_path()
         self.save_cam_settings(path)
 
@@ -670,6 +752,15 @@ def main():
     parser = argparse.ArgumentParser(description="Pymepix Viewer Application")
 
     parser.add_argument(
+        "-c",
+        "--config",
+        dest="cfg",
+        type=str,
+        default="default.yaml",
+        help="Config file",
+    )
+
+    parser.add_argument(
         "-i",
         "--ip",
         dest="ip",
@@ -687,7 +778,18 @@ def main():
         help="Camera generation",
     )
 
+
+    parser.add_argument(
+        "-p",
+        "--port",
+        dest="port",
+        type=int,
+        default=cfg.default_cfg.get('tango_api').get('port') if cfg.default_cfg.get('tango_api') else 9333,
+        help="Port of Tango-Pymepix server",
+    )
+
     args = parser.parse_args()
+    cfg.load_config(args.cfg)
 
     logging.basicConfig(
         level=logging.INFO,
@@ -695,7 +797,9 @@ def main():
     )
     app = QtWidgets.QApplication([])
 
-    config = PymepixDAQ(args.ip, int(args.cam_gen))
+    print('TANGO API PORT: ', args.port)
+
+    config = PymepixDAQ(args.ip, args.port, int(args.cam_gen))
     app.lastWindowClosed.connect(config.onClose)
     config.show()
 
