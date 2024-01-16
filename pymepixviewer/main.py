@@ -42,6 +42,7 @@ from pymepixviewer.core.datatypes import ViewerMode
 from pymepixviewer.dialogs.postprocessing import PostProcessing
 from pymepixviewer.panels.blobview import BlobView
 from pymepixviewer.panels.daqconfig import DaqConfigPanel
+from pymepixviewer.panels.daqcontrol import DaqControlPanel
 from pymepixviewer.panels.editpixelmaskpanel import EditPixelMaskPanel
 from pymepixviewer.panels.timeofflight import TimeOfFlightPanel
 from pymepixviewer.panels.timepixsetupplotspanel import TimepixSetupPlotsPanel
@@ -438,7 +439,7 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         self.clearNow.connect(self._overview_panel.clearData)
         self.modeChange.connect(self._overview_panel.modeChange)
 
-        self._config_panel.start_acq.clicked.connect(self.start_recording)
+        self._control_panel.start_acq.clicked.connect(self.start_recording)
 
         self._config_panel.viewtab.resetPlots.connect(self.clearNow.emit)
         self._config_panel.proctab.eventWindowChanged.connect(self.setEventWindow)
@@ -462,10 +463,10 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self._config_panel.proctab.clustering_changed_signal.connect(self.setClusteringType)
 
-        self.onRaw.connect(self._config_panel.fileSaver.onRaw)
-        self.onPixelToA.connect(self._config_panel.fileSaver.onToa)
-        self.onPixelToF.connect(self._config_panel.fileSaver.onTof)
-        self.onCentroid.connect(self._config_panel.fileSaver.onCentroid)
+#        self.onRaw.connect(self._config_panel.fileSaver.onRaw)
+#        self.onPixelToA.connect(self._config_panel.fileSaver.onToa)
+#        self.onPixelToF.connect(self._config_panel.fileSaver.onTof)
+#        self.onCentroid.connect(self._config_panel.fileSaver.onCentroid)
 
         self._statusUpdate = GenericThread(self.statusUdate)
         self.updateStatusSignal.connect(
@@ -475,10 +476,10 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         self.show_slow_processing_warning_sig.connect(self.show_slow_processing_warning)
 
         reg_ex = QRegExp("[0-9]+")
-        input_validator = QRegExpValidator(reg_ex, self._config_panel.acquisitiontime)
-        self._config_panel.acquisitiontime.setValidator(input_validator)
-        self._config_panel.acquisitiontime.setText('0')
-        self._config_panel.acquisitiontime.editingFinished.connect(self.update_acquisition_time)
+        input_validator = QRegExpValidator(reg_ex, self._control_panel.acquisitiontime)
+        self._control_panel.acquisitiontime.setValidator(input_validator)
+        self._control_panel.acquisitiontime.setText('0')
+        self._control_panel.acquisitiontime.editingFinished.connect(self.update_acquisition_time)
 
         self._acquisition_timer.timeout.connect(self.stop_recording)
 
@@ -528,8 +529,7 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
     def onModeChange(self, value):
         logger.info("Viewer mode changed to {}".format(value))
         self._current_mode = value
-        if self._current_mode in (ViewerMode.TOA,\
-                                  ViewerMode.Trig):
+        if self._current_mode in (ViewerMode.TOA,):
             # Hide TOF panel
             self._dock_tof.hide()
             for k, view in self._view_widgets.items():
@@ -538,6 +538,7 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         elif self._current_mode in (
             ViewerMode.TOF,
             ViewerMode.Centroid,
+            ViewerMode.Trig
         ):
             # Show it
             self._dock_tof.show()
@@ -631,14 +632,14 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         self._timepix.start_recording(path)
 
         # setup GUI
-        self._config_panel.start_acq.setStyleSheet("QPushButton {color: red;}")
+        self._control_panel.start_acq.setStyleSheet("QPushButton {color: red;}")
         #self._config_panel.start_acq.setEnabled(False)
         #self._config_panel.end_acq.setEnabled(True)
-        self._config_panel.start_acq.setText("Stop recording")
-        self._config_panel._in_acq = True
-        self._config_panel._elapsed_time.restart()
-        self._config_panel.start_acq.clicked.disconnect()
-        self._config_panel.start_acq.clicked.connect(self.stop_recording)
+        self._control_panel.start_acq.setText("Stop recording")
+        self._control_panel._in_acq = True
+        self._control_panel._elapsed_time.restart()
+        self._control_panel.start_acq.clicked.disconnect()
+        self._control_panel.start_acq.clicked.connect(self.stop_recording)
 
         if self.acquisition_time > 0:
             self._acquisition_timer.setInterval(self.acquisition_time*1000)  # 1000ms = 1s
@@ -651,13 +652,13 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         self._timepix.stop_recording()
 
         # update GUI
-        self._config_panel.start_acq.setStyleSheet("QPushButton {color: black;}")
+        self._control_panel.start_acq.setStyleSheet("QPushButton {color: black;}")
         #self._config_panel.start_acq.setEnabled(True)
         #self._config_panel.end_acq.setEnabled(False)
-        self._config_panel.start_acq.setText("Start Recording")
-        self._config_panel._in_acq = False
-        self._config_panel.start_acq.clicked.disconnect()
-        self._config_panel.start_acq.clicked.connect(self.start_recording)
+        self._control_panel.start_acq.setText("Start Recording")
+        self._control_panel._in_acq = False
+        self._control_panel.start_acq.clicked.disconnect()
+        self._control_panel.start_acq.clicked.connect(self.start_recording)
 
         self._acquisition_timer.stop()
 
@@ -723,6 +724,7 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
     def setupWindow(self):
         self._tof_panel = TimeOfFlightPanel()
         self._config_panel = DaqConfigPanel()
+        self._control_panel = DaqControlPanel()
         self._overview_panel = BlobView(camera_generation=self.camera_generation)
         self._dock_tof = QtWidgets.QDockWidget("Time of Flight", self)
         self._dock_tof.setFeatures(
@@ -743,8 +745,16 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         )
         self._dock_overview.setWidget(self._overview_panel)
 
+        self._dock_control = QtWidgets.QDockWidget("Control", self)
+        self._dock_control.setFeatures(
+            QtWidgets.QDockWidget.DockWidgetMovable
+            | QtWidgets.QDockWidget.DockWidgetFloatable
+        )
+        self._dock_control.setWidget(self._control_panel)
+
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self._dock_tof)
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self._dock_config)
+        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self._dock_control)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, self._dock_overview)
 
 
