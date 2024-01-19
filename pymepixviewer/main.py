@@ -31,7 +31,9 @@ import requests
 
 #import pymepix
 import pymepix.config.load_config as cfg
-from pymepix.config.sophyconfig import SophyConfig
+from pymepix.channel.client import Client
+from pymepix.channel.channel_types import ChannelDataType
+#from pymepix.config.sophyconfig import SophyConfig
 #from pymepix.processing import MessageType
 #from pymepix.processing.acquisition import CentroidPipeline
 
@@ -204,8 +206,7 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         self.connectSignals()
         self.rest_api_addr = rest_api_addr
         self._api_addr = f'http://{rest_api_addr[0]}:{rest_api_addr[1]}'
-        self.checkTimepixRunning(self._api_addr)
-        self.startupTimepix(timepix_ip, cam_gen)
+        self.startup()
 
         # Initialize SoPhy configuration manually, because the corresponding signal is connected after initialization of the LineEdit.
         # This will load the selected SoPhy configuration file into the camera
@@ -226,14 +227,15 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def closeEvent(self, event):
         sock = self.ctx.socket(zmq.PUSH)
-        sock.connect(f"tcp://127.0.0.1:{self._api_port}")
+        sock.connect(f"tcp://127.0.0.1:{self._tango_api_port}")
         sock.send_string("STOP API SERVER")
         time.sleep(0.5)
         sock.close()
 
-        super(QtGui.QMainWindow, self).closeEvent(event)
+        self.data_channel_client.stop()
 
-
+        #super(QtGui.QMainWindow, self).closeEvent(event)
+        super().closeEvent(event)
 
 
     def switchToMode(self):
@@ -242,37 +244,37 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         if self._current_mode is ViewerMode.Trig:
             # self._timepix[0].setupAcquisition(pymepix.processing.PixelPipeline)
             #self.__get_packet_processor().handle_events = True
-            self.set_timepix_attribute('[0].acquisition.packet_processor', True)
+            self.set_timepix_attribute('[0].acquisition.packet_processor.handle_events', True)
             logger.info(
                 "Switch to Trig mode, {}".format(
-                    self.get_timepix_attribute('[0].acquisition.packet_processor')
+                    self.get_timepix_attribute('[0].acquisition.packet_processor.handle_events')
                 )
             )
         elif self._current_mode is ViewerMode.TOA:
             # self._timepix[0].setupAcquisition(pymepix.processing.PixelPipeline)
             #self.__get_packet_processor().handle_events = False
-            self.set_timepix_attribute('[0].acquisition.packet_processor', False)
+            self.set_timepix_attribute('[0].acquisition.packet_processor.handle_events', False)
             logger.info(
                 "Switch to TOA mode, {}".format(
-                    self.get_timepix_attribute('[0].acquisition.packet_processor')
+                    self.get_timepix_attribute('[0].acquisition.packet_processor.handle_events')
                 )
             )
         elif self._current_mode is ViewerMode.TOF:
             # self._timepix[0].setupAcquisition(pymepix.processing.PixelPipeline)
             #self.__get_packet_processor().handle_events = True
-            self.set_timepix_attribute('[0].acquisition.packet_processor', True)
+            self.set_timepix_attribute('[0].acquisition.packet_processor.handle_events', True)
             logger.info(
                 "Switch to TOF mode, {}".format(
-                    self.get_timepix_attribute('[0].acquisition.packet_processor')
+                    self.get_timepix_attribute('[0].acquisition.packet_processor.handle_events')
                 )
             )
         elif self._current_mode is ViewerMode.Centroid:
             # self._timepix[0].setupAcquisition(pymepix.processing.CentroidPipeline)
             #self.__get_packet_processor().handle_events = True
-            self.set_timepix_attribute('[0].acquisition.packet_processor', True)
+            self.set_timepix_attribute('[0].acquisition.packet_processor.handle_events', True)
             logger.info(
                 "Switch to Centroid mode, {}".format(
-                    self.get_timepix_attribute('[0].acquisition.packet_processor')
+                    self.get_timepix_attribute('[0].acquisition.packet_processor.handle_events')
                 )
             )
 
@@ -280,7 +282,9 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         #self._timepix.start()
         self.call_pymepix_function('start')
 
-    def startupTimepix(self, timepix_ip, camera_generation):
+    def startup(self):
+
+        self.checkTimepixRunning(self._api_addr)
 
         #self._timepix = pymepix.PymepixConnection(
         #    (timepix_ip, 50000), pipeline_class=CentroidPipeline,\
@@ -289,6 +293,8 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
 
         #self._timepix.dataCallback = self.onData
         # Instead the port must be read and ZMQ channel established to
+
+        self.init_data_channel(self.onData)
 
         #if len(self._timepix) == 0:
         #    logger.error("NO TIMEPIX DEVICES DETECTED")
@@ -361,6 +367,12 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
                 if response != "<Response [200]>":
                     logger.error(f"Response of started API: {rest_api_addr}")
                     ValueError(f"Response of started API: {rest_api_addr}")
+
+    def init_data_channel(self, data_callback):
+        #first we have to read the address/port for zmq channel
+        chanAddress = self.get_timepix_attribute('chanAddress')
+        self.data_channel_client = Client(chanAddress, data_callback, )
+
 
     def onClose(self):
         #self._timepix.stop()
@@ -644,7 +656,14 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self.modeChange.emit(value)
 
-    def onData(self, data_type, event):
+    def onData(self, _in_data):
+
+        #print(in_data['type'])
+        #return
+
+        in_data = _in_data['data']
+        in_type = _in_data['type']
+
 
         # if self._event_max != -1 and self._current_event_count > self._event_max:
         #     self.clearNow.emit()
@@ -668,11 +687,11 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         if self._current_mode in (
             ViewerMode.TOF,
             ViewerMode.Centroid,
-        ) and data_type in (
-            MessageType.EventData,
-            MessageType.CentroidData,
+        ) and in_type in (
+            ChannelDataType.TOF.value,
+            ChannelDataType.CENTROID.value,
         ):
-            event_shots = event[0]
+            event_shots = in_data[0]
 
             if self._event_max != -1 and self._current_event_count > self._event_max:
                 self.clearNow.emit()
@@ -685,17 +704,15 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
                 return
             self._current_event_count += num_events
 
-        if data_type is MessageType.RawData:
-            self.onRaw.emit(event)
-        elif data_type is MessageType.PixelData:
-            logger.debug("RAW: {}".format(event))
-            self.onPixelToA.emit(event)
-        elif data_type is MessageType.EventData:
-            logger.debug("TOF: {}".format(event))
-            self.onPixelToF.emit(event)
-        elif data_type is MessageType.CentroidData:
-            logger.debug("CENTROID: {}".format(event))
-            self.onCentroid.emit(event)
+        if in_type == ChannelDataType.PIXEL.value:
+            logger.debug("RAW: {}".format(in_data))
+            self.onPixelToA.emit(in_data)
+        elif in_type == ChannelDataType.TOF.value:
+            logger.debug("TOF: {}".format(in_data))
+            self.onPixelToF.emit(in_data)
+        elif in_type == ChannelDataType.CENTROID.value:
+            logger.debug("CENTROID: {}".format(in_data))
+            self.onCentroid.emit(in_data)
 
         # if data_type in (MessageType.PixelData,):
         #     self.displayNow.emit()
@@ -782,8 +799,8 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
             self.modeChange.connect(blob_view.modeChange)
             self.addDockWidget(QtCore.Qt.RightDockWidgetArea, dock_view)
 
-    def __load_sophy_config(self, config: SophyConfig):
-        self.__load_sophy_config_file(config.filename)
+#    def __load_sophy_config(self, config: SophyConfig):
+#        self.__load_sophy_config_file(config.filename)
 
     def __load_sophy_config_file(self, config_filename):
         if config_filename is not None and config_filename != "":
@@ -879,7 +896,7 @@ def main():
         "--ip",
         dest="ip",
         type=str,
-        default=cfg.default_cfg["timepix"]["tpx_ip"],
+        default='192.168.1.1',
         help="IP address of Timepix",
     )
 
@@ -907,7 +924,7 @@ def main():
         "--pymepix_api_address",
         dest="pymepix_api_address",
         type=str,
-        default=cfg.default_cfg.get('rest_api').get('address') if cfg.default_cfg.get('rest_api') else '127.0.0.1',
+        default= '127.0.0.1',
         help="Address of RestAPI-Pymepix server",
     )
 
@@ -916,7 +933,7 @@ def main():
         "--pymepix_api_port",
         dest="pymepix_api_port",
         type=int,
-        default=cfg.default_cfg.get('rest_api').get('port') if cfg.default_cfg.get('rest_api') else 8085,
+        default= 8085,
         help="Port of RestAPI-Pymepix server",
     )
 
