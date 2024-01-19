@@ -620,7 +620,7 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         settings.endGroup()
 
     def update_acquisition_time(self):
-        self.acquisition_time = int(self._config_panel.acquisitiontime.text())
+        self.acquisition_time = int(self._control_panel.acquisitiontime.text())
 
     def start_recording(self):
 
