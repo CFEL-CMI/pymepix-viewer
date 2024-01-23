@@ -28,9 +28,12 @@ import argparse
 import zmq
 
 import requests
+import shlex, subprocess
+import os, signal
+
 
 #import pymepix
-import pymepix.config.load_config as cfg
+#import pymepix.config.load_config as cfg
 from pymepix.channel.client import Client
 from pymepix.channel.channel_types import ChannelDataType
 #from pymepix.config.sophyconfig import SophyConfig
@@ -176,7 +179,7 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         except Exception as e:
             print('EXCEPTION IN TANGO API SERVER: ', e)
 
-    def __init__(self, timepix_ip, tango_api_port, rest_api_addr, cam_gen, parent=None):
+    def __init__(self, config_file, timepix_ip, tango_api_port, rest_api_addr, cam_gen, parent=None):
         super(PymepixDAQ, self).__init__(parent)
         self.setupUi(self)
 
@@ -206,7 +209,7 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         self.connectSignals()
         self.rest_api_addr = rest_api_addr
         self._api_addr = f'http://{rest_api_addr[0]}:{rest_api_addr[1]}'
-        self.startup()
+        self.startup(config_file, timepix_ip, cam_gen)
 
         # Initialize SoPhy configuration manually, because the corresponding signal is connected after initialization of the LineEdit.
         # This will load the selected SoPhy configuration file into the camera
@@ -221,8 +224,13 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self._tango_api_server = GenericThread(self.tango_api_server)
 
+        self.pymepix_subproc = None
+
         self.ctx = zmq.Context.instance()
-        self._tango_api_port = tango_api_port
+        if  tango_api_port != None:
+            self._tango_api_port = tango_api_port
+        else:
+            self._tango_api_port = self.get_timepix_attribute("cfg.default_cfg")["tango_api"]['port']
         self._tango_api_server.start()
 
     def closeEvent(self, event):
@@ -282,9 +290,13 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         #self._timepix.start()
         self.call_pymepix_function('start')
 
-    def startup(self):
-
-        self.checkTimepixRunning(self._api_addr)
+    def startup(self, config_file, timepix_ip, cam_gen):
+        print('IN STARTUP FUNCTION')
+        if not self.checkTimepixRunning(self._api_addr):
+            print('STARTING PYMEPIX')
+            self.start_pymepix(config_file, timepix_ip, cam_gen)
+            if not self.checkTimepixRunning(self._api_addr):
+                ValueError("Failure of pymepix api server")
 
         #self._timepix = pymepix.PymepixConnection(
         #    (timepix_ip, 50000), pipeline_class=CentroidPipeline,\
@@ -302,7 +314,6 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         if self.get_timepix_attribute('_num_timepix') == 0:
             logger.error("NO TIMEPIX DEVICES DETECTED")
             quit()
-
 
 
         #logging.getLogger("pymepix").setLevel(logging.INFO)
@@ -351,22 +362,23 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
             raise ValueError(f"calling {func_name}, responded with: { response.text}")
         return response.json()['result']
 
-    def start_pymepix(self):
-        return False
+    def start_pymepix(self, config_file, timepix_ip, cam_gen):
+        comm_str = f"pymepix-acq api-service -i {timepix_ip} -g {cam_gen}  --api_port {self.rest_api_addr[1]} --config {config_file}"
+        args = shlex.split(comm_str)
+        self.pymepix_subproc = subprocess.Popen(args)
+
+
 
     def checkTimepixRunning(self, rest_api_addr):
-        response = requests.get(rest_api_addr)
-        if response.ok != True:
-            logger.info(f"No API server found on {rest_api_addr}, response: {response}")
-            if not self.start_pymepix():
-                logger.error(f"No pymepix could be started on {rest_api_addr}")
-                raise ValueError(f"No Pymepix sofrware at {rest_api_addr}")
-            else:
-                response = requests.get(rest_api_addr)
-                logger.info(f"API server started on {rest_api_addr}, response: {response}")
-                if response != "<Response [200]>":
-                    logger.error(f"Response of started API: {rest_api_addr}")
-                    ValueError(f"Response of started API: {rest_api_addr}")
+        try:
+            response = requests.get(rest_api_addr)
+            if response.ok == True:
+                return True
+            logger.info(f"API server is not ok on {rest_api_addr},  response {response}")
+            return False
+        except:
+            logger.info(f"No API server found on {rest_api_addr}")
+            return False
 
     def init_data_channel(self, data_callback):
         #first we have to read the address/port for zmq channel
@@ -377,6 +389,8 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
     def onClose(self):
         #self._timepix.stop()
         self.call_pymepix_function('stop')
+        if self.pymepix_subproc != None:
+            os.killpg(os.getpgid(self.pymepix_subproc.pid), signal.SIGTERM)
 
     def setFineThreshold(self, value):
         #self._timepix[0].Vthreshold_fine = value
@@ -596,17 +610,18 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         self.call_pymepix_function('start')
 
     def launchEditPixelMask(self):
-        pass
-        #panel = EditPixelMaskPanel(self._timepix[0].config, self)
 
-        #self.onPixelToA.connect(panel.onToaData)
-        #self.onPixelToF.connect(panel.onTofData)
-        #self.onCentroid.connect(panel.onCentroidData)
 
-        #panel.onCloseEvent.connect(self.__load_sophy_config)
+        panel = EditPixelMaskPanel(self)
 
-        #self.addDockWidget(QtCore.Qt.RightDockWidgetArea, panel)
-        #panel.setFloating(True)
+        self.onPixelToA.connect(panel.onToaData)
+        self.onPixelToF.connect(panel.onTofData)
+        self.onCentroid.connect(panel.onCentroidData)
+
+        panel.onCloseEvent.connect(self.__load_sophy_config)
+
+        self.addDockWidget(QtCore.Qt.RightDockWidgetArea, panel)
+        panel.setFloating(True)
 
     def launchTimepixSetupPlotsPanel(self):
         self._timepix_setup_plots_panel = TimepixSetupPlotsPanel(self)
@@ -658,23 +673,12 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def onData(self, _in_data):
 
-        #print(in_data['type'])
-        #return
-
         in_data = _in_data['data']
         in_type = _in_data['type']
 
 
-        # if self._event_max != -1 and self._current_event_count > self._event_max:
-        #     self.clearNow.emit()
-        #     self._current_event_count = 0
-
-        # event_shots = event[4]
-
         check_update = time.time()
 
-        # if data_type in (MessageType.PixelData,):
-        #     self.clearNow.emit()
 
         if self._current_mode is ViewerMode.TOA:
             if (
@@ -713,9 +717,6 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         elif in_type == ChannelDataType.CENTROID.value:
             logger.debug("CENTROID: {}".format(in_data))
             self.onCentroid.emit(in_data)
-
-        # if data_type in (MessageType.PixelData,):
-        #     self.displayNow.emit()
 
         if (check_update - self._last_update) > self._display_rate:
             self.displayNow.emit()
@@ -799,8 +800,9 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
             self.modeChange.connect(blob_view.modeChange)
             self.addDockWidget(QtCore.Qt.RightDockWidgetArea, dock_view)
 
-#    def __load_sophy_config(self, config: SophyConfig):
-#        self.__load_sophy_config_file(config.filename)
+    def __load_sophy_config(self):
+        config_filename = self.get_timepix_attribute("[0].config.filename")
+        self.__load_sophy_config_file(config_filename)
 
     def __load_sophy_config_file(self, config_filename):
         if config_filename is not None and config_filename != "":
@@ -911,11 +913,11 @@ def main():
 
 
     parser.add_argument(
-        "-tango_api_p",
+        "-tango_api_port",
         "--tango_api_port",
         dest="tango_api_port",
         type=int,
-        default=cfg.default_cfg.get('tango_api').get('port') if cfg.default_cfg.get('tango_api') else 9333,
+        default=None,
         help="Port of Tango-Pymepix server",
     )
 
@@ -939,7 +941,7 @@ def main():
 
 
     args = parser.parse_args()
-    cfg.load_config(args.cfg)
+    #cfg.load_config(args.cfg)
 
     logging.basicConfig(
         level=logging.INFO,
@@ -947,7 +949,7 @@ def main():
     )
     app = QtWidgets.QApplication([])
 
-    config = PymepixDAQ(args.ip, args.tango_api_port, (args.pymepix_api_address, args.pymepix_api_port), int(args.cam_gen))
+    config = PymepixDAQ(args.cfg, args.ip, args.tango_api_port, (args.pymepix_api_address, args.pymepix_api_port), int(args.cam_gen))
     app.lastWindowClosed.connect(config.onClose)
     config.show()
 

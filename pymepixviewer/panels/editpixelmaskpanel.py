@@ -8,10 +8,12 @@ from .ui.pixelmapeditui import Ui_DockWidget
 
 
 class EditPixelMaskPanel(QtWidgets.QDockWidget, Ui_DockWidget):
-    onCloseEvent = QtCore.pyqtSignal(SophyConfig)
+    onCloseEvent = QtCore.pyqtSignal()
 
-    def __init__(self, sophy_config: SophyConfig, parent=None):
+    def __init__(self, parent):
         super(EditPixelMaskPanel, self).__init__(parent)
+
+        self.parent = parent
 
         # Set up the user interface from Designer.
         self.setupUi(self)
@@ -20,13 +22,15 @@ class EditPixelMaskPanel(QtWidgets.QDockWidget, Ui_DockWidget):
         self.image = self.setup_image(self.__histogram_data)
 
         # fname, _ = QtGui.QFileDialog.getOpenFileName(self, "Open file", "/home", "SoPhy File (*.spx)")
-        self.__sophy_config = sophy_config
-        self.__pixel_mask = self.__sophy_config.maskPixels
+
+        self.__pixel_mask = np.asarray(self.parent.get_timepix_attribute("[0].maskPixelsJsonable"), dtype=np.uint8)
         self.__pixel_mask_plt = self.setup_pixel_mask(self.image, self.__pixel_mask)
 
     def closeEvent(self, event):
-        self.__sophy_config.saveMask()
-        self.onCloseEvent.emit(self.__sophy_config)
+        #self.__sophy_config.saveMask()
+        self.parent.call_pymepix_function('[0].config.saveMask')
+        #self.onCloseEvent.emit(self.__sophy_config)
+        self.onCloseEvent.emit()
 
     def setup_image(self, histogram_data):
         image = pg.ImageView(view=pg.PlotItem())
@@ -62,7 +66,8 @@ class EditPixelMaskPanel(QtWidgets.QDockWidget, Ui_DockWidget):
     def __update_pixel_mask(self, x, y):
         self.__pixel_mask[x, y] = 1 if self.__pixel_mask[x, y] == 0 else 0
         self.__pixel_mask_plt.setImage(self.__pixel_mask)
-        self.__sophy_config.maskPixels = self.__pixel_mask
+        #self.__sophy_config.maskPixels = self.__pixel_mask
+        self.parent.set_timepix_attribute("[0].maskPixelsJsonable", [list(i) for i in self.__pixel_mask.astype(str)])
 
     def __image_clicked(self, event):
         event.accept()
