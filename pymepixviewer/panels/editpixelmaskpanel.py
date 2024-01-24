@@ -27,9 +27,7 @@ class EditPixelMaskPanel(QtWidgets.QDockWidget, Ui_DockWidget):
         self.__pixel_mask_plt = self.setup_pixel_mask(self.image, self.__pixel_mask)
 
     def closeEvent(self, event):
-        #self.__sophy_config.saveMask()
         self.parent.call_pymepix_function('[0].config.saveMask')
-        #self.onCloseEvent.emit(self.__sophy_config)
         self.onCloseEvent.emit()
 
     def setup_image(self, histogram_data):
@@ -66,7 +64,6 @@ class EditPixelMaskPanel(QtWidgets.QDockWidget, Ui_DockWidget):
     def __update_pixel_mask(self, x, y):
         self.__pixel_mask[x, y] = 1 if self.__pixel_mask[x, y] == 0 else 0
         self.__pixel_mask_plt.setImage(self.__pixel_mask)
-        #self.__sophy_config.maskPixels = self.__pixel_mask
         self.parent.set_timepix_attribute("[0].maskPixelsJsonable", [list(i) for i in self.__pixel_mask.astype(str)])
 
     def __image_clicked(self, event):
