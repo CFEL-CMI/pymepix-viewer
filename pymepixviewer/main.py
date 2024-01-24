@@ -27,11 +27,17 @@ import argparse
 
 import zmq
 
-import pymepix
-import pymepix.config.load_config as cfg
-from pymepix.config.sophyconfig import SophyConfig
-from pymepix.processing import MessageType
-from pymepix.processing.acquisition import CentroidPipeline
+import requests
+import shlex, subprocess
+
+
+#import pymepix
+#import pymepix.config.load_config as cfg
+from pymepix.channel.client import Client
+from pymepix.channel.channel_types import ChannelDataType
+#from pymepix.config.sophyconfig import SophyConfig
+#from pymepix.processing import MessageType
+#from pymepix.processing.acquisition import CentroidPipeline
 
 # force to load PyQt5 for systems where PyQt4 is still installed
 from PyQt5 import QtWidgets, QtCore, QtGui
@@ -91,13 +97,13 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
     def statusUdate(self):
         logger.info("Starting status update thread")
 
-        while True:
-            fpga = self._timepix._controller.fpgaTemperature
-            local = self._timepix._controller.localTemperature
-            remote = self._timepix._controller.remoteTemperature
-            chipSpeed = self._timepix._controller.chipboardFanSpeed
-            boardSpeed = self._timepix._controller.boardFanSpeed
-            longtime = self._timepix._timepix_devices[0]._longtime.value * 25e-9
+        while  self.runStatusUpdate:
+            fpga = self.get_timepix_attribute('_controller.fpgaTemperature')
+            local = self.get_timepix_attribute('_controller.localTemperature')
+            remote = self.get_timepix_attribute('_controller.remoteTemperature')
+            chipSpeed  = self.get_timepix_attribute('_controller.chipboardFanSpeed')
+            boardSpeed = self.get_timepix_attribute('_controller.boardFanSpeed')
+            longtime  = self.get_timepix_attribute('._timepix_devices[0]._longtime.value') * 25e-9
 
             self.updatePacketProcessorOutputQueueSize()
 
@@ -107,11 +113,11 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
             # self.statusbar.showMessage(, 5000)
             time.sleep(5)
 
-    def api_server(self):
+    def tango_api_server(self):
         """Function to provide a simple remote interface for the GUI using ZMQ"""
         self.rest_sock = self.ctx.socket(zmq.REP)
-        self.rest_sock.connect(f"tcp://localhost:{self._api_port}")
-        logger.info(f"API server bind on tcp://localhost:{self._api_port}")
+        self.rest_sock.connect(f"tcp://localhost:{self._tango_api_port}")
+        logger.info(f"API server bind on tcp://localhost:{self._tango_api_port}")
 
         run_server = True
         try:
@@ -164,9 +170,9 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
                     response = {"result": "UNKNOWN_COMMAND"}
                     self.rest_sock.send_json(response)
         except Exception as e:
-            print('EXCEPTION IN TANGO API SERVER: ', e)
+            logger.error(f'EXCEPTION IN TANGO API SERVER: {e}')
 
-    def __init__(self, timepix_ip, api_port, cam_gen, parent=None):
+    def __init__(self, config_file, timepix_ip, tango_api_port, rest_api_addr, cam_gen, parent=None):
         super(PymepixDAQ, self).__init__(parent)
         self.setupUi(self)
 
@@ -194,7 +200,11 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         self._last_frame = 0.0
         self._last_update = 0
         self.connectSignals()
-        self.startupTimepix(timepix_ip, cam_gen)
+        self.pymepix_subproc = None
+
+        self.rest_api_addr = rest_api_addr
+        self._api_addr = f'http://{rest_api_addr[0]}:{rest_api_addr[1]}'
+        self.startup(config_file, timepix_ip, cam_gen)
 
         # Initialize SoPhy configuration manually, because the corresponding signal is connected after initialization of the LineEdit.
         # This will load the selected SoPhy configuration file into the camera
@@ -207,167 +217,220 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Tango API stuff
 
-        self._api_server = GenericThread(self.api_server)
+        self._tango_api_server = GenericThread(self.tango_api_server)
 
         self.ctx = zmq.Context.instance()
-        self._api_port = api_port
-        self._api_server.start()
+        if  tango_api_port != None:
+            self._tango_api_port = tango_api_port
+        else:
+            self._tango_api_port = self.get_timepix_attribute("cfg.default_cfg")["tango_api"]['port']
+        self._tango_api_server.start()
 
     def closeEvent(self, event):
         sock = self.ctx.socket(zmq.PUSH)
-        sock.connect(f"tcp://127.0.0.1:{self._api_port}")
+        sock.connect(f"tcp://127.0.0.1:{self._tango_api_port}")
         sock.send_string("STOP API SERVER")
         time.sleep(0.5)
         sock.close()
 
-        super(QtGui.QMainWindow, self).closeEvent(event)
+        self.data_channel_client.stop()
 
-
+        #super(QtGui.QMainWindow, self).closeEvent(event)
+        super().closeEvent(event)
 
 
     def switchToMode(self):
-        self._timepix.stop()
+        #self._timepix.stop()
+        self.call_pymepix_function('stop')
         if self._current_mode is ViewerMode.Trig:
             # self._timepix[0].setupAcquisition(pymepix.processing.PixelPipeline)
-            self.__get_packet_processor().handle_events = True
+            self.set_timepix_attribute('[0].acquisition.packet_processor.handle_events', True)
             logger.info(
                 "Switch to Trig mode, {}".format(
-                    self.__get_packet_processor().handle_events
+                    self.get_timepix_attribute('[0].acquisition.packet_processor.handle_events')
                 )
             )
         elif self._current_mode is ViewerMode.TOA:
             # self._timepix[0].setupAcquisition(pymepix.processing.PixelPipeline)
-            self.__get_packet_processor().handle_events = False
+            self.set_timepix_attribute('[0].acquisition.packet_processor.handle_events', False)
             logger.info(
                 "Switch to TOA mode, {}".format(
-                    self.__get_packet_processor().handle_events
+                    self.get_timepix_attribute('[0].acquisition.packet_processor.handle_events')
                 )
             )
         elif self._current_mode is ViewerMode.TOF:
             # self._timepix[0].setupAcquisition(pymepix.processing.PixelPipeline)
-            self.__get_packet_processor().handle_events = True
+            self.set_timepix_attribute('[0].acquisition.packet_processor.handle_events', True)
             logger.info(
                 "Switch to TOF mode, {}".format(
-                    self.__get_packet_processor().handle_events
+                    self.get_timepix_attribute('[0].acquisition.packet_processor.handle_events')
                 )
             )
         elif self._current_mode is ViewerMode.Centroid:
             # self._timepix[0].setupAcquisition(pymepix.processing.CentroidPipeline)
-            self.__get_packet_processor().handle_events = True
+            self.set_timepix_attribute('[0].acquisition.packet_processor.handle_events', True)
             logger.info(
                 "Switch to Centroid mode, {}".format(
-                    self.__get_packet_processor().handle_events
+                    self.get_timepix_attribute('[0].acquisition.packet_processor.handle_events')
                 )
             )
 
         time.sleep(2.0)
-        self._timepix.start()
+        self.call_pymepix_function('start')
 
-    def startupTimepix(self, timepix_ip, camera_generation):
+    def startup(self, config_file, timepix_ip, cam_gen):
+        if not self.checkTimepixRunning(self._api_addr):
+            self.start_pymepix(config_file, timepix_ip, cam_gen)
+            if not self.checkTimepixRunning(self._api_addr):
+                ValueError("Failure of pymepix api server")
 
-        self._timepix = pymepix.PymepixConnection(
-            (timepix_ip, 50000), pipeline_class=CentroidPipeline,\
-            camera_generation=camera_generation,
-        )
-        self._timepix.dataCallback = self.onData
+        self.init_data_channel(self.onData)
 
-        if len(self._timepix) == 0:
+        if self.get_timepix_attribute('_num_timepix') == 0:
             logger.error("NO TIMEPIX DEVICES DETECTED")
             quit()
 
-        logging.getLogger("pymepix").setLevel(logging.INFO)
+
+        #logging.getLogger("pymepix").setLevel(logging.INFO)
+
 
         logger.info(
             "Fine: {} Coarse: {}".format(
-                self._timepix[0].Vthreshold_fine, self._timepix[0].Vthreshold_coarse
+                self.get_timepix_attribute('[0].Vthreshold_fine'), self.get_timepix_attribute('[0].Vthreshold_coarse')
             )
         )
 
-        self.coarseThresholdUpdate.emit(self._timepix[0].Vthreshold_coarse)
-        self.fineThresholdUpdate.emit(self._timepix[0].Vthreshold_fine)
 
-        self._timepix.start()
+        self.coarseThresholdUpdate.emit(self.get_timepix_attribute('[0].Vthreshold_coarse'))
+        self.fineThresholdUpdate.emit(self.get_timepix_attribute('[0].Vthreshold_fine'))
+
+        self.call_pymepix_function('start')
+
+
+    def get_timepix_attribute(self, attribute_name):
+        args = {"param_name": attribute_name}
+        response = requests.get(f"{self._api_addr}/tpxproperty", data=args)
+        if response.ok != True:
+            logger.error(f"getting {attribute_name}, responded with: { response.text}")
+            raise ValueError(f"getting {attribute_name}, responded with: { response.text}")
+        return response.json()[attribute_name]
+
+    def set_timepix_attribute(self, attribute_name, attribute_value):
+        data_json = {attribute_name: attribute_value}
+        response = requests.post(f"{self._api_addr}/tpxproperty", json=data_json)
+        if response.ok != True:
+            logger.error(f"setting {attribute_name} with {attribute_value}, responded with: { response.text}")
+            raise ValueError(f"setting {attribute_name} with {attribute_value}, responded with: { response.text}")
+
+    def call_pymepix_function(self, func_name, **args):
+        args["func_name"] = func_name
+        response = requests.post(f"{self._api_addr}/tpxmethod", json=args)
+        if response.ok != True:
+            logger.error(f"calling {func_name}, responded with: { response.text}")
+            raise ValueError(f"calling {func_name}, responded with: { response.text}")
+        return response.json()['result']
+
+    def start_pymepix(self, config_file, timepix_ip, cam_gen):
+        comm_str = f"pymepix-acq api-service -i {timepix_ip} -g {cam_gen}  --api_port {self.rest_api_addr[1]} --config {config_file}"
+        args = shlex.split(comm_str)
+        self.pymepix_subproc = subprocess.Popen(args)
+        time.sleep(3)
+
+
+
+    def checkTimepixRunning(self, rest_api_addr):
+        try:
+            response = requests.get(rest_api_addr)
+            if response.ok == True:
+                return True
+            logger.info(f"API server is not ok on {rest_api_addr},  response {response}")
+            return False
+        except:
+            logger.info(f"No API server found on {rest_api_addr}")
+            return False
+
+    def init_data_channel(self, data_callback):
+        #first we have to read the address/port for zmq channel
+        chanAddress = self.get_timepix_attribute('chanAddress')
+        self.data_channel_client = Client(chanAddress, data_callback, )
+
 
     def onClose(self):
-        self._timepix.stop()
+        #self._timepix.stop()
+        self.runStatusUpdate = False
+        self.call_pymepix_function('stop')
+        if self.pymepix_subproc != None:
+            self.pymepix_subproc.kill()
+            outs, errs = self.pymepix_subproc.communicate()
 
     def setFineThreshold(self, value):
-        self._timepix[0].Vthreshold_fine = value
+        self.set_timepix_attribute('[0].Vthreshold_fine', value)
 
     def setCoarseThreshold(self, value):
-        self._timepix[0].Vthreshold_coarse = value
+        self.set_timepix_attribute('[0].Vthreshold_coarse', value)
 
     def setEventWindow(self, event_window_min, event_window_max):
         logger.info(
             "Setting Event window {} {}".format(event_window_min, event_window_max)
         )
-        self.__get_packet_processor().event_window = (
-            int(event_window_min),
-            int(event_window_max),
-        )
+        self.set_timepix_attribute('[0].acquisition.packet_processor.event_window', (int(event_window_min),\
+                                                                                     int(event_window_max)))
 
     def setTriggersProcessed(self, triggers_processed):
         logger.info("Setting centroid skip {}".format(triggers_processed))
-        self.__get_centroid_calculator().triggers_processed = triggers_processed
+        self.get_timepix_attribute('[0].acquisition.centroid_calculator.triggers_processed', triggers_processed)
 
     def setNumberProcesses(self, number_processes):
         logger.info("Setting number of blob processes {}".format(number_processes))
-        self._timepix.stop()
-        self._timepix[0].acquisition.numBlobProcesses = number_processes
-        self._timepix.start()
+        self.call_pymepix_function('stop')
+        self.set_timepix_attribute('[0].acquisition.numBlobProcesses', number_processes)
+        self.call_pymepix_function('start')
 
     def setEpsilon(self, epsilon):
         logger.info("Setting epsilon {}".format(epsilon))
-        self.__get_centroid_calculator().epsilon = epsilon
+        self.set_timepix_attribute('[0].acquisition.centroid_calculator.epsilon', epsilon)
 
     def setMinSamples(self, min_samples):
         logger.info("Setting samples {}".format(min_samples))
-        self.__get_centroid_calculator().min_samples = min_samples
+        self.set_timepix_attribute('[0].acquisition.centroid_calculator.min_samples', min_samples)
 
     def setTotThreshold(self, tot_threshold):
         logger.info("Setting Tot threshold {}".format(tot_threshold))
-        self.__get_centroid_calculator().tot_threshold = tot_threshold
+        self.set_timepix_attribute('[0].acquisition.centroid_calculator.tot_threshold', tot_threshold)
 
     def setCstreamToToffset(self, cs_tot_offset):
         logger.info("Setting Cluster stream ToT offset {}".format(cs_tot_offset))
-        self.__get_centroid_calculator().cs_tot_offset = cs_tot_offset
+        self.set_timepix_attribute('[0].acquisition.centroid_calculator.cs_tot_offset', cs_tot_offset)
 
     def setCstreamMinSamples(self, cs_min_samples):
         logger.info("Setting Cluster stream minimal samples {}".format(cs_min_samples))
-        self.__get_centroid_calculator().cs_min_cluster_size = cs_min_samples
+        self.set_timepix_attribute('[0].acquisition.centroid_calculator.cs_min_cluster_size', cs_min_samples)
 
     def setCstreamMaxToF(self, cs_max_dist_tof):
         logger.info("Setting Cluster stream maximal ToF distance {}".format(cs_max_dist_tof))
-        self.__get_centroid_calculator().cs_max_dist_tof = cs_max_dist_tof
+        self.set_timepix_attribute('[0].acquisition.centroid_calculator..cs_max_dist_tof', cs_max_dist_tof)
+
 
     def setClusteringType(self, is_dbscan_clustering):
         if is_dbscan_clustering:
             logger.info("Setting Clustering type to {}".format('dbscan'))
         else:
             logger.info("Setting Clustering type to {}".format('cluster streaming'))
-        self.__get_centroid_calculator().dbscan_clustering = is_dbscan_clustering
-
-
-    def __get_centroid_calculator(self):
-        return self._timepix[0].acquisition.centroid_calculator
-
-    def __get_packet_processor(self):
-        return self._timepix[0].acquisition.packet_processor
+        self.set_timepix_attribute('[0].acquisition.centroid_calculator.dbscan_clustering', is_dbscan_clustering)
 
     def startPacketProcessorOutputQueueSizeTimer(self):
-        queue_size_update_timer = QtCore.QTimer()
-        queue_size_update_timer.timeout.connect(
+        self.queue_size_update_timer = QtCore.QTimer()
+        self.queue_size_update_timer.timeout.connect(
             self.updatePacketProcessorOutputQueueSize
         )
-        queue_size_update_timer.start(500)
+        self.queue_size_update_timer.start(500)
 
     def updatePacketProcessorOutputQueueSize(self):
         queue_size = -1
         if (
             platform.system() != "Darwin"
         ):  # qsize does not work for MacOS, see: https://docs.python.org/3/library/multiprocessing.html#multiprocessing.Queue.qsize
-            packet_processor = self._timepix[0].acquisition.getStage(2)
-            queue_size = packet_processor.outputQueue.qsize()
+            queue_size = self.call_pymepix_function("[0].acquisition.pipeline_packet_processor.outputQueue.qsize")
         self._config_panel.proctab.queue_size_changed.emit(queue_size)
         if (
             queue_size > QUEUE_SIZE_WARNING_LIMIT
@@ -468,6 +531,7 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
 #        self.onPixelToF.connect(self._config_panel.fileSaver.onTof)
 #        self.onCentroid.connect(self._config_panel.fileSaver.onCentroid)
 
+        self.runStatusUpdate = True
         self._statusUpdate = GenericThread(self.statusUdate)
         self.updateStatusSignal.connect(
             lambda msg: self.statusbar.showMessage(msg, 5000)
@@ -484,13 +548,15 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         self._acquisition_timer.timeout.connect(self.stop_recording)
 
     def launchPostProcessing(self):
-        self._timepix.stop()
+        self.call_pymepix_function('stop')
         dialog = PostProcessing()
         dialog.exec_()
-        self._timepix.start()
+        self.call_pymepix_function('start')
 
     def launchEditPixelMask(self):
-        panel = EditPixelMaskPanel(self._timepix[0].config, self)
+
+
+        panel = EditPixelMaskPanel(self)
 
         self.onPixelToA.connect(panel.onToaData)
         self.onPixelToF.connect(panel.onTofData)
@@ -512,7 +578,7 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def onBiasVoltageUpdate(self, value):
         logger.info("Bias Voltage changed to {} V".format(value))
-        self._timepix.biasVoltage = value
+        self.set_timepix_attribute('biasVoltage', value)
 
     def onDisplayUpdate(self, value):
         logger.info("Display rate changed to {} s".format(value))
@@ -548,18 +614,14 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self.modeChange.emit(value)
 
-    def onData(self, data_type, event):
+    def onData(self, _in_data):
 
-        # if self._event_max != -1 and self._current_event_count > self._event_max:
-        #     self.clearNow.emit()
-        #     self._current_event_count = 0
+        in_data = _in_data['data']
+        in_type = _in_data['type']
 
-        # event_shots = event[4]
 
         check_update = time.time()
 
-        # if data_type in (MessageType.PixelData,):
-        #     self.clearNow.emit()
 
         if self._current_mode is ViewerMode.TOA:
             if (
@@ -572,11 +634,11 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         if self._current_mode in (
             ViewerMode.TOF,
             ViewerMode.Centroid,
-        ) and data_type in (
-            MessageType.EventData,
-            MessageType.CentroidData,
+        ) and in_type in (
+            ChannelDataType.TOF.value,
+            ChannelDataType.CENTROID.value,
         ):
-            event_shots = event[0]
+            event_shots = in_data[0]
 
             if self._event_max != -1 and self._current_event_count > self._event_max:
                 self.clearNow.emit()
@@ -589,20 +651,15 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
                 return
             self._current_event_count += num_events
 
-        if data_type is MessageType.RawData:
-            self.onRaw.emit(event)
-        elif data_type is MessageType.PixelData:
-            logger.debug("RAW: {}".format(event))
-            self.onPixelToA.emit(event)
-        elif data_type is MessageType.EventData:
-            logger.debug("TOF: {}".format(event))
-            self.onPixelToF.emit(event)
-        elif data_type is MessageType.CentroidData:
-            logger.debug("CENTROID: {}".format(event))
-            self.onCentroid.emit(event)
-
-        # if data_type in (MessageType.PixelData,):
-        #     self.displayNow.emit()
+        if in_type == ChannelDataType.PIXEL.value:
+            logger.debug("RAW: {}".format(in_data))
+            self.onPixelToA.emit(in_data)
+        elif in_type == ChannelDataType.TOF.value:
+            logger.debug("TOF: {}".format(in_data))
+            self.onPixelToF.emit(in_data)
+        elif in_type == ChannelDataType.CENTROID.value:
+            logger.debug("CENTROID: {}".format(in_data))
+            self.onCentroid.emit(in_data)
 
         if (check_update - self._last_update) > self._display_rate:
             self.displayNow.emit()
@@ -629,7 +686,7 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
         path = self._config_panel.acqtab.get_path()
         self.save_cam_settings(path)
 
-        self._timepix.start_recording(path)
+        self.call_pymepix_function('start_recording', path=path)
 
         # setup GUI
         self._control_panel.start_acq.setStyleSheet("QPushButton {color: red;}")
@@ -649,7 +706,7 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def stop_recording(self):
 
-        self._timepix.stop_recording()
+        self.call_pymepix_function('stop_recording')
 
         # update GUI
         self._control_panel.start_acq.setStyleSheet("QPushButton {color: black;}")
@@ -684,16 +741,18 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
             self.modeChange.connect(blob_view.modeChange)
             self.addDockWidget(QtCore.Qt.RightDockWidgetArea, dock_view)
 
-    def __load_sophy_config(self, config: SophyConfig):
-        self.__load_sophy_config_file(config.filename)
+    def __load_sophy_config(self):
+        config_filename = self.get_timepix_attribute("[0].config.filename")
+        self.__load_sophy_config_file(config_filename)
 
     def __load_sophy_config_file(self, config_filename):
         if config_filename is not None and config_filename != "":
-            self._timepix.stop()
+            #self._timepix.stop()
+            self.call_pymepix_function('stop')
 
             try:
-                self._timepix[0].setConfigClass(pymepix.config.SophyConfig)
-                self._timepix[0].loadConfig(config_filename)
+                self.call_pymepix_function('[0].setConfigClass', klass='SophyConfig')
+                self.call_pymepix_function('[0].loadConfig', filename=config_filename)
                 self.editPixelMask.setDisabled(False)
             except FileNotFoundError:
                 QtWidgets.QMessageBox.warning(
@@ -704,10 +763,12 @@ class PymepixDAQ(QtWidgets.QMainWindow, Ui_MainWindow):
                     QtWidgets.QMessageBox.Ok,
                 )
 
-            self.coarseThresholdUpdate.emit(self._timepix[0].Vthreshold_coarse)
-            self.fineThresholdUpdate.emit(self._timepix[0].Vthreshold_fine)
+            #self.coarseThresholdUpdate.emit(self._timepix[0].Vthreshold_coarse)
+            #self.fineThresholdUpdate.emit(self._timepix[0].Vthreshold_fine)
+            self.coarseThresholdUpdate.emit(self.get_timepix_attribute('[0].Vthreshold_coarse'))
+            self.fineThresholdUpdate.emit(self.get_timepix_attribute('[0].Vthreshold_fine'))
 
-            self._timepix.start()
+            self.call_pymepix_function('start')
 
             self.clearNow.emit()
 
@@ -775,7 +836,7 @@ def main():
         "--ip",
         dest="ip",
         type=str,
-        default=cfg.default_cfg["timepix"]["tpx_ip"],
+        default='192.168.1.1',
         help="IP address of Timepix",
     )
 
@@ -784,22 +845,41 @@ def main():
         "--cam_gen",
         dest="cam_gen",
         type=str,
-        default=cfg.default_cfg["timepix"]["camera_generation"],
+        default=3,
         help="Camera generation",
     )
 
 
     parser.add_argument(
-        "-p",
-        "--port",
-        dest="port",
+        "-tango_api_port",
+        "--tango_api_port",
+        dest="tango_api_port",
         type=int,
-        default=cfg.default_cfg.get('tango_api').get('port') if cfg.default_cfg.get('tango_api') else 9333,
+        default=None,
         help="Port of Tango-Pymepix server",
     )
 
+    parser.add_argument(
+        "-pym_api_addr",
+        "--pymepix_api_address",
+        dest="pymepix_api_address",
+        type=str,
+        default= '127.0.0.1',
+        help="Address of RestAPI-Pymepix server",
+    )
+
+    parser.add_argument(
+        "-pym_api_port",
+        "--pymepix_api_port",
+        dest="pymepix_api_port",
+        type=int,
+        default= 8085,
+        help="Port of RestAPI-Pymepix server",
+    )
+
+
     args = parser.parse_args()
-    cfg.load_config(args.cfg)
+    #cfg.load_config(args.cfg)
 
     logging.basicConfig(
         level=logging.INFO,
@@ -807,9 +887,7 @@ def main():
     )
     app = QtWidgets.QApplication([])
 
-    print('TANGO API PORT: ', args.port)
-
-    config = PymepixDAQ(args.ip, args.port, int(args.cam_gen))
+    config = PymepixDAQ(args.cfg, args.ip, args.tango_api_port, (args.pymepix_api_address, args.pymepix_api_port), int(args.cam_gen))
     app.lastWindowClosed.connect(config.onClose)
     config.show()
 
