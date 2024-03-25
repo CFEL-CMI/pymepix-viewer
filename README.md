@@ -1,3 +1,5 @@
+This repository is deprecated, please see the puiblic project at https://gitlab.desy.de/CMI/CMI-public/pymepix-viewer for details.
+
 # PymePix Viewer
 
 PymePix-viewer is a basic graphical user interface for data acquisition using the [PymePix
